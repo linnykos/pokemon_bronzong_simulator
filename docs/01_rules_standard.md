@@ -118,35 +118,57 @@ These rules set the floor on how fast an evolving attacker can attack, and they 
 - **You cannot evolve any Pokémon on your first turn of the game.** This applies to both players, and applies to Pokémon placed during setup.
 - **You cannot evolve a Pokémon twice in one turn**, nor evolve a Pokémon that evolved or devolved earlier that same turn.
 - Evolving works whether the Pokémon is Active or Benched.
-- Certain Abilities (e.g. "Adaptive Evolution"-style effects) explicitly override these restrictions. None are assumed here; if the decklist contains one it must be handled as a special case.
+- Certain cards explicitly override these restrictions. **One is in these decklists and it matters enormously: [Salvatore](cards/TEF-160-salvatore.md) (TEF 160).** It overrides *both* the played-this-turn restriction and the **first-turn** restriction — confirmed with the player, 2026-08-29. See §5.1.
 
 ### Rare Candy
 
 **Rare Candy** (Item) evolves a **Basic** Pokémon directly into its **Stage 2**, skipping Stage 1. It is still an evolution, so every restriction above still applies: not on your first turn, and not on the turn the Basic came into play.
 
-### Consequence: the earliest possible evolution attack
+## 5.1 The earliest possible Evolution Jammer
 
-Combining §4 and §5:
+**Without Salvatore**, combining §4 and §5:
 
 - A Basic placed during **setup** cannot evolve on your **turn 1**.
-- Therefore the earliest a Stage 1 (or a Stage 2 via Rare Candy) can be **in play** is your **turn 2**.
-- Therefore the earliest it can **attack** is your **turn 2**.
+- So the earliest a Stage 1 (or a Stage 2 via Rare Candy) can be **in play**, and therefore the earliest it can **attack**, is your **turn 2**.
+- This holds whether you go first or second. Going second only removes the "cannot attack on turn 1" restriction — on its own it does not permit evolving on turn 1.
 
-This holds whether you go first or second. Going second only removes the "cannot attack on turn 1" restriction — it does not permit evolving on turn 1.
+**With Salvatore**, the first-turn evolution ban is lifted. Going **second** — where you may play a Supporter *and* attack on turn 1 — the full line fits inside turn 1:
 
-**"Evolution Jammer on the first turn possible" therefore means the player's second turn.**
+1. Bronzor in the Active spot (led from setup, or switched into during turn 1);
+2. play **Salvatore**, searching out **Bronzong** and evolving Bronzor;
+3. attach a `[P]` Energy (basic Psychic, or Telepathic Psychic);
+4. attack **Evolution Jammer**.
 
-Concretely, the simulator's **target event** is: on the player's own turn 2, all of the following hold at the attack step —
+Going **first** this is impossible: no Supporter and no attack on turn 1.
 
-1. A **Bronzor** was in play from setup or from the player's turn 1 (it cannot have been benched on turn 2, or it could not evolve on turn 2);
-2. **Bronzong (TEF #69)** has been played from hand onto that Bronzor;
-3. That Bronzong is in the **Active** spot;
-4. It has at least **one Psychic Energy** attached (Evolution Jammer costs `[P]`);
-5. Nothing prevents it from attacking.
+### The earliest achievable turn, per cell
 
-Note that only **one** Energy attachment per turn is allowed, so the Psychic Energy may be attached on turn 1 (to the Bronzor, where it carries through evolution) or on turn 2. Attaching on turn 1 to the Bronzor is strictly more flexible, since it frees the turn-2 attachment.
+| | Salvatore lists (2,3,4,5,7) | No-Salvatore lists (1,6,8) |
+|---|---|---|
+| **Going second** | **turn 1** | turn 2 |
+| **Going first** | turn 2 | turn 2 |
 
-Also note requirement 3: Bronzong must be **Active**. If Bronzor is on the Bench, the player must either have led with Bronzor, or spend the turn's retreat (Bronzor's retreat cost is 3) or a switching effect to promote it. This is a major constraint and the decision tree in `docs/03_decision_tree.md` must treat it as a first-class branch.
+The "first turn possible" is therefore a property of the *(decklist, coin flip)* pair, not a constant. **Part 6 must report per cell and must not pool across them** — pooling would make a Salvatore list look worse simply because half its games go first.
+
+The simulator should record the **actual turn** Evolution Jammer was achieved (or never), so both "hit the theoretical earliest" and "hit by turn 2 regardless" can be read off the same runs.
+
+### The target event
+
+At the attack step of the relevant turn, all of the following hold —
+
+1. A **Bronzor** is in play, and is eligible to evolve:
+   - by the **normal** route, it must have been in play since before this turn began — i.e. from setup or from the previous turn — and this must not be the player's first turn; or
+   - via **Salvatore**, in which case none of that applies: it may have been placed at setup, or benched this very turn, and it may be the player's first turn.
+2. **Bronzong (TEF #69)** is on that Bronzor — played from hand, or fetched straight out of the deck by Salvatore.
+3. That Bronzong is in the **Active** spot.
+4. It has at least **one `[P]` Energy** attached — basic Psychic, or Telepathic Psychic Energy. **Enriching Energy does not qualify**: it provides `[C]`.
+5. Nothing prevents it from attacking, and this is not the player's first turn *going first*.
+
+Three constraints follow, and the decision tree must treat each as a first-class branch:
+
+- **Only one Energy attachment per turn.** The `[P]` may go onto the Bronzor on an earlier turn (it carries through evolution) or onto the Bronzong on the turn it attacks. Attaching earlier is more flexible, since it frees the later attachment for Enriching Energy's draw 4.
+- **Bronzong must be Active** (requirement 3). If Bronzor is on the Bench the player needs a switching effect — Bronzor's own retreat cost is **3**. The outs are Switch, Latias ex's Skyliner (free retreat for Basics), or Buneary's Run Around (an attack, so going second only).
+- **Salvatore does not solve the Active problem** — it evolves a Bronzor anywhere on the board. It removes the timing constraint, not the positioning one.
 
 ---
 

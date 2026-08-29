@@ -10,13 +10,25 @@ do not apply here. R style still follows `r-style-guide`.
 ## The question being answered
 
 Over many simulated games, what fraction of the time can the player attack with
-Evolution Jammer on their **second turn** (the earliest legal turn — see
-`docs/01_rules_standard.md` §5)? Compare that number across candidate 60-card
-lists.
+Evolution Jammer on **the earliest turn that is legal for that decklist and coin
+flip**? Compare across candidate 60-card lists.
 
 **Evolution Jammer is an attack, not an Ability.** Bronzong (TEF #69, reg H)
-must be Active with one Psychic Energy attached. The Bronzor must have been in
-play since setup or turn 1.
+must be **Active** with one `[P]` Energy attached — basic Psychic or Telepathic
+Psychic. Enriching Energy provides `[C]` and does **not** qualify.
+
+**The earliest legal turn is not a constant** (see `docs/01_rules_standard.md`
+§5.1). Salvatore overrides the first-turn evolution ban, so:
+
+| | Salvatore lists (2,3,4,5,7) | No-Salvatore lists (1,6,8) |
+|---|---|---|
+| **Going second** | **turn 1** | turn 2 |
+| **Going first** | turn 2 | turn 2 |
+
+Results must be reported **per cell**, never pooled — pooling would penalize a
+Salvatore list for the half of its games that go first. Always record the actual
+turn achieved, so "hit the theoretical earliest" and "hit by turn 2" can both be
+read off the same runs.
 
 ## Scenarios
 

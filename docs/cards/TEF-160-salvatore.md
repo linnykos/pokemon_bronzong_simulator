@@ -24,32 +24,38 @@ The target must have **no Abilities**. In decklists 2 and 3 that means:
 - **Dusclops** and **Dusknoir** — **not** legal targets. Both have the Cursed
   Blast **Ability**, so Salvatore can never fetch them.
 
-### The turn-1 question — [UNVERIFIED, DECISION-CRITICAL]
+### Turn-1 legality — **RESOLVED: Salvatore works on your first turn**
 
-Salvatore explicitly overrides "you can't evolve a Pokémon the turn it came into
-play". Whether it *also* overrides "you can't evolve on your first turn of the
-game" determines whether the target event for decklists 2 and 3 is **turn 1 or
-turn 2** — and therefore what this entire project measures.
+Confirmed by the player, 2026-08-29. Salvatore overrides **both** evolution
+timing restrictions: "played this turn" *and* "your first turn of the game".
 
-**Textual argument that it does work on turn 1:** the effect grants two
-permissions — on a Pokémon "put down when you were setting up", and on one "put
-into play this turn". The second clause covers the played-this-turn restriction.
-The first clause covers setup Pokémon — but on turn 2 and later a setup Pokémon
-is *already* freely evolvable, so that clause is pure redundancy unless it is
-there to license evolving on your **first turn**.
+This is consistent with the card text: the effect grants two permissions — on a
+Pokémon "put down when you were setting up", and on one "put into play this
+turn". The second covers the played-this-turn restriction. The first covers
+setup Pokémon, which on turn 2 and later are *already* freely evolvable — so
+that clause is only meaningful as a licence to evolve on your **first turn**.
 
-**Argument against:** the first-turn evolution ban is written as a separate rule
-(`docs/01_rules_standard.md` §5), and Salvatore never names it. Cards that mean
-to exempt themselves from first-turn rules usually say so outright — compare
-Rare Candy, which states "You can't use this card during your first turn."
+**Consequence — the turn-1 kill:** going **second**, with Salvatore, the line is
 
-Web sources checked on 2026-08-29 contradict each other and none is
-authoritative. **Ask the player before encoding this.**
+1. Bronzor in the Active spot (led from setup, or switched into on turn 1);
+2. play **Salvatore** → search **Bronzong**, evolve Bronzor;
+3. attach a `[P]` Energy (basic Psychic or Telepathic Psychic);
+4. attack **Evolution Jammer** — **on turn 1**,
 
-If Salvatore *does* work on turn 1, then going second the line is:
-Bronzor Active from setup → Salvatore fetches and evolves Bronzong → attach a
-`[P]` Energy → attack Evolution Jammer **on turn 1**, locking the opponent's
-evolutions on their own first turn.
+which locks the opponent's evolutions on their *own first turn*, before they
+have evolved anything at all.
+
+**Going first this line does not exist**, because the first player can play no
+Supporter and cannot attack. So:
+
+| | Salvatore list (2,3,4,5,7) | No-Salvatore list (1,6,8) |
+|---|---|---|
+| **Going second** | **turn 1** | turn 2 |
+| **Going first** | turn 2 | turn 2 |
+
+The "earliest possible turn" is therefore a function of both the decklist and
+the coin flip, and the metric in part 6 must be computed per cell rather than
+pooled. See `docs/01_rules_standard.md` §5.
 
 ### Playability constraint
 

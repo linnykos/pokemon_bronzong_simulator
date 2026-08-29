@@ -78,9 +78,13 @@ rather than a variable being tested.
 2. **Bronzong has no Ability**, which makes it a legal **Salvatore** target.
    Dusclops and Dusknoir both have the Cursed Blast Ability and so can *never*
    be fetched with Salvatore.
-3. **Salvatore may or may not work on the player's first turn.** This is
-   unresolved and decision-critical — see "Open items". Five of the eight lists
-   run it, so it looks like the variable being tested.
+3. **Salvatore works on the player's first turn** (confirmed with the player,
+   2026-08-29) — it overrides both the played-this-turn and the first-turn
+   evolution restrictions. Going **second**, a Salvatore list can therefore
+   attack with Evolution Jammer on **turn 1**, locking the opponent's evolutions
+   on their own first turn. Going first it cannot (no Supporter, no attack), so
+   the earliest achievable turn depends on the *(decklist, coin flip)* pair —
+   see `docs/01_rules_standard.md` §5.1.
 4. **Enriching Energy provides `[C]`, not `[P]`** — it cannot pay for Evolution
    Jammer. **Telepathic Psychic Energy provides `[P]` and can.**
 5. **Telepathic Psychic Energy's attach trigger** searches up to 2 Basic `[P]`
@@ -103,11 +107,7 @@ rather than a variable being tested.
 
 ## Open items
 
-- **[DECISION-CRITICAL] Does Salvatore let you evolve on your *first* turn?**
-  It plainly overrides "can't evolve a Pokémon played this turn". Whether it
-  also overrides "can't evolve on your first turn" decides whether the target
-  event is turn 1 or turn 2 for the five lists running it. Sources checked
-  disagree; see `cards/TEF-160-salvatore.md` for the argument each way.
+- ~~Does Salvatore let you evolve on your first turn?~~ **RESOLVED: yes.**
 - **Nighttime Mine's effect text is not corroborated** (reported text hoses Tera
   Pokémon; no list runs Tera). decklist1 only.
 - **ASC regulation marks are internally inconsistent** in the source (H for
