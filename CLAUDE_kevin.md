@@ -24,15 +24,20 @@ Invocation from the Git Bash shell used in these sessions:
 
 ## Project Status (as of 2026-08-29)
 
-Parts 1 and 2 of the six-part plan are complete; part 3 has not been started.
+Parts 1, 2 and 4 are done; part 3 is drafted and awaiting Kevin's review; parts 5 and 6 are not started.
 
-- **Part 1 — rules (done).** `docs/01_rules_standard.md` covers Standard 2026 legality, deck construction, the full setup sequence, turn structure and per-turn limits, evolution timing, first-turn restrictions, and §5.1's derivation of the earliest possible Evolution Jammer.
-- **Part 2 — card text (done).** 35 files in `docs/cards/` covering 34 distinct cards, indexed by `docs/02_cards.md` with a count matrix across all six decklists. Coverage and the matrix are both verified by script against the decklists, not by eye.
-- **Parts 3–6 — not started.** Decision tree, simulator, policy, and the decklist registry.
+- **Part 1 — rules (done).** `docs/01_rules_standard.md`.
+- **Part 2 — card text (done).** 37 files in `docs/cards/` covering 36 distinct cards, indexed by `docs/02_cards.md` with a count matrix across all six decklists. Coverage and the matrix are verified by script, not by eye.
+- **Part 3 — decision tree (drafted, needs review).** `docs/03_decision_tree.md` and `docs/03a_card_playbook.md`. Each ends with numbered questions for Kevin.
+- **Part 4 — base simulator (done).** Seven files in `R/`: card database, decklist parsing, game state, belief state, rules, setup, card effects. No Monte Carlo and no policy yet, by design.
+- **Tests (done).** `tests/run_tests_claude.R` runs **1517 assertions**, all passing, plus `scripts/smoke_test_claude.R`. testthat is not installable here, so `tests/testthat_shim_claude.R` provides a testthat-compatible harness; the test files use testthat's real API so `devtools::test()` will run them unchanged once testthat exists.
+- **Parts 5–6 — not started.** Policy, and the decklist registry over 10,000 replicates.
 
-Six decklists in `decklists/`, each a legal 60. Two exact duplicates (old 7 and 8) were removed. The lists share a fixed 16-card shell; the live variables are Salvatore (0/1), the `[P]` energy base, Switch 3-vs-4, Bronzor 2-vs-3, Ciphermaniac's 0/2/3, and the stadium slot.
+Three rounds of agent audit found and fixed **~30 defects**. The classes worth remembering: silent card loss through zones nobody counted, belief-state staleness, unbounded search targets, and metrics that measured availability rather than action.
 
-Six cards are imported as **candidates not yet in any list**: Buddy-Buddy Poffin, Bronzor PRE 66, Bronzor SSP 126, Pokégear 3.0, Mystery Garden, Surfer. A seventh, Brock's Training, was checked and is **not Standard-legal and does nothing for this deck** — see its card file so it is not re-researched.
+Six decklists in `decklists/`, each a legal 60. They share a fixed 16-card shell; the live variables are Salvatore (0/1), the `[P]` energy base, Switch 3-vs-4, Bronzor 2-vs-3, Ciphermaniac's 0/2/3, and the stadium slot.
+
+Six cards are imported as **candidates not yet in any list**: Buddy-Buddy Poffin, Bronzor PRE 66, Bronzor SSP 126, Pokégear 3.0, Mystery Garden, Surfer, plus Brock's Scouting.
 
 ## Key Methodological Details
 
@@ -51,7 +56,9 @@ Six cards are imported as **candidates not yet in any list**: Buddy-Buddy Poffin
 2. **Getting Bronzong *Active* is the suspected bottleneck**, not drawing it — Salvatore fixes timing but not positioning. Confirm this in the sim rather than assuming it.
 3. **Open: the Salvatore first-turn ruling has no citable source** (ADR 0001). Kevin has now confirmed it twice and is confident; his expertise is the citation. Residual risk only — an official ruling in `additional_context/` would close it.
 8. **Open: confirm one wording in ADR 0003.** Kevin wrote that the sim "should NOT immediately know what's benched before the first deck-search card is played." Implemented as *deck contents / what is prized*, since that is what a deck search actually reveals. Flagged in the ADR in case something else was meant.
-9. **Open: Surfer's tension with Salvatore is untested.** Both are Supporters and only one may be played per turn, so going second with Bronzor benched the player cannot both switch and Salvatore-evolve. Switch (an Item) does the positioning without spending the Supporter slot, which likely makes it better than Surfer for the turn-1 line — worth measuring rather than assuming.
+9. **Open: `Mystery Garden` is modelled as inert but is not.** Its text is a live turn-1/2 draw effect ("discard an Energy from hand, draw until your hand matches your `[P]` Pokemon in play"). It is in no decklist yet, so this only bites when it is added as a candidate. `docs/03a_card_playbook.md` still lists it as an open question.
+10. **Open: the smoke script is not run by the test runner.** It is the only place a full hand-played line is exercised end to end; wire it in or fold it into the suite.
+11. **Open: Surfer's tension with Salvatore is untested.** Both are Supporters and only one may be played per turn, so going second with Bronzor benched the player cannot both switch and Salvatore-evolve. Switch (an Item) does the positioning without spending the Supporter slot, which likely makes it better than Surfer for the turn-1 line — worth measuring rather than assuming.
 4. **Open: Nighttime Mine's effect text is uncorroborated** and looks implausible (hoses Tera Pokémon; no list runs Tera). decklist1 only, and inert for the metric either way.
 5. **Open: the Bronzor printing trade-off is unmeasured.** Buddy-Buddy Poffin caps at 70 HP, so it cannot fetch Bronzor TEF 68 (80 HP) but can fetch PRE 66 (70) and SSP 126 (60) — at the cost of those being Metal, so Telepathic Psychic Energy can no longer find them. A 2/2 split keeps both routes and is its own candidate.
 6. **Open: whether to install `testthat`** for part 4's tests, or hand-roll assertions in base R.
