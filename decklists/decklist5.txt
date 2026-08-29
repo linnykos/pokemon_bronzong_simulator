@@ -1,0 +1,29 @@
+Pokémon: 24
+4 Duskull PRE 35
+2 Dusclops PRE 36
+4 Dusknoir PRE 37
+3 Bronzor TEF 68
+2 Bronzong TEF 69
+2 Buneary PFL 83
+2 Mega Lopunny ex PFL 84
+2 Mega Kangaskhan ex MEG 104
+1 Latias ex SSP 76
+1 Flutter Mane TEF 78
+1 Meowth ex POR 62
+
+Trainer: 29
+4 Lillie's Determination MEG 119
+4 Hilda WHT 84
+2 Boss's Orders MEG 114
+1 Salvatore TEF 160
+4 Poké Pad POR 81
+4 Rare Candy MEG 125
+4 Ultra Ball MEG 131
+3 Switch MEG 130
+2 Night Stretcher ASC 196
+1 Jamming Tower TWM 153
+
+Energy: 7
+4 Telepathic Psychic Energy POR 88
+2 Psychic Energy MEE 5
+1 Enriching Energy SSP 191
