@@ -32,14 +32,14 @@ Parts 1 and 2 of the six-part plan are complete; part 3 has not been started.
 
 Six decklists in `decklists/`, each a legal 60. Two exact duplicates (old 7 and 8) were removed. The lists share a fixed 16-card shell; the live variables are Salvatore (0/1), the `[P]` energy base, Switch 3-vs-4, Bronzor 2-vs-3, Ciphermaniac's 0/2/3, and the stadium slot.
 
-Four cards are imported as **candidates not yet in any list**: Buddy-Buddy Poffin, Bronzor PRE 66, Bronzor SSP 126, Pokégear 3.0, Mystery Garden.
+Six cards are imported as **candidates not yet in any list**: Buddy-Buddy Poffin, Bronzor PRE 66, Bronzor SSP 126, Pokégear 3.0, Mystery Garden, Surfer. A seventh, Brock's Training, was checked and is **not Standard-legal and does nothing for this deck** — see its card file so it is not re-researched.
 
 ## Key Methodological Details
 
 - **The target event is an attack, not a board state.** Bronzong TEF 69 must be *Active* with a `[P]` source attached and must actually attack. See `CONTEXT.md` → *Target event*.
 - **Only two cards are `[P]` sources**: basic Psychic Energy (SVE 5 / MEE 5) and Telepathic Psychic Energy (POR 88). Enriching Energy provides `[C]` and does not qualify.
-- **Earliest legal turn is per-cell, not constant** — turn 1 for a Salvatore list going second, turn 2 otherwise (ADR 0001, 0002).
-- **The policy may not read prizes or deck order** (ADR 0003). This requires a belief state separate from ground truth, built in from the start.
+- **Primary outcome is a fixed bar: Evolution Jammer on or before the player's own turn 2** (ADR 0004), identical going first and going second. Going first and going second are reported separately and never pooled (ADR 0002). Every replicate also records the *turn actually achieved*, which is the only place Salvatore's turn-1 speed appears.
+- **The policy may not read prizes or deck order** (ADR 0003), which requires a belief state separate from ground truth, built in from the start. Three mechanics: deck contents unknown until the first deck search; deck order never known; the deck reshuffles unseen after every search, destroying order knowledge but not contents knowledge.
 - **Three different cards are named "Bronzor."** Never write "Bronzor" without a set and number.
 - **Retreating costs the retreat cost of the Pokémon *leaving* the Active spot.** Bronzor's retreat 3 does not obstruct promoting it; what matters is what is currently Active. Latias ex's Skyliner makes any *Basic* Active retreat free, and on turn 1 the Active is almost always a Basic.
 - **The transcription source mis-renders attacks as Abilities.** It did so for Evolution Jammer and Itchy Pollen. Any card whose details drive the decision tree gets a second, pointed query.
@@ -49,7 +49,9 @@ Four cards are imported as **candidates not yet in any list**: Buddy-Buddy Poffi
 
 1. **Write part 3** — the English decision tree for turns 1–2. Structure it as four branches: going first vs. second, crossed with Salvatore vs. no Salvatore, since those produce genuinely different play patterns.
 2. **Getting Bronzong *Active* is the suspected bottleneck**, not drawing it — Salvatore fixes timing but not positioning. Confirm this in the sim rather than assuming it.
-3. **Open: the Salvatore first-turn ruling has no citable source** (ADR 0001). Kevin confirmed it; an official ruling in `additional_context/` would retire the risk.
+3. **Open: the Salvatore first-turn ruling has no citable source** (ADR 0001). Kevin has now confirmed it twice and is confident; his expertise is the citation. Residual risk only — an official ruling in `additional_context/` would close it.
+8. **Open: confirm one wording in ADR 0003.** Kevin wrote that the sim "should NOT immediately know what's benched before the first deck-search card is played." Implemented as *deck contents / what is prized*, since that is what a deck search actually reveals. Flagged in the ADR in case something else was meant.
+9. **Open: Surfer's tension with Salvatore is untested.** Both are Supporters and only one may be played per turn, so going second with Bronzor benched the player cannot both switch and Salvatore-evolve. Switch (an Item) does the positioning without spending the Supporter slot, which likely makes it better than Surfer for the turn-1 line — worth measuring rather than assuming.
 4. **Open: Nighttime Mine's effect text is uncorroborated** and looks implausible (hoses Tera Pokémon; no list runs Tera). decklist1 only, and inert for the metric either way.
 5. **Open: the Bronzor printing trade-off is unmeasured.** Buddy-Buddy Poffin caps at 70 HP, so it cannot fetch Bronzor TEF 68 (80 HP) but can fetch PRE 66 (70) and SSP 126 (60) — at the cost of those being Metal, so Telepathic Psychic Energy can no longer find them. A 2/2 split keeps both routes and is its own candidate.
 6. **Open: whether to install `testthat`** for part 4's tests, or hand-roll assertions in base R.

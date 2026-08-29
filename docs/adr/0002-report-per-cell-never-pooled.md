@@ -14,7 +14,11 @@ exactly backwards.
 
 **Consequences.** The registry schema in part 6 is keyed by the cell, not the
 decklist, so per-decklist comparisons are always conditional on a coin-flip
-assumption that must be stated. To keep one directly comparable cross-list number,
-every replicate also records the **actual turn achieved**, so "on time" (relative to
-the cell's own earliest legal turn) and "by turn 2" (absolute, comparable everywhere)
-both come off the same runs.
+assumption that must be stated. Every replicate also records the **actual turn
+achieved**, not just a hit/miss flag.
+
+**Amended 2026-08-29 by ADR 0004.** This record originally proposed a primary outcome
+of "on time", defined relative to each cell's own earliest legal turn. Kevin rejected
+that in favour of a fixed turn-2 denominator. The stratification decided here — report
+per cell, never pool — stands unchanged; only the outcome definition moved. See
+ADR 0004.

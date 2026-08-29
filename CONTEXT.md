@@ -41,22 +41,26 @@ evolve, Bronzong TEF 69 is on it, that Bronzong is **Active**, it has at least o
 Jammer is the whole event — having Bronzong in play is not.
 _Avoid_: getting Bronzong out, setting up Bronzong
 
+**On time**:
+**The primary outcome.** The target event was achieved on or before the player's
+**own second turn** — the same fixed bar going first and going second, and for
+every decklist. A turn-1 Salvatore kill and a turn-2 conventional line both count
+as on time; that is deliberate (ADR 0004).
+_Avoid_: success, hit, by turn 2
+
 **Earliest legal turn**:
-The earliest turn on which the target event is *possible at all*, given the
-decklist and the coin flip. **It is not a constant**: turn 1 for a Salvatore list
-going second, turn 2 otherwise. Any statement of the form "hit it on the first
-turn possible" is relative to this.
-_Avoid_: turn 1, the first turn
+The earliest turn on which the target event is *possible at all* for a given
+decklist and coin flip — turn 1 for a Salvatore list going second, turn 2
+otherwise. **This is a property of the game, not the metric.** It was considered
+as the outcome's denominator and rejected, because it makes the headline number
+mean different things for different lists. Use it to reason about what is
+achievable, never to score.
+_Avoid_: the first turn possible (as a metric)
 
-**On time** *[unconfirmed]*:
-The target event was achieved on the **earliest legal turn** for that cell. The
-primary outcome.
-_Avoid_: success, hit
-
-**By turn 2** *[unconfirmed]*:
-The target event was achieved on the player's turn 2 or earlier. A secondary
-outcome that is directly comparable across every decklist and coin flip, unlike
-**on time**.
+**Turn achieved**:
+The turn number on which the target event actually occurred in a replicate, or
+`NA` if it never did. Recorded on every replicate. This is where Salvatore's
+turn-1 speed is visible, since **on time** is designed not to price it.
 
 ## Cards and decks
 
@@ -118,6 +122,15 @@ _Avoid_: condition, arm, group
 **Policy**:
 The code that makes the player's in-game choices. Distinguished from the rules
 engine, which decides what is *legal*; the policy decides what is *done*. The
-policy may read only what a real player would know at that moment — see
+policy may read only the **belief state**, never ground truth — see
 `docs/adr/0003`.
 _Avoid_: strategy, AI, agent
+
+**Belief state**:
+What the player knows at a given moment, as opposed to the true game state.
+Holds the hand, the board, the discard, and everything learned from resolved
+effects. Two facts about it are easy to get wrong and are the whole reason it
+exists separately: deck **contents** become known at the first deck search and
+stay known, while deck **order** is never known and is destroyed again by the
+reshuffle after every search.
+_Avoid_: game state, knowledge

@@ -15,14 +15,17 @@ This is not a research project. The usual lab conventions (papers, grants, liter
 ### The target event
 **Evolution Jammer is an attack, not an Ability.** Bronzong (TEF #69, reg H) must be **Active** with one `[P]` Energy attached — basic Psychic or Telepathic Psychic. Enriching Energy provides `[C]` and does **not** qualify.
 
-**The earliest legal turn is not a constant.** Salvatore overrides the first-turn evolution ban, so:
+### The metric
+**Primary outcome: did the player attack with Evolution Jammer on or before their own turn 2?** One fixed bar, the same going first and going second, the same for every decklist (ADR 0004). Going first, turn 2 was always the floor anyway — the first player may play no Supporter and may not attack. Going second, this counts a turn-1 Salvatore kill and a turn-2 conventional line as the same success, on purpose, so Salvatore and non-Salvatore lists stay comparable.
+
+**Going first and going second are reported separately and never pooled** (ADR 0002). Every replicate also records the **turn actually achieved**, which is where Salvatore's turn-1 speed shows up — the primary outcome is deliberately not designed to price it.
+
+For reference, the earliest turn on which the event is *possible* — a property of the game, not the metric:
 
 | | Salvatore lists | No-Salvatore lists |
 |---|---|---|
-| **Going second** | **turn 1** | turn 2 |
+| **Going second** | turn 1 | turn 2 |
 | **Going first** | turn 2 | turn 2 |
-
-Results must be reported **per cell**, never pooled — pooling would penalize a Salvatore list for the half of its games that go first. Always record the actual turn achieved, so "hit the theoretical earliest" and "hit by turn 2" can both be read off the same runs.
 
 ### Scenarios
 Every decklist is evaluated under named scenarios, crossed with going first vs. second:

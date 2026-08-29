@@ -1,6 +1,6 @@
 # 0001 — Salvatore is taken to permit evolving on your first turn
 
-**Status:** accepted, on an uncited premise — see the caveat below.
+**Status:** accepted. Confirmed by Kevin twice — initially on 2026-08-29, then reaffirmed ("yes, I'm confident of this") when this record was reviewed the same day.
 
 Salvatore (TEF 160) plainly overrides "you can't evolve a Pokémon the turn it came
 into play". Whether it also overrides the separate rule "you can't evolve on your
@@ -15,11 +15,15 @@ covers the played-this-turn restriction; the first covers setup Pokémon, which 
 turn 2 and later are already freely evolvable. That clause is redundant unless it
 licenses evolving on your **first** turn.
 
-**Caveat, and why this record exists.** This is the only load-bearing rules fact in
-the project with no citable source. If it is wrong, every "on time" number for a
-Salvatore list going second is wrong, and the Salvatore-vs-no-Salvatore comparison —
-the main thing the six decklists are testing — inverts. Getting an official ruling
-into `additional_context/` would retire the risk cheaply.
+**Caveat, and why this record exists.** This remains the only load-bearing rules fact
+in the project with no citable public source — Kevin's confidence is the citation.
+Recorded so that a future session knows it rests on domain expertise rather than a
+document, and knows exactly what to re-check if a ruling ever contradicts it. An
+official ruling filed in `additional_context/` would retire the residual risk.
 
-**Consequence:** the earliest legal turn becomes a function of the decklist and the
-coin flip rather than a constant, which forces the reporting structure in ADR 0002.
+**Consequence.** The earliest turn on which the target event is *possible* becomes a
+function of the decklist and the coin flip rather than a constant. Note that ADR 0004
+subsequently decided **not** to make that varying floor the primary outcome — the
+headline metric is fixed at the player's own turn 2 precisely so that Salvatore and
+non-Salvatore lists stay comparable. Salvatore's turn-1 capability shows up in the
+recorded turn-of-achievement instead.
