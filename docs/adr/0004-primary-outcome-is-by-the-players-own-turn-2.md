@@ -8,6 +8,13 @@ put side by side. **The primary outcome is instead fixed: did the player attack 
 Evolution Jammer on or before their own second turn?** The same definition applies
 going first and going second, so every cell's number answers the same question.
 
+**The two coin-flip branches are still reported as separate numbers** — ADR 0002 is
+unchanged and this record does not merge them. What is shared between them is the
+*definition* of success (turn 2), not the statistic: a run produces a going-first rate
+and a going-second rate, always, and they are never averaged into one figure. Fixing
+the definition is what makes the two numbers meaningful to compare; pooling them would
+still be wrong.
+
 **Going first** is unaffected by Salvatore either way — the first player may play no
 Supporter and may not attack, so turn 1 is impossible regardless and turn 2 was always
 the only floor.
