@@ -414,6 +414,7 @@ test_that("retreating is free for a Basic under Skyliner", {
 test_that("Run Around switches but ends the turn, and only going second", {
   pair <- .make_pair(active_id = "PFL-083", bench_id_vec = "TEF-068",
                      turn_number = 1L, bool_going_first = FALSE)
+  pair$state$active$energy_vec <- "SVE-005"
 
   pair <- attack_run_around(pair, bench_idx = 1L)
 
@@ -422,6 +423,7 @@ test_that("Run Around switches but ends the turn, and only going second", {
 
   first_pair <- .make_pair(active_id = "PFL-083", bench_id_vec = "TEF-068",
                            turn_number = 1L, bool_going_first = TRUE)
+  first_pair$state$active$energy_vec <- "SVE-005"
   expect_error(attack_run_around(first_pair, bench_idx = 1L))
 })
 
@@ -483,4 +485,94 @@ test_that("attacking with Evolution Jammer requires it to be available", {
   pair <- .make_pair(active_id = "TEF-068", turn_number = 2L)
 
   expect_error(attack_evolution_jammer(pair), regexp = "not available")
+})
+
+test_that("Run Around requires an Energy attached", {
+  ## Found by the spec audit. Run Around costs [C]; it deals no damage and reads
+  ## like an Ability, which is exactly why the cost was missed. Without it,
+  ## sub-goal C would be free on every going-second replicate.
+  pair <- .make_pair(active_id = "PFL-083", bench_id_vec = "TEF-068",
+                     turn_number = 1L, bool_going_first = FALSE)
+
+  expect_error(attack_run_around(pair, bench_idx = 1L), regexp = "costs")
+
+  pair$state$active$energy_vec <- "SVE-005"
+  expect_silent(attack_run_around(pair, bench_idx = 1L))
+})
+
+test_that("attacking forfeits the rest of the turn", {
+  ## Rules section 4. The engine originally only blocked a second attack.
+  pair <- .make_pair(active_id = "TEF-068", bench_id_vec = "PRE-035",
+                     hand_id_vec = c("MEG-130", "POR-088", "WHT-084"),
+                     turn_number = 2L)
+  pair$state$active$stack_vec <- c("TEF-068", "TEF-069")
+  pair$state$active$energy_vec <- "SVE-005"
+
+  pair <- attack_evolution_jammer(pair)
+
+  expect_false(can_act(pair$state))
+  expect_error(play_switch(pair, bench_idx = 1L))
+  expect_error(attach_energy(pair, "POR-088"))
+  expect_error(play_hilda(pair, evolution_id = "TEF-069", energy_id = "POR-088"))
+})
+
+test_that("Itchy Pollen is an attack that ends the turn", {
+  pair <- .make_pair(active_id = "ASC-016", turn_number = 1L,
+                     bool_going_first = FALSE)
+
+  pair <- attack_itchy_pollen(pair)
+
+  expect_true(pair$state$turn_flag_list$bool_attacked)
+  expect_false(can_act(pair$state))
+
+  ## The first player cannot use it on turn 1, which is why item_lock only
+  ## exists against an opponent who went second.
+  first_pair <- .make_pair(active_id = "ASC-016", turn_number = 1L,
+                           bool_going_first = TRUE)
+  expect_error(attack_itchy_pollen(first_pair))
+})
+
+test_that("Run Errand may only be used once per turn", {
+  pair <- .make_pair(active_id = "MEG-104", turn_number = 1L)
+
+  pair <- use_run_errand(pair)
+  expect_error(use_run_errand(pair), regexp = "once per turn")
+
+  ## The limit resets on the next turn.
+  pair$state <- begin_turn(pair$state)
+  expect_silent(use_run_errand(pair))
+})
+
+test_that("a Stadium can be played, once per turn, and replaces a different one", {
+  pair <- .make_pair(hand_id_vec = c("TWM-153", "TWM-149"), turn_number = 2L)
+  before_vec <- .card_multiset(pair$state)
+
+  pair <- play_stadium(pair, "TWM-153")
+  expect_equal(pair$state$stadium, "TWM-153")
+  expect_equal(.card_multiset(pair$state), before_vec)
+
+  ## Once per turn.
+  expect_error(play_stadium(pair, "TWM-149"), regexp = "already played")
+
+  ## Next turn a differently-named Stadium replaces it and the old one is
+  ## discarded.
+  pair$state <- begin_turn(pair$state)
+  pair <- play_stadium(pair, "TWM-149")
+  expect_equal(pair$state$stadium, "TWM-149")
+  expect_true("TWM-153" %in% pair$state$discard_vec)
+  expect_equal(.card_multiset(pair$state), before_vec)
+})
+
+test_that("a Stadium sharing a name with the one in play is illegal", {
+  pair <- .make_pair(hand_id_vec = c("TWM-153", "TWM-153"), turn_number = 2L)
+  pair <- play_stadium(pair, "TWM-153")
+  pair$state <- begin_turn(pair$state)
+
+  expect_error(play_stadium(pair, "TWM-153"), regexp = "same name")
+})
+
+test_that("only a Stadium may be played as a Stadium", {
+  pair <- .make_pair(hand_id_vec = "MEG-130", turn_number = 2L)
+
+  expect_error(play_stadium(pair, "MEG-130"), regexp = "not a Stadium")
 })

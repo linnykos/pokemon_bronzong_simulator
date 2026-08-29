@@ -22,8 +22,16 @@ separately, because the first player may play no Supporter and may not attack.
 _Avoid_: on the play, on the draw
 
 **Opening hand**:
-The 7 cards a player holds once all mulligans have resolved, including any bonus
-cards drawn for the *opponent's* mulligans, and before any Pokémon are placed.
+The 7 cards a player holds once all mulligans have resolved, before any Pokémon
+are placed.
+
+**Known divergence, needs Kevin's call.** The real rule also grants **1 bonus
+card per mulligan the *opponent* took**, so a real opening hand is sometimes 8 or
+9 cards. The simulator models only one player, so it has no opponent mulligan
+count and always produces exactly 7. This biases every consistency estimate
+slightly **downward** — the direction is at least safe, but the size is unknown.
+Fixing it means either modelling an opposing decklist or drawing the bonus count
+from an assumed distribution.
 _Avoid_: starting hand, test hand (see **Replicate**)
 
 **Prized**:

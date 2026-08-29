@@ -71,8 +71,11 @@ read_decklist <- function(file_path,
 #'
 #' Checks the rules from docs/01_rules_standard.md section 2 that a simulator
 #' can actually get wrong: the 60-card total, the 4-copy limit with its basic
-#' Energy exemption, the ACE SPEC limit, and the presence of at least one Basic
-#' Pokemon.
+#' Energy exemption, and the presence of at least one Basic Pokemon.
+#'
+#' Does NOT check the ACE SPEC limit. None of the six decklists runs an ACE SPEC
+#' and the card table has no column marking one, so the check would be vacuous;
+#' adding an ACE SPEC card to any list means adding that column first.
 #'
 #' @param decklist a `"bronzong_decklist"` from \code{read_decklist()}.
 #' @param card_df the card database.

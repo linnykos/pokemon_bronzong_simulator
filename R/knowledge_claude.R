@@ -28,10 +28,10 @@
 #'   \describe{
 #'     \item{decklist_count_vec}{named integer, the 60-card list as built.}
 #'     \item{bool_deck_seen}{logical, whether the deck has ever been searched.}
-#'     \item{known_deck_count_vec}{named integer, what the player knows remains
-#'       in the deck. Only meaningful once `bool_deck_seen` is `TRUE`.}
-#'     \item{known_unavailable_vec}{named integer, copies known to be prized or
-#'       otherwise unreachable, deduced by subtraction at the first search.}
+#'     \item{known_unavailable_vec}{named integer, copies known to be prized,
+#'       deduced by subtraction at the first search. This is the ONLY durable
+#'       fact a search establishes; deck contents are derived from it rather
+#'       than stored, so they cannot go stale.}
 #'     \item{top_known_vec}{character vector of card ids known to be on top of
 #'       the deck, position 1 first. Emptied by any shuffle.}
 #'     \item{seen_vec}{character vector of card ids the player has observed at
@@ -43,7 +43,6 @@ new_knowledge <- function(decklist){
 
   structure(list(decklist_count_vec = decklist$count_vec,
                  bool_deck_seen = FALSE,
-                 known_deck_count_vec = decklist$count_vec * 0L,
                  known_unavailable_vec = decklist$count_vec * 0L,
                  top_known_vec = character(0),
                  seen_vec = character(0)),
@@ -70,31 +69,37 @@ knowledge_after_search <- function(knowledge, state){
 
   card_id_vec <- names(knowledge$decklist_count_vec)
 
-  deck_count_vec <- sapply(card_id_vec, function(one_id){
+  deck_count_vec <- as.integer(sapply(card_id_vec, function(one_id){
     sum(state$deck_vec == one_id)
-  })
-  knowledge$known_deck_count_vec <- stats::setNames(as.integer(deck_count_vec),
-                                                    card_id_vec)
-  knowledge$bool_deck_seen <- TRUE
+  }))
+  visible_vec <- .visible_count(state, card_id_vec)
 
   # Everything the player can otherwise account for. Whatever is left over is
-  # prized -- this subtraction is the deduction described above.
-  visible_vec <- .visible_count(state, card_id_vec)
-  unavailable_vec <- knowledge$decklist_count_vec -
-    knowledge$known_deck_count_vec - visible_vec
+  # prized -- this subtraction is the deduction described above, and it is the
+  # only durable fact the search establishes.
+  #
+  # Deliberately NOT stored: a snapshot of the deck's contents. Prizes cannot
+  # change during a game, so `known_unavailable_vec` stays true for the rest of
+  # it; a contents snapshot would go stale the moment anything was drawn or
+  # shuffled back in, and the player would then "know" a card was in the deck
+  # after drawing it, or believe a card they had just shuffled in was gone.
+  # believed_deck_count() derives contents from this instead, so it is always
+  # current.
+  unavailable_vec <- knowledge$decklist_count_vec - deck_count_vec - visible_vec
   knowledge$known_unavailable_vec <- pmax(unavailable_vec, 0L)
+  knowledge$bool_deck_seen <- TRUE
 
   knowledge$seen_vec <- union(knowledge$seen_vec,
-                              card_id_vec[knowledge$known_deck_count_vec > 0])
+                              card_id_vec[deck_count_vec > 0])
 
   knowledge
 }
 
 #' Record that the deck was shuffled
 #'
-#' Destroys knowledge of ordering. Deliberately leaves `known_deck_count_vec`
-#' and `bool_deck_seen` alone: a shuffle rearranges the deck, it does not make
-#' the player forget what is in it.
+#' Destroys knowledge of ordering. Deliberately leaves `bool_deck_seen` and
+#' `known_unavailable_vec` alone: a shuffle rearranges the deck, it does not make
+#' the player forget what is in it, nor un-deduce which cards are prized.
 #'
 #' @param knowledge a `"bronzong_knowledge"`.
 #'
@@ -168,21 +173,7 @@ believes_findable <- function(knowledge, state, card_id_vec){
   stopifnot(inherits(knowledge, "bronzong_knowledge"),
             inherits(state, "bronzong_state"))
 
-  card_id_vec <- canonical_card_id(card_id_vec)
-
-  if(knowledge$bool_deck_seen){
-    count_vec <- knowledge$known_deck_count_vec[card_id_vec]
-    count_vec[is.na(count_vec)] <- 0L
-    return(as.logical(count_vec > 0))
-  }
-
-  # Deck never searched: the player knows only the decklist minus what they can
-  # see. They cannot yet distinguish "prized" from "still in the deck".
-  total_vec <- knowledge$decklist_count_vec[card_id_vec]
-  total_vec[is.na(total_vec)] <- 0L
-  visible_vec <- .visible_count(state, card_id_vec)
-
-  as.logical(total_vec - visible_vec > 0)
+  as.logical(believed_deck_count(knowledge, state, card_id_vec) > 0)
 }
 
 #' How many copies the player believes remain in the deck
@@ -192,22 +183,33 @@ believes_findable <- function(knowledge, state, card_id_vec){
 #' @param card_id_vec card ids to count.
 #'
 #' @returns A named integer vector. Before the first search this is an upper
-#'   bound, since prized copies are still counted.
+#'   bound, since prized copies cannot yet be distinguished from copies still in
+#'   the deck. After a search it is exact.
 #' @export
 believed_deck_count <- function(knowledge, state, card_id_vec){
+  stopifnot(inherits(knowledge, "bronzong_knowledge"),
+            inherits(state, "bronzong_state"))
+
   card_id_vec <- canonical_card_id(card_id_vec)
+  if(length(card_id_vec) == 0) return(stats::setNames(integer(0), character(0)))
 
-  if(knowledge$bool_deck_seen){
-    count_vec <- knowledge$known_deck_count_vec[card_id_vec]
-    count_vec[is.na(count_vec)] <- 0L
-    return(stats::setNames(as.integer(count_vec), card_id_vec))
-  }
-
+  # Derived, never stored. What is in the deck is what the decklist held, minus
+  # everything the player can see, minus what a search proved to be prized. This
+  # is exactly the arithmetic a real player does, and because it reads the
+  # CURRENT board it stays correct after draws, discards, and cards shuffled
+  # back in -- which a snapshot taken at search time would not.
   total_vec <- knowledge$decklist_count_vec[card_id_vec]
   total_vec[is.na(total_vec)] <- 0L
   visible_vec <- .visible_count(state, card_id_vec)
 
-  stats::setNames(pmax(as.integer(total_vec - visible_vec), 0L), card_id_vec)
+  unavailable_vec <- rep(0L, length(card_id_vec))
+  if(knowledge$bool_deck_seen){
+    unavailable_vec <- knowledge$known_unavailable_vec[card_id_vec]
+    unavailable_vec[is.na(unavailable_vec)] <- 0L
+  }
+
+  stats::setNames(pmax(as.integer(total_vec - visible_vec - unavailable_vec), 0L),
+                  card_id_vec)
 }
 
 # ---------------------------------------------------------------------------

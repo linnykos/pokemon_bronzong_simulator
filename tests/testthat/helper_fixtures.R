@@ -65,11 +65,10 @@
   }
 
   state$turn_number <- as.integer(turn_number)
-  state$turn_flag_list <- list(bool_energy_attached = FALSE,
-                               bool_supporter_played = FALSE,
-                               bool_stadium_played = FALSE,
-                               bool_retreated = FALSE,
-                               bool_attacked = FALSE)
+  ## Use the real constructor rather than a literal: a hand-written copy silently
+  ## goes stale when a flag is added, and a missing flag reads as NULL, which
+  ## most checks treat as permissive.
+  state$turn_flag_list <- .new_turn_flags()
 
   list(state = state, knowledge = new_knowledge(decklist))
 }
@@ -98,7 +97,8 @@
   energy_vec <- unlist(lapply(all_in_play(state), function(x) x$energy_vec))
 
   length(state$deck_vec) + length(state$hand_vec) + length(state$prize_vec) +
-    length(state$discard_vec) + length(in_play_vec) + length(energy_vec)
+    length(state$discard_vec) + length(in_play_vec) + length(energy_vec) +
+    sum(!is.na(state$stadium))
 }
 
 #' The multiset of every card in the game, sorted
@@ -111,5 +111,5 @@
   energy_vec <- unlist(lapply(all_in_play(state), function(x) x$energy_vec))
 
   sort(c(state$deck_vec, state$hand_vec, state$prize_vec, state$discard_vec,
-         in_play_vec, energy_vec))
+         in_play_vec, energy_vec, state$stadium[!is.na(state$stadium)]))
 }

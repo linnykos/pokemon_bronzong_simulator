@@ -114,14 +114,18 @@ all_in_play <- function(state){
        bool_supporter_played = FALSE,
        bool_stadium_played = FALSE,
        bool_retreated = FALSE,
-       bool_attacked = FALSE)
+       bool_attacked = FALSE,
+       bool_turn_over = FALSE,
+       bool_run_errand_used = FALSE)
 }
 
 #' Begin this player's next turn
 #'
-#' Resets the per-turn flags, increments the turn counter, and clears the
-#' `turn_evolved` marks so that a Pokemon which evolved last turn may evolve
-#' again this turn.
+#' Resets the per-turn flags and increments the turn counter. The
+#' `turn_evolved` marks on in-play Pokemon are deliberately NOT cleared:
+#' \code{can_evolve()} compares them against the current `turn_number`, so a
+#' Pokemon that evolved last turn is already free to evolve again, and clearing
+#' them would only discard history the event log is meant to preserve.
 #'
 #' Does NOT draw -- \code{draw_cards()} is called separately, because the draw
 #' can lose the game (deck-out) and the caller decides how to handle that.

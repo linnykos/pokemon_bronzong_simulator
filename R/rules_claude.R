@@ -16,6 +16,24 @@
 #' @export
 BENCH_LIMIT <- 5L
 
+#' Is the turn still open?
+#'
+#' Rules section 4: "Your turn ends immediately after you attack." Every other
+#' legality check defers to this, so an attack really does forfeit the rest of
+#' the turn rather than merely preventing a second attack. Without it, the cost
+#' that makes Buneary's Run Around a last-resort play in
+#' docs/03_decision_tree.md section 4.2 would not exist.
+#'
+#' @param state a `"bronzong_state"`.
+#'
+#' @returns A single logical.
+#' @export
+can_act <- function(state){
+  stopifnot(inherits(state, "bronzong_state"))
+
+  !isTRUE(state$turn_flag_list$bool_turn_over)
+}
+
 #' May this player play a Supporter right now?
 #'
 #' Rules section 4 (one per turn) and section 6 (the player going first may play
@@ -28,6 +46,7 @@ BENCH_LIMIT <- 5L
 can_play_supporter <- function(state){
   stopifnot(inherits(state, "bronzong_state"))
 
+  if(!can_act(state)) return(FALSE)
   if(state$turn_flag_list$bool_supporter_played) return(FALSE)
   if(state$bool_going_first && state$turn_number == 1L) return(FALSE)
 
@@ -46,6 +65,7 @@ can_play_supporter <- function(state){
 can_attack <- function(state){
   stopifnot(inherits(state, "bronzong_state"))
 
+  if(!can_act(state)) return(FALSE)
   if(is.null(state$active)) return(FALSE)
   if(state$turn_flag_list$bool_attacked) return(FALSE)
   if(state$bool_going_first && state$turn_number == 1L) return(FALSE)
@@ -64,6 +84,8 @@ can_attack <- function(state){
 can_attach_energy <- function(state){
   stopifnot(inherits(state, "bronzong_state"))
 
+  if(!can_act(state)) return(FALSE)
+
   !state$turn_flag_list$bool_energy_attached
 }
 
@@ -81,6 +103,7 @@ can_attach_energy <- function(state){
 can_play_item <- function(state){
   stopifnot(inherits(state, "bronzong_state"))
 
+  if(!can_act(state)) return(FALSE)
   if(state$scenario != "item_lock") return(TRUE)
 
   # Itchy Pollen is an attack, so the opponent can only have used it if they
@@ -165,8 +188,23 @@ is_salvatore_target <- function(state, card_id_vec){
 
   is_evolution_vec <- row_df$category == "pokemon" & !is.na(row_df$evolves_from)
 
-  is_evolution_vec & !row_df$has_ability &
-    row_df$evolves_from %in% in_play_name_vec
+  # Per the published ruling (docs/cards/TEF-160-salvatore.md), Salvatore may
+  # not be played unless a legal target actually exists, and the game checks
+  # PUBLIC zones. The discard is public, so a card whose every copy sits there
+  # is not a legal target. Prizes are NOT public, so a fully prized target stays
+  # legal to declare and simply whiffs -- which is the ADR 0003-consistent
+  # reading and the only way the player learns it was prized.
+  # unname(): sapply() over a character vector returns a NAMED result, and the
+  # names propagate through `&` into the return value. A named logical is not
+  # identical() to a bare one, which silently breaks callers that compare
+  # against TRUE/FALSE. Every predicate in this file returns bare logicals.
+  num_in_deck_or_prize_vec <- unname(sapply(row_df$card_id, function(one_id){
+    as.integer(count_copies(state, one_id)) - sum(state$discard_vec == one_id)
+  }))
+
+  unname(is_evolution_vec & !row_df$has_ability &
+           row_df$evolves_from %in% in_play_name_vec &
+           num_in_deck_or_prize_vec > 0)
 }
 
 #' The cost to retreat the Active Pokemon
@@ -218,6 +256,7 @@ has_skyliner <- function(state){
 can_retreat <- function(state){
   stopifnot(inherits(state, "bronzong_state"))
 
+  if(!can_act(state)) return(FALSE)
   if(state$turn_flag_list$bool_retreated) return(FALSE)
   if(is.null(state$active) || length(state$bench_list) == 0) return(FALSE)
 

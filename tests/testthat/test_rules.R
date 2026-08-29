@@ -260,3 +260,45 @@ test_that("bench space is capped at five", {
   expect_false(has_bench_space(full_pair$state, 1L))
   expect_true(has_bench_space(full_pair$state, 0L))
 })
+
+test_that("attacking ends the turn, not just the attack step", {
+  ## Rules section 4: "Your turn ends immediately after you attack." The whole
+  ## cost/benefit of Buneary's Run Around in the decision tree depends on this.
+  ## Found by the spec audit: bool_attacked alone only blocked a SECOND attack,
+  ## leaving Items, the Supporter, the attachment and the retreat all legal.
+  pair <- .make_pair(active_id = "TEF-068", bench_id_vec = "PRE-035",
+                     turn_number = 2L)
+  expect_true(can_act(pair$state))
+
+  pair$state$turn_flag_list$bool_turn_over <- TRUE
+
+  expect_false(can_act(pair$state))
+  expect_false(can_play_supporter(pair$state))
+  expect_false(can_attach_energy(pair$state))
+  expect_false(can_play_item(pair$state))
+  expect_false(can_retreat(pair$state))
+  expect_false(can_attack(pair$state))
+})
+
+test_that("Salvatore is illegal when every copy of the target is discarded", {
+  ## The discard is public, so the game can see the target is gone. Prizes are
+  ## not public, so a fully prized target stays declarable and simply whiffs --
+  ## that asymmetry is what keeps this ADR 0003-consistent.
+  pair <- .make_pair(active_id = "TEF-068", turn_number = 1L)
+  expect_true(is_salvatore_target(pair$state, "TEF-069"))
+
+  num_bronzong <- as.integer(count_copies(pair$state, "TEF-069"))
+  pair$state <- move_cards(pair$state, rep("TEF-069", num_bronzong),
+                           from = "deck", to = "discard")
+
+  expect_false(is_salvatore_target(pair$state, "TEF-069"))
+})
+
+test_that("a prized Salvatore target is still declarable", {
+  pair <- .make_pair(active_id = "TEF-068", turn_number = 1L)
+  num_bronzong <- as.integer(count_copies(pair$state, "TEF-069"))
+  pair$state <- move_cards(pair$state, rep("TEF-069", num_bronzong),
+                           from = "deck", to = "prize")
+
+  expect_true(is_salvatore_target(pair$state, "TEF-069"))
+})

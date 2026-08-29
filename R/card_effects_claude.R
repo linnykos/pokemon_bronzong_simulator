@@ -545,6 +545,12 @@ retreat_active <- function(pair, bench_idx){
 #' An attack, so it ends the turn and is unavailable to the player going first
 #' on turn 1. Take it only when nothing else remains.
 #'
+#' Run Around costs `[C]`, which any single attached Energy pays. That cost is
+#' easy to overlook because the attack deals no damage and reads like an
+#' Ability, but without it this would be a free switch on every going-second
+#' replicate -- and sub-goal C, the one the decision tree argues actually fails,
+#' would look far cheaper than it is.
+#'
 #' @param pair a `list(state, knowledge)`.
 #' @param bench_idx the Bench slot to promote.
 #'
@@ -554,15 +560,46 @@ attack_run_around <- function(pair, bench_idx){
   state <- pair$state
   if(!can_attack(state)) stop("cannot attack right now")
   if(top_card(state$active) != "PFL-083") stop("Run Around needs Buneary Active")
+  if(length(state$active$energy_vec) < 1){
+    stop("Run Around costs [C]; Buneary has no Energy attached")
+  }
 
   state$turn_flag_list$bool_attacked <- TRUE
+  state$turn_flag_list$bool_turn_over <- TRUE
   state <- .swap_active(state, bench_idx)
   pair$state <- .log_event(state, "Run Around")
 
   pair
 }
 
+#' Budew's Itchy Pollen: lock the opponent's Items, at the cost of the turn
+#'
+#' Costs no Energy and deals 10. Because it is an attack it cannot be used by
+#' the player going first on turn 1 -- which is why the `item_lock` scenario
+#' only exists against an opponent who went second.
+#'
+#' @param pair a `list(state, knowledge)`.
+#'
+#' @returns The updated pair.
+#' @export
+attack_itchy_pollen <- function(pair){
+  state <- pair$state
+  if(!can_attack(state)) stop("cannot attack right now")
+  if(top_card(state$active) != "ASC-016"){
+    stop("Itchy Pollen needs Budew Active")
+  }
+
+  state$turn_flag_list$bool_attacked <- TRUE
+  state$turn_flag_list$bool_turn_over <- TRUE
+  pair$state <- .log_event(state, "Itchy Pollen")
+
+  pair
+}
+
 #' Mega Kangaskhan ex's Run Errand: draw 2 while Active
+#'
+#' "Once during your turn ... You can't use more than 1 Run Errand Ability each
+#' turn."
 #'
 #' @param pair a `list(state, knowledge)`.
 #'
@@ -573,9 +610,55 @@ use_run_errand <- function(pair){
   if(is.null(state$active) || top_card(state$active) != "MEG-104"){
     stop("Run Errand needs Mega Kangaskhan ex Active")
   }
+  if(isTRUE(state$turn_flag_list$bool_run_errand_used)){
+    stop("Run Errand may only be used once per turn")
+  }
+  if(!can_act(state)) stop("the turn is over")
 
+  pair$state$turn_flag_list$bool_run_errand_used <- TRUE
   pair <- draw_to_hand(pair, num_cards = 2L)
   pair$state <- .log_event(pair$state, "Run Errand")
+
+  pair
+}
+
+#' Play a Stadium
+#'
+#' Once per turn, and only if it does not share a name with the Stadium already
+#' in play. None of the four Stadiums in these decklists affects the target
+#' event, but playing one is a legal action the decision tree lists, so it must
+#' be expressible.
+#'
+#' @param pair a `list(state, knowledge)`.
+#' @param card_id the Stadium in hand.
+#'
+#' @returns The updated pair.
+#' @export
+play_stadium <- function(pair, card_id){
+  state <- pair$state
+  if(!can_act(state)) stop("the turn is over")
+  if(state$turn_flag_list$bool_stadium_played){
+    stop("already played a Stadium this turn")
+  }
+
+  stadium_df <- lookup_card(state$card_df, card_id)
+  if(is.na(stadium_df$subtype) || stadium_df$subtype != "stadium"){
+    stop(card_id, " is not a Stadium")
+  }
+  if(!is.na(state$stadium)){
+    in_play_df <- lookup_card(state$card_df, state$stadium)
+    if(in_play_df$name == stadium_df$name){
+      stop("a Stadium with the same name is already in play")
+    }
+    state$discard_vec <- c(state$discard_vec, state$stadium)
+  }
+
+  state <- move_cards(state, card_id, from = "hand", to = "discard")
+  state$discard_vec <- state$discard_vec[-length(state$discard_vec)]
+  state$stadium <- canonical_card_id(card_id)
+  state$turn_flag_list$bool_stadium_played <- TRUE
+
+  pair$state <- .log_event(state, paste0("play Stadium ", card_id))
 
   pair
 }
@@ -593,6 +676,7 @@ attack_evolution_jammer <- function(pair){
   if(!can_use_evolution_jammer(state)) stop("Evolution Jammer is not available")
 
   state$turn_flag_list$bool_attacked <- TRUE
+  state$turn_flag_list$bool_turn_over <- TRUE
   pair$state <- .log_event(state, "EVOLUTION JAMMER")
 
   pair

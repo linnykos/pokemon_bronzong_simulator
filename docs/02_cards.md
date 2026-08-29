@@ -1,7 +1,7 @@
 # Card Index
 
-Verbatim card text lives one file per card in `docs/cards/` — **35 files
-covering 34 distinct cards** (MEE 5 and SVE 5 are two printings of the same
+Verbatim card text lives one file per card in `docs/cards/` — **37 files
+covering 36 distinct cards** (MEE 5 and SVE 5 are two printings of the same
 basic Psychic Energy). This page is the index and the cross-decklist summary.
 
 All text was transcribed from limitlesstcg.com on 2026-08-29. Cards whose

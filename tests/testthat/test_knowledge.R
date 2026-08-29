@@ -196,3 +196,76 @@ test_that("believes_findable handles empty and unknown input", {
 
   expect_length(believes_findable(pair$knowledge, pair$state, character(0)), 0)
 })
+
+test_that("deck-contents belief stays current after cards move", {
+  ## Found by the spec audit. The belief state originally SNAPSHOT the deck at
+  ## search time and never updated it, so the policy would believe a card was
+  ## still in the deck after drawing it, and -- worse -- believe a card was gone
+  ## after shuffling it back in from hand, declining to search for something it
+  ## had just watched go into the deck.
+  card_df <- .test_card_df()
+  decklist <- .test_decklist()
+  set.seed(9)
+  pair <- setup_game(decklist, card_df, bool_going_first = FALSE)
+  pair$knowledge <- knowledge_after_search(pair$knowledge, pair$state)
+
+  ## Direction 1: drawing a card must reduce the believed deck count.
+  target_id <- pair$state$deck_vec[1]
+  before_num <- as.integer(believed_deck_count(pair$knowledge, pair$state,
+                                               target_id))
+  pair$state <- draw_cards(pair$state, num_cards = 1L)
+  after_num <- as.integer(believed_deck_count(pair$knowledge, pair$state,
+                                              target_id))
+
+  expect_equal(after_num, before_num - 1L)
+  expect_equal(after_num, sum(pair$state$deck_vec == target_id))
+})
+
+test_that("shuffling the hand into the deck restores belief in those cards", {
+  ## Lillie's Determination is the case that broke the snapshot design.
+  card_df <- .test_card_df()
+  decklist <- .test_decklist()
+  set.seed(13)
+  pair <- setup_game(decklist, card_df, bool_going_first = FALSE)
+
+  ## Put every Hilda in hand, then search so the deck is "seen" while they are
+  ## demonstrably not in it.
+  num_hilda <- as.integer(count_copies(pair$state, "WHT-084"))
+  num_in_deck <- sum(pair$state$deck_vec == "WHT-084")
+  if(num_in_deck > 0){
+    pair$state <- move_cards(pair$state, rep("WHT-084", num_in_deck),
+                             from = "deck", to = "hand")
+  }
+  pair$knowledge <- knowledge_after_search(pair$knowledge, pair$state)
+  expect_false(believes_findable(pair$knowledge, pair$state, "WHT-084"))
+
+  ## Now shuffle the hand back in, as Lillie's does.
+  pair$state <- move_cards(pair$state, rep("WHT-084", num_in_deck),
+                           from = "hand", to = "deck")
+
+  expect_equal(as.integer(believed_deck_count(pair$knowledge, pair$state,
+                                              "WHT-084")),
+               num_in_deck)
+  if(num_in_deck > 0) expect_true(believes_findable(pair$knowledge, pair$state,
+                                                    "WHT-084"))
+})
+
+test_that("believed deck count matches the truth after a search, always", {
+  ## The strongest form of the invariant, swept over seeds and every card.
+  card_df <- .test_card_df()
+  decklist <- .test_decklist()
+
+  for(one_seed in 1:10){
+    set.seed(one_seed)
+    pair <- setup_game(decklist, card_df, bool_going_first = FALSE)
+    pair$knowledge <- knowledge_after_search(pair$knowledge, pair$state)
+    pair$state <- draw_cards(pair$state, num_cards = 3L)
+
+    for(one_id in names(pair$knowledge$decklist_count_vec)){
+      expect_equal(as.integer(believed_deck_count(pair$knowledge, pair$state,
+                                                  one_id)),
+                   sum(pair$state$deck_vec == one_id),
+                   info = paste0("seed ", one_seed, " ", one_id))
+    }
+  }
+})
