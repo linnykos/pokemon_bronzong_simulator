@@ -67,6 +67,21 @@ Setup happens before either player's first turn and is deterministic given the s
 7. Each player takes the **top 6 cards** of their deck and sets them aside face down as **Prize cards**, without looking.
 8. Both players turn their Active and Benched Pokémon face up. The game begins.
 
+### Mulligans do not count against the decklist
+
+**The simulator redraws until the opening hand holds a Basic, and measures the game that is actually played** (ADR 0005). A replicate that mulliganed twice and then attacked on turn 2 is a **hit**. Failing to open with a Basic is not a way to miss.
+
+This is a deliberate choice, not an oversight, and it is why the hit rate is not a "fraction of games where the deck worked" in the loosest sense. The cost of mulliganing is real but is reported **separately**, as two orthogonal metrics beside the hit rate:
+
+| Metric | Meaning |
+|---|---|
+| `mulligan_rate` | fraction of replicates needing at least one mulligan |
+| `mean_mulligans` | average number of mulligans per replicate |
+
+Keeping them apart is what makes them actionable: raising the Basic count lowers the mulligan rate and usually costs slots the combo wants, and that trade-off is visible as two numbers moving in opposite directions rather than one number not moving.
+
+Note also that **the opponent's bonus card per mulligan is not modelled at all** — only one player is simulated — so `mulligan_rate` understates the true cost. See the `Opening hand` entry in `CONTEXT.md`.
+
 ### Prize cards — why they matter here
 
 The 6 Prizes are removed from the deck *before* the first draw and are unknown to the player. Any card can be prized. A deck's consistency is therefore a function of both draw order and the probability that a critical low-count card is sitting in the prize pile, unavailable for the entire early game.

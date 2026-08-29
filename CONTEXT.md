@@ -142,3 +142,40 @@ exists separately: deck **contents** become known at the first deck search and
 stay known, while deck **order** is never known and is destroyed again by the
 reshuffle after every search.
 _Avoid_: game state, knowledge
+
+## Measurement and traces
+
+**Mulligan**:
+A redraw forced by an opening hand with no Basic Pokémon. **Never counted as a
+miss** (ADR 0005) — the redrawn hand is the one played. Reported as two
+orthogonal metrics, `mulligan_rate` (share of replicates needing at least one)
+and `mean_mulligans`, always beside the hit rate and never folded into it.
+_Avoid_: bad opening, failed start
+
+**Trace**:
+A compact account of one replicate from setup to the end of turn 2, kept for a
+small **stratified** sample of replicates and written to `results/*_traces.txt`.
+Because the sample is deliberately over-weighted toward misses, a trace file is
+**not representative of the outcome distribution** and no rate may be computed
+from it.
+_Avoid_: log, sample (bare)
+
+**Blocking sub-goal**:
+Which of the four sub-goals in `docs/03_decision_tree.md` §1 — A Bronzor in
+play, B Bronzong on it, C Bronzong Active, D a `[P]` source attached — was still
+unmet when the window closed. Reported as the **first** unmet one, since that is
+what actually stopped the line.
+_Avoid_: failure reason, cause
+
+**Unused out**:
+A card **still in hand** at the end of a missed replicate that could have
+advanced the blocking sub-goal. The distinguishing signal of a **decision**
+defect rather than a deck defect: the card was there and was not played, so the
+fix belongs in `docs/03_decision_tree.md`, not in the 60 cards.
+_Avoid_: dead card, missed play
+
+**Event level**:
+Log entries are level 1 (a semantic action a player would recognise — "play
+Hilda", "evolve into Bronzong") or level 2 (an implementation primitive — a zone
+move, a shuffle, a draw). Traces keep level 1 only; keeping both makes the trace
+unreadable, which defeats its purpose.

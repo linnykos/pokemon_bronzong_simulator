@@ -54,7 +54,8 @@ deal_opening_hand <- function(state,
     print(paste0("Mulliganed ", num_mulligans, " time(s)"))
   }
 
-  .log_event(state, paste0("opening hand after ", num_mulligans, " mulligan(s)"))
+  .log_event(state, paste0("opening hand after ", num_mulligans, " mulligan(s)"),
+             level = 2L)
 }
 
 #' Place the Active and Bench from the opening hand
@@ -103,8 +104,10 @@ place_opening_pokemon <- function(state,
     new_in_play(one_id, turn_played = 0L)
   })
 
-  .log_event(state, paste0("place ", active_card_id, " active, ",
-                           length(bench_card_id_vec), " benched"))
+  .log_event(state, paste0("lead ", active_card_id,
+                           if(length(bench_card_id_vec) == 0) "" else
+                             paste0(", bench ",
+                                    paste0(bench_card_id_vec, collapse = "+"))))
 }
 
 #' Set aside the six Prize cards
@@ -140,7 +143,7 @@ set_prizes <- function(state, num_prizes = 6L){
   state$prize_vec <- state$deck_vec[idx_vec]
   state$deck_vec <- state$deck_vec[-idx_vec]
 
-  .log_event(state, paste0("set ", num_prizes, " prizes"))
+  .log_event(state, paste0("set ", num_prizes, " prizes"), level = 2L)
 }
 
 #' Run a full game setup
@@ -184,6 +187,9 @@ setup_game <- function(decklist,
 
   state <- deal_opening_hand(state, seed_number = seed_number,
                              verbose = verbose - 1)
+  # Log the opening hand BEFORE the placement, so the trace shows the input to
+  # the lead decision and not merely its outcome.
+  state <- log_hand_snapshot(state, "hand")
 
   placement_list <- placement_fn(state)
   stopifnot(is.list(placement_list),

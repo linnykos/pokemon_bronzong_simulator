@@ -20,6 +20,16 @@ This is not a research project. The usual lab conventions (papers, grants, liter
 
 **Going first and going second are reported separately and never pooled** (ADR 0002). Every replicate also records the **turn actually achieved**, which is where Salvatore's turn-1 speed shows up — the primary outcome is deliberately not designed to price it.
 
+**Mulligans never count as a miss** (ADR 0005). A hand with no Basic is redrawn and the redraw is played; a replicate that mulliganed twice and then hit on turn 2 is a hit. The cost of mulliganing is reported as two **orthogonal** metrics beside the hit rate — `mulligan_rate` and `mean_mulligans` — never folded into it.
+
+### Two outputs, for two different questions
+| Output | Answers | Covers |
+|---|---|---|
+| **Rate** — one number per cell | *which decklist is better* | every replicate |
+| **Traces** — `results/*_traces.txt` | *should the decision tree change* | a small stratified sample (ADR 0006) |
+
+Traces are **deliberately over-weighted toward misses** and are therefore not representative of the outcome distribution — **never compute a rate from a trace file**. Each carries `blocking_subgoal` (which of the four sub-goals in `docs/03_decision_tree.md` §1 was unmet) and `unused_out_vec` (outs still sitting in hand). A miss blocked on sub-goal C with a Switch in hand is a **decision** defect: fix `docs/03_decision_tree.md`, not the 60 cards.
+
 For reference, the earliest turn on which the event is *possible* — a property of the game, not the metric:
 
 | | Salvatore lists | No-Salvatore lists |

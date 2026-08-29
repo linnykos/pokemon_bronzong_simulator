@@ -64,7 +64,9 @@ new_game_state <- function(decklist,
                  bool_decked_out = FALSE,
                  jammer_turn = NA_integer_,
                  card_df = card_df,
-                 event_log = character(0)),
+                 event_log = character(0),
+                 event_level_vec = integer(0),
+                 event_turn_vec = integer(0)),
             class = "bronzong_state")
 }
 
@@ -178,7 +180,7 @@ draw_cards <- function(state, num_cards){
   state$hand_vec <- c(state$hand_vec, state$deck_vec[idx_vec])
   state$deck_vec <- state$deck_vec[-idx_vec]
 
-  .log_event(state, paste0("draw ", num_cards))
+  .log_event(state, paste0("draw ", num_cards), level = 2L)
 }
 
 #' Shuffle the deck
@@ -205,7 +207,7 @@ shuffle_deck <- function(state, seed_number = NULL){
     state$deck_vec <- state$deck_vec[sample(num_cards)]
   }
 
-  .log_event(state, "shuffle deck")
+  .log_event(state, "shuffle deck", level = 2L)
 }
 
 #' Move cards between zones
@@ -242,7 +244,8 @@ move_cards <- function(state, card_id_vec, from, to){
   state[[from_field]] <- source_vec
   state[[to_field]] <- c(state[[to_field]], card_id_vec)
 
-  .log_event(state, paste0("move ", length(card_id_vec), " ", from, "->", to))
+  .log_event(state, paste0("move ", length(card_id_vec), " ", from, "->", to),
+             level = 2L)
 }
 
 #' Count copies of a card across zones
@@ -304,14 +307,26 @@ all_cards_in_game <- function(state){
 #' The log is what makes a single replicate auditable when a result looks wrong.
 #' It is cheap to append to and is never read by any rule.
 #'
+#' Events carry a LEVEL, because the log has two audiences with opposite needs.
+#' Level 1 is a semantic action a player would recognise -- "play Hilda",
+#' "evolve into Bronzong", "ATTACK". Level 2 is a primitive that implements one
+#' -- a zone move, a shuffle, a draw. A trace meant for reading (or for an agent
+#' reasoning about the decision tree) keeps level 1 only; a trace meant for
+#' debugging a bookkeeping bug keeps both. Mixing them makes the readable trace
+#' unreadable, which is what makes it useless for its actual purpose.
+#'
 #' @param state a `"bronzong_state"`.
 #' @param message_str a one-line description.
+#' @param level 1 for a semantic action, 2 for an implementation primitive.
 #'
 #' @returns The updated state.
 #' @noRd
-.log_event <- function(state, message_str){
+.log_event <- function(state, message_str, level = 1L){
   state$event_log <- c(state$event_log,
                        paste0("T", state$turn_number, ": ", message_str))
+  state$event_level_vec <- c(state$event_level_vec, as.integer(level))
+  state$event_turn_vec <- c(state$event_turn_vec, state$turn_number)
+
   state
 }
 
