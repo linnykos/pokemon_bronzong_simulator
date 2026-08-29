@@ -30,8 +30,13 @@
 read_decklist <- function(file_path,
                           card_df,
                           verbose = 0){
+  # Deliberately does NOT assert `verbose >= 0`. read_decklist_dir() passes
+  # `verbose - 1` so that a caller asking for level-0 output does not get
+  # per-file chatter, which makes -1 a normal value on the default path. A
+  # helper that re-checks its caller's decremented verbosity rejects exactly the
+  # calls it is supposed to serve.
   stopifnot(is.character(file_path), length(file_path) == 1,
-            is.data.frame(card_df), verbose >= 0)
+            is.data.frame(card_df))
 
   if(!file.exists(file_path)) stop("no such decklist file: ", file_path)
 
