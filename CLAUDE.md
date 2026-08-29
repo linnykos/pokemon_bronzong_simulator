@@ -1,79 +1,98 @@
-# pokemon_bronzong_simulator
+# CLAUDE.md — Pokémon TCG Bronzong Simulator
 
-R simulator for Pokémon TCG opening hands and early-turn play, used to optimize a
-60-card Bronzong / Lopunny / Dusknoir decklist for **consistency of reaching the
-Evolution Jammer attack on the earliest legal turn**.
+## Workflow Instructions
+1. **Always enter plan mode** before starting any non-trivial task.
+2. **Use superpower skills** where relevant: `/code-review` for code changes, `/r-style-guide` before writing or editing any `.R` file, `/domain-modeling` when recording a hard-to-reverse decision.
+3. **After every prompt**, run `/project-state`: refresh the current-state sections of the individual contributor's `CLAUDE_[name].md` in place, and append a dated entry to their `HISTORY_[name].md`. Write only non-obvious things; skip anything already in the code or git history.
 
-This is not a research project. The usual lab conventions (papers, wikis, grants)
-do not apply here. R style still follows `r-style-guide`.
+## Project Context (High Level)
+**Paper/Project**: An R simulator for Pokémon TCG opening hands and early-turn play, used to optimize a 60-card Bronzong / Lopunny / Dusknoir decklist for how consistently it reaches the Evolution Jammer attack on the earliest legal turn.
+**Authors**: Kevin Lin (sole author; deck designer and analyst).
+**Goal**: Over many simulated games, what fraction of the time can the player attack with Evolution Jammer on **the earliest turn legal for that decklist and coin flip**? Compare that number across candidate 60-card lists to choose a list.
 
-## The question being answered
+This is not a research project. The usual lab conventions (papers, grants, literature wikis) do not apply. R style still follows `/r-style-guide`.
 
-Over many simulated games, what fraction of the time can the player attack with
-Evolution Jammer on **the earliest turn that is legal for that decklist and coin
-flip**? Compare across candidate 60-card lists.
+### The target event
+**Evolution Jammer is an attack, not an Ability.** Bronzong (TEF #69, reg H) must be **Active** with one `[P]` Energy attached — basic Psychic or Telepathic Psychic. Enriching Energy provides `[C]` and does **not** qualify.
 
-**Evolution Jammer is an attack, not an Ability.** Bronzong (TEF #69, reg H)
-must be **Active** with one `[P]` Energy attached — basic Psychic or Telepathic
-Psychic. Enriching Energy provides `[C]` and does **not** qualify.
+**The earliest legal turn is not a constant.** Salvatore overrides the first-turn evolution ban, so:
 
-**The earliest legal turn is not a constant** (see `docs/01_rules_standard.md`
-§5.1). Salvatore overrides the first-turn evolution ban, so:
-
-| | Salvatore lists (2,3,4,5,7) | No-Salvatore lists (1,6,8) |
+| | Salvatore lists | No-Salvatore lists |
 |---|---|---|
 | **Going second** | **turn 1** | turn 2 |
 | **Going first** | turn 2 | turn 2 |
 
-Results must be reported **per cell**, never pooled — pooling would penalize a
-Salvatore list for the half of its games that go first. Always record the actual
-turn achieved, so "hit the theoretical earliest" and "hit by turn 2" can both be
-read off the same runs.
+Results must be reported **per cell**, never pooled — pooling would penalize a Salvatore list for the half of its games that go first. Always record the actual turn achieved, so "hit the theoretical earliest" and "hit by turn 2" can both be read off the same runs.
 
-## Scenarios
-
-Every decklist is evaluated under a set of named scenarios, crossed with going
-first vs. going second:
+### Scenarios
+Every decklist is evaluated under named scenarios, crossed with going first vs. second:
 
 | Scenario | Opponent behaviour |
 |----------|--------------------|
 | `clear` | Opponent does nothing. Baseline consistency of the list in isolation. |
-| `item_lock` | Opponent leads Budew and uses Itchy Pollen, locking our Items on the turn it is Active. Only meaningful when we go first. |
-| *(more to be added)* | Other disruption, e.g. a turn-1 Iono. |
+| `item_lock` | Opponent leads Budew and attacks with Itchy Pollen, locking our Items on our next turn. Only possible when the opponent went **second**, since Itchy Pollen is an attack. |
 
-Results are reported per (decklist, scenario, first/second) cell, not pooled.
-
-## Layout
+## Repository Layout
+Paths here are relative to the project root and are the same for everyone.
 
 | Path | Contents |
 |------|----------|
 | `docs/01_rules_standard.md` | Standard-format rules reference (part 1) |
+| `docs/02_cards.md` | Card index + cross-decklist count matrix |
 | `docs/cards/` | Verbatim card text, one file per card (part 2) |
-| `docs/03_decision_tree.md` | English decision tree for turns 1–2 (part 3) |
-| `R/` | Simulator source |
-| `decklists/` | Candidate 60-card lists, one file each |
+| `docs/03_decision_tree.md` | English decision tree for turns 1–2 (part 3) — *not yet written* |
+| `docs/adr/` | Numbered decision records — the evolution of the project's ideas |
+| `CONTEXT.md` | Shared glossary: what this project's words mean |
+| `R/` | Simulator source (parts 4–5) — *not yet written* |
+| `decklists/` | Candidate 60-card lists, one `.txt` each, PTCG-Live export format |
 | `results/` | Per-decklist simulation results and the run registry (part 6) |
 | `scripts/` | Entry points |
 | `tests/testthat/` | Tests |
+| `additional_context/` | Reference material + `summary.md` index |
+
+## External Locations
+Folders this project depends on that live **outside** the project root.
+
+**No per-machine filesystem path appears in this file.** This file names each location and says what it is for; the path — and which machine it is on — is recorded per person in `CLAUDE_[name].md` under *External Locations (per-machine paths)*. Hostnames and URIs that are the same for everyone are fine here.
+
+| Location name | Purpose | Copy semantics |
+|---|---|---|
+| `R_BIN` | The R installation's `bin/` directory, holding `Rscript`. R is **not on `PATH`** on the author's machine, so scripts are invoked through this location. | per-person copy — independent |
+
+Git remote (same for everyone): `https://github.com/linnykos/pokemon_bronzong_simulator.git`
+
+Refer to these locations by name in prose, code comments, and session notes. To resolve a name to a real path, read the current user's `CLAUDE_[name].md`. If that person has no row for the location, ask them — do not guess, and do not reuse another collaborator's path.
+
+## Who Is Using This Session?
+**Detect the current user** by running `echo $USER`. This table maps each login to that person's **first-name** context file.
+
+| Username (login) | Current-state file (first name) | History archive |
+|---|---|---|
+| `kevinlin`, `klin1` | `CLAUDE_kevin.md` | `HISTORY_kevin.md` |
+
+**File ownership.** Each row above names one person's files, and **only that person's session writes them.** Once `$USER` resolves to a first name, that is the only suffix you may create, edit, append to, rename, or delete — every other collaborator's per-person files are read-only. Read them for context when useful; never modify them. This master `CLAUDE.md` is the exception: it is shared and any collaborator may update it. The single override is the user, in the current turn, directing you to write that exact file — confirm once, then write it.
+
+**Session startup — run this before any other work.** All four cases below are normal; none is an error to report back to the user.
+
+1. Run `echo $USER` and look for a matching row. On Windows, `$USER` is often empty — fall back to `$USERNAME`, or to the working-directory owner.
+2. **Row exists and the file exists** → read that person's `CLAUDE_[name].md` immediately. Do **not** read `HISTORY_[name].md` at startup; it is the append-only session log, consulted only on demand.
+3. **Row exists but `CLAUDE_[name].md` does not** → initialize `CLAUDE_[name].md` and `HISTORY_[name].md` via `/project-state`, then continue.
+4. **No matching row** → ask the user their first name, add a row to the table above, then initialize their files as in case 3. Never guess a first name from the login.
+
+## Shared vocabulary and decisions
+- **`CONTEXT.md`** (project root) is the glossary — what this project's words mean. Read it before using a term like *turn*, *Bronzor*, *`[P]` source*, or *cell*; several of them are ambiguous in ordinary Pokémon TCG usage. Update it via `/domain-modeling` when a term settles.
+- **`docs/adr/`** holds numbered decision records — the choices that were expensive to make and would be surprising without context. Three exist; read them before revisiting the metric, the Salvatore ruling, or the information-hiding rule.
 
 ## Ground rules for this project
-
-- **Never invent card text.** Every card in `docs/cards/` is transcribed from a
-  primary source (limitlesstcg.com or pokemon.com) with the set code, number,
-  and regulation mark recorded. If a card cannot be verified, it is marked
-  `[UNVERIFIED]` rather than guessed.
-- **Never let the decision logic peek at hidden information.** Prizes and deck
-  order are hidden from the player. The simulator's policy code may only read
-  what a real player would know at that moment. This is the easiest way to
-  produce a silently wrong consistency number.
-- **Turn numbering is per player.** `P2T2` means the second player's second
-  turn. See `docs/01_rules_standard.md` §6.
+- **Never invent card text.** Every card in `docs/cards/` is transcribed from a primary source (limitlesstcg.com, Bulbapedia, pokemon.com) with the set code, number, and regulation mark recorded, and the verification date noted. If a card cannot be verified it is marked `[UNVERIFIED]` rather than guessed. The transcription source has twice mis-rendered an **attack** as an **Ability** — re-query with a pointed question for any card whose details drive the decision tree.
+- **Never let the decision logic peek at hidden information.** Prizes and deck order are hidden from the player. The simulator's policy code may only read what a real player would know at that moment. A search that fails because the card is prized is *information the player earns*, not something the policy may assume. This is the easiest way to produce a silently wrong consistency number.
+- **Turn numbering is per player.** `P2T2` means the second player's second turn. See `docs/01_rules_standard.md` §6.
 - Standard 2026 legality = regulation mark **H**, **I**, or **J**.
+- New R files drafted by Claude are named with a `_claude` suffix so Kevin can review before integrating.
 
-## Environment
+## Post-Prompt Update Instructions
+After completing each user prompt, run `/project-state`. It will:
+- **Refresh in place** the current-state sections of `CLAUDE_[name].md` (Project Status, Key Methodological Details, Open Questions / Next Steps).
+- **Append a dated entry at the bottom** of `HISTORY_[name].md` recording new decisions, resolved/open questions, non-obvious rationale, and empirical findings.
 
-R 4.6.1, not on `PATH`. Invoke as:
-
-```
-"/c/Program Files/R/R-4.6.1/bin/Rscript.exe" scripts/<script>.R
-```
+Do NOT record: things already in the code, git history, or reproducible from code.

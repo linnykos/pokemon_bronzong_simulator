@@ -1,0 +1,44 @@
+# HISTORY_kevin.md — Kevin's Session Log
+
+> **Append-only, ascending chronological order** (oldest at top, newest at the bottom). Add each session's dated entry to the END of this file. Never read at session startup — consulted only on demand for deep history. Current project state lives in `CLAUDE_kevin.md`.
+>
+> **Owned by Kevin.** Only Kevin's session appends to this file. Other collaborators may read it but must not edit or rewrite entries.
+
+---
+
+### 2026-08-29 (Session 1 — project init and the rules model)
+
+- Initialized the repo and wrote part 1, `docs/01_rules_standard.md`: Standard 2026 legality, deck construction, setup with mulligans, turn structure, evolution timing, first-turn restrictions.
+- **Resolved: what "Evolution Jammer" actually is.** Started from the assumption it was a Bronzong *Ability*. It is an **attack** — `[P]`, 30 damage. This changes the target from "Bronzong in play" to "Bronzong Active, with a `[P]` Energy, actually attacking." The transcription source (Limitless via WebFetch) reported it as an Ability with an energy cost, which is self-contradictory; Bulbapedia settled it. **This became a standing rule: any card driving the decision tree gets a second, pointed query.** The same error later recurred on Budew's Itchy Pollen.
+- **Resolved: Bronzong TEF 69 is Standard-legal.** I initially concluded it had rotated, reading a source that said regulation mark G covered "all Scarlet & Violet releases through Pokémon 151" and wrongly placing Temporal Forces inside that range. Kevin corrected it: TEF is **reg H**, since G *stops* at Pokémon 151 and TEF is later. Worth remembering as a failure mode — the source was accurate and I misapplied it.
+- **Derived the earliest-possible-attack floor:** you cannot evolve on your own first turn, so a Stage 1 could not attack before turn 2. At this point the project's target was believed to be turn 2, full stop. Session 2 overturned this.
+- Decided the opponent would be modelled as named **scenarios** rather than a full opposing deck; Kevin asked for both a do-nothing baseline and an Itchy-Pollen disruption case.
+- Noted R 4.6.1 is installed but has only base packages, and is not on `PATH`.
+
+### 2026-08-29 (Session 2 — card import, and the premise changing twice)
+
+- Imported verbatim card text for every distinct card across what were then eight decklists. Coverage checked by exact set+number match rather than name matching, after a name-based heuristic produced false positives on accented and reformatted names.
+- **Resolved: Salvatore (TEF 160) permits evolving on your first turn.** This was the session's big one. Salvatore's text plainly overrides "can't evolve a Pokémon played this turn"; whether it also overrides the separate first-turn ban decides whether the whole project measures turn 1 or turn 2. Public sources actively contradicted each other and none was authoritative, so I stopped and asked rather than guessing. Kevin confirmed it works. Recorded as **ADR 0001**, explicitly flagged as the one load-bearing rules fact with no citable source.
+- **Decision: report per (decklist, scenario, first/second) cell and never pool** — ADR 0002. Follows directly from the above: the earliest legal turn is turn 1 for a Salvatore list going second and turn 2 in every other case, so a single pooled number per decklist averages two different questions and penalises Salvatore lists for the half of their games where Salvatore is unusable. Rejected the simpler one-number-per-list design for exactly that reason.
+- **Resolved: Bronzong has no Ability**, which is what makes it a legal Salvatore target. Dusclops and Dusknoir both have Cursed Blast and can therefore *never* be fetched with Salvatore — a non-obvious asymmetry that shapes the turn-2 branch.
+- Learned that **Telepathic Psychic Energy provides `[P]`** and its attach trigger searches 2 Basic `[P]` Pokémon onto the Bench, while **Enriching Energy provides `[C]`** and cannot pay for Evolution Jammer. Decklists 2–6 have no basic Energy at all, so their only `[P]` sources are 4 Telepathic Psychic — and Night Stretcher cannot recover those, since it retrieves only *Basic* Energy.
+- Noticed the eight lists share a fixed 16-card shell, and that Salvatore is present in five and absent from three — i.e. Salvatore is the variable actually being tested, which is what made ADR 0001 worth stopping for.
+
+### 2026-08-29 (Session 3 — dedup, candidate cards, and a self-correction)
+
+- **Removed two duplicate decklists.** Old decklist7 was an exact reordering of decklist2 and decklist8 of decklist6 — identical card multisets, different line order. Detected by hashing the sorted card lines, then confirmed with a real diff before deleting. Six lists remain. This is why `CONTEXT.md` defines a **Decklist** by contents rather than filename.
+- Imported five candidate cards not in any list: Buddy-Buddy Poffin, Bronzor PRE 66, Bronzor SSP 126, Pokégear 3.0 (BLK 84), Mystery Garden. Night Stretcher was already present as ASC 196.
+- **Learned: "Bronzor" names three different cards**, not three printings of one. TEF 68 is Psychic/80 HP; PRE 66 is Metal/70; SSP 126 is Metal/60. All evolve into Bronzong TEF 69, so a list may mix them up to 4 total.
+- **New axis to test:** Buddy-Buddy Poffin caps at "70 HP or less", so it **cannot fetch Bronzor TEF 68** (80 HP) but can fetch both Metal printings — at the cost that Telepathic Psychic Energy can then no longer find them, since they are not `[P]`. A 2/2 split preserves both search routes. This is a clean, measurable trade-off and belongs in part 6.
+- **Corrected an error I had introduced in Session 1:** I had written that Bronzor's retreat cost of 3 made promoting it from the Bench impractical. Wrong — retreating costs the retreat cost of the Pokémon *leaving* the Active spot, so Bronzor's own cost is irrelevant to promoting it. Fixed in the rules doc and both Bronzong-line card files. The knock-on: **Latias ex's Skyliner is better than I had described**, since on turn 1 the Active is almost always a Basic and Skyliner makes that retreat free.
+- Standing hypothesis for part 3, not yet tested: **positioning, not drawing, is the bottleneck** — Salvatore removes the timing constraint but evolves a Bronzor anywhere, so it does not get Bronzong Active.
+- Open: Pokégear 3.0 is a *look at 7*, not a tutor, and it shuffles — so it can whiff, and playing it after a Ciphermaniac's Codebreaking would destroy the stacked top of deck. The policy must know not to.
+
+### 2026-08-29 (Session 4 — project scaffolding and history tracking)
+
+- Ran `/project-setup`, `/domain-modeling`, and `/project-state` at Kevin's request to put the collaboration scaffolding in place and start tracking how the project's ideas evolve.
+- Rewrote the master `CLAUDE.md` onto the standard template; moved the R installation path out of it into this person-file as the `R_BIN` location, since a `C:\...` path is only true on one machine.
+- Created `CONTEXT.md` as a glossary. The entries worth having are the ambiguous ones: **Turn** (per-player, not global), **Bronzor** (three cards, one name), **`[P]` source** (two cards, not all Energy), and **Decklist** (identified by contents, not filename). Five terms are Claude coinages marked `[unconfirmed]` and need Kevin's sign-off.
+- Wrote three decision records — ADR 0001 (Salvatore premise), 0002 (per-cell reporting), 0003 (policy may not read hidden information). ADR 0003 was written now rather than at implementation time because retrofitting information-hiding onto a policy that reads ground truth is a rewrite, not a patch.
+- Installed the standard `.gitignore` and the ≥50 MB pre-commit guard, and set `core.hooksPath`. Noted the GitHub remote `linnykos/pokemon_bronzong_simulator` already existed; did not create one.
+- Open: `additional_context/` is empty by design so far — every source used was fetched live with its URL and date recorded at the point of use. The two things worth saving offline are an official Salvatore ruling and corroboration of Nighttime Mine's text.
