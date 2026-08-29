@@ -23,8 +23,20 @@
 
 - Must be in play from **setup or the player's turn 1** for Bronzong to arrive
   on turn 2.
-- Retreat cost 3 means a Bronzor stuck on the Bench needs a switching effect,
-  not a retreat, to get Bronzong Active on turn 2.
+- **Retreat cost 3 is largely a non-issue for the target line.** Retreating
+  costs the retreat cost of the Pokémon *leaving* the Active spot, so promoting
+  a benched Bronzor is priced by whatever is Active, not by Bronzor. Bronzor's 3
+  only bites if Bronzor/Bronzong is Active and wants out — which the target line
+  never wants.
+- At **80 HP** it is **too big for [Buddy-Buddy
+  Poffin](TEF-144-buddy-buddy-poffin.md)** ("70 HP or less"). The alternate
+  printings [PRE 66](PRE-066-bronzor.md) (70 HP) and
+  [SSP 126](SSP-126-bronzor.md) (60 HP) are not, which is the main reason to
+  consider swapping.
+- Being **Psychic**, it *is* findable by [Telepathic Psychic
+  Energy](POR-088-telepathic-psychic-energy.md)'s search for Basic `[P]`
+  Pokémon, and attaching that Energy to it triggers the search. The Metal
+  printings lose both.
 - 80 HP; relevant only if modelling an attacking opponent.
 
 **Verified against:** limitlesstcg.com/cards/tef/68, 2026-08-29.

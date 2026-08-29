@@ -1,7 +1,7 @@
 # Card Index
 
-Verbatim card text lives one file per card in `docs/cards/` — **30 files
-covering 29 distinct cards** (MEE 5 and SVE 5 are two printings of the same
+Verbatim card text lives one file per card in `docs/cards/` — **35 files
+covering 34 distinct cards** (MEE 5 and SVE 5 are two printings of the same
 basic Psychic Energy). This page is the index and the cross-decklist summary.
 
 All text was transcribed from limitlesstcg.com on 2026-08-29. Cards whose
@@ -10,52 +10,78 @@ question**, because the first pass mis-transcribed two attacks as Abilities
 (Evolution Jammer and Itchy Pollen). Anything still unconfirmed is marked
 `[UNVERIFIED]` in its file and listed under "Open items" below.
 
-All eight decklists in `decklists/` are legal 60-card lists.
+All six decklists in `decklists/` are legal 60-card lists. (Two exact duplicates
+were removed: old decklist7 duplicated decklist2, and old decklist8 duplicated
+decklist6 — same card multisets, only line ordering differed.)
 
-## Counts across the eight decklists
+## Counts across the six decklists
 
 `.` = not in that list.
 
-| Card | File | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
-|------|------|---|---|---|---|---|---|---|---|
-| **Bronzor** | [TEF 68](cards/TEF-068-bronzor.md) | 2 | 2 | 2 | 2 | **3** | 2 | 2 | 2 |
-| **Bronzong** | [TEF 69](cards/TEF-069-bronzong.md) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
-| Duskull | [PRE 35](cards/PRE-035-duskull.md) | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
-| Dusclops | [PRE 36](cards/PRE-036-dusclops.md) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
-| Dusknoir | [PRE 37](cards/PRE-037-dusknoir.md) | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
-| Buneary | [PFL 83](cards/PFL-083-buneary.md) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
-| Mega Lopunny ex | [PFL 84](cards/PFL-084-mega-lopunny-ex.md) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
-| Mega Kangaskhan ex | [MEG 104](cards/MEG-104-mega-kangaskhan-ex.md) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
-| Meowth ex | [POR 62](cards/POR-062-meowth-ex.md) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
-| **Latias ex** | [SSP 76](cards/SSP-076-latias-ex.md) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
-| Flutter Mane | [TEF 78](cards/TEF-078-flutter-mane.md) | 1 | 1 | . | 1 | 1 | 1 | 1 | 1 |
-| Budew | [ASC 16](cards/ASC-016-budew.md) | 1 | 1 | 1 | 1 | . | 1 | 1 | 1 |
-| Hilda | [WHT 84](cards/WHT-084-hilda.md) | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
-| Lillie's Determination | [MEG 119](cards/MEG-119-lillies-determination.md) | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
-| Ciphermaniac's Codebreaking | [TEF 145](cards/TEF-145-ciphermaniacs-codebreaking.md) | 3 | 2 | 2 | 2 | . | 2 | 2 | 2 |
-| **Salvatore** | [TEF 160](cards/TEF-160-salvatore.md) | . | 1 | 1 | 1 | 1 | . | 1 | . |
-| Boss's Orders | [MEG 114](cards/MEG-114-bosss-orders.md) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
-| Rare Candy | [MEG 125](cards/MEG-125-rare-candy.md) | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
-| **Switch** | [MEG 130](cards/MEG-130-switch.md) | 4 | 3 | 4 | 3 | 3 | 4 | 3 | 4 |
-| Ultra Ball | [MEG 131](cards/MEG-131-ultra-ball.md) | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
-| Poké Pad | [POR 81](cards/POR-081-poke-pad.md) | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
-| Night Stretcher | [ASC 196](cards/ASC-196-night-stretcher.md) | 1 | 2 | 1 | 1 | 2 | 1 | 2 | 1 |
-| Special Red Card | [CRI 82](cards/CRI-082-special-red-card.md) | . | . | 1 | 1 | . | 1 | . | 1 |
-| Nighttime Mine | [ASC 197](cards/ASC-197-nighttime-mine.md) | 1 | . | . | . | . | . | . | . |
-| Jamming Tower | [TWM 153](cards/TWM-153-jamming-tower.md) | . | 1 | . | 1 | 1 | 1 | 1 | 1 |
-| Festival Grounds | [TWM 149](cards/TWM-149-festival-grounds.md) | . | . | 1 | . | . | . | . | . |
-| **Telepathic Psychic Energy** | [POR 88](cards/POR-088-telepathic-psychic-energy.md) | . | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
-| **Basic Psychic Energy** | [SVE 5](cards/SVE-005-psychic-energy.md) / [MEE 5](cards/MEE-005-psychic-energy.md) | 4 | . | . | . | 2 | . | . | . |
-| Enriching Energy | [SSP 191](cards/SSP-191-enriching-energy.md) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
+| Card | File | 1 | 2 | 3 | 4 | 5 | 6 |
+|------|------|---|---|---|---|---|---|
+| **Bronzor** | [TEF 68](cards/TEF-068-bronzor.md) | 2 | 2 | 2 | 2 | **3** | 2 |
+| **Bronzong** | [TEF 69](cards/TEF-069-bronzong.md) | 2 | 2 | 2 | 2 | 2 | 2 |
+| Duskull | [PRE 35](cards/PRE-035-duskull.md) | 4 | 4 | 4 | 4 | 4 | 4 |
+| Dusclops | [PRE 36](cards/PRE-036-dusclops.md) | 2 | 2 | 2 | 2 | 2 | 2 |
+| Dusknoir | [PRE 37](cards/PRE-037-dusknoir.md) | 4 | 4 | 4 | 4 | 4 | 4 |
+| Buneary | [PFL 83](cards/PFL-083-buneary.md) | 2 | 2 | 2 | 2 | 2 | 2 |
+| Mega Lopunny ex | [PFL 84](cards/PFL-084-mega-lopunny-ex.md) | 2 | 2 | 2 | 2 | 2 | 2 |
+| Mega Kangaskhan ex | [MEG 104](cards/MEG-104-mega-kangaskhan-ex.md) | 2 | 2 | 2 | 2 | 2 | 2 |
+| Meowth ex | [POR 62](cards/POR-062-meowth-ex.md) | 1 | 1 | 1 | 1 | 1 | 1 |
+| **Latias ex** | [SSP 76](cards/SSP-076-latias-ex.md) | 1 | 1 | 1 | 1 | 1 | 1 |
+| Flutter Mane | [TEF 78](cards/TEF-078-flutter-mane.md) | 1 | 1 | . | 1 | 1 | 1 |
+| Budew | [ASC 16](cards/ASC-016-budew.md) | 1 | 1 | 1 | 1 | . | 1 |
+| Hilda | [WHT 84](cards/WHT-084-hilda.md) | 4 | 4 | 4 | 4 | 4 | 4 |
+| Lillie's Determination | [MEG 119](cards/MEG-119-lillies-determination.md) | 4 | 4 | 4 | 4 | 4 | 4 |
+| Ciphermaniac's Codebreaking | [TEF 145](cards/TEF-145-ciphermaniacs-codebreaking.md) | 3 | 2 | 2 | 2 | . | 2 |
+| **Salvatore** | [TEF 160](cards/TEF-160-salvatore.md) | . | 1 | 1 | 1 | 1 | . |
+| Boss's Orders | [MEG 114](cards/MEG-114-bosss-orders.md) | 2 | 2 | 2 | 2 | 2 | 2 |
+| Rare Candy | [MEG 125](cards/MEG-125-rare-candy.md) | 4 | 4 | 4 | 4 | 4 | 4 |
+| **Switch** | [MEG 130](cards/MEG-130-switch.md) | 4 | 3 | 4 | 3 | 3 | 4 |
+| Ultra Ball | [MEG 131](cards/MEG-131-ultra-ball.md) | 4 | 4 | 4 | 4 | 4 | 4 |
+| Poké Pad | [POR 81](cards/POR-081-poke-pad.md) | 4 | 4 | 4 | 4 | 4 | 4 |
+| Night Stretcher | [ASC 196](cards/ASC-196-night-stretcher.md) | 1 | 2 | 1 | 1 | 2 | 1 |
+| Special Red Card | [CRI 82](cards/CRI-082-special-red-card.md) | . | . | 1 | 1 | . | 1 |
+| Nighttime Mine | [ASC 197](cards/ASC-197-nighttime-mine.md) | 1 | . | . | . | . | . |
+| Jamming Tower | [TWM 153](cards/TWM-153-jamming-tower.md) | . | 1 | . | 1 | 1 | 1 |
+| Festival Grounds | [TWM 149](cards/TWM-149-festival-grounds.md) | . | . | 1 | . | . | . |
+| **Telepathic Psychic Energy** | [POR 88](cards/POR-088-telepathic-psychic-energy.md) | . | 4 | 4 | 4 | 4 | 4 |
+| **Basic Psychic Energy** | [SVE 5](cards/SVE-005-psychic-energy.md) / [MEE 5](cards/MEE-005-psychic-energy.md) | 4 | . | . | . | 2 | . |
+| Enriching Energy | [SSP 191](cards/SSP-191-enriching-energy.md) | 1 | 1 | 1 | 1 | 1 | 1 |
+
+## Candidate cards — imported, not yet in any list
+
+| Card | File | Why it is on the table |
+|------|------|------------------------|
+| **Buddy-Buddy Poffin** | [TEF 144](cards/TEF-144-buddy-buddy-poffin.md) | Free Item, 2 Basics onto the Bench — but only ones with **70 HP or less** |
+| **Bronzor (Metal)** | [PRE 66](cards/PRE-066-bronzor.md) · [SSP 126](cards/SSP-126-bronzor.md) | 70/60 HP, so **Poffin can find them**; TEF 68's 80 HP cannot |
+| **Pokégear 3.0** | [BLK 84](cards/BLK-084-pokegear-3-0.md) | An **Item** that digs for a Supporter — usable on turn 1 going first |
+| **Mystery Garden** | [MEG 122](cards/MEG-122-mystery-garden.md) | Stadium refill, costs an Energy from hand |
+
+### The Bronzor decision
+
+| Printing | Type | HP | Poffin-eligible? | Findable by Telepathic Psychic Energy? |
+|----------|------|----|------------------|----------------------------------------|
+| [TEF 68](cards/TEF-068-bronzor.md) | Psychic | 80 | **no** | **yes** |
+| [PRE 66](cards/PRE-066-bronzor.md) | Metal | 70 | **yes** | no |
+| [SSP 126](cards/SSP-126-bronzor.md) | Metal | 60 | **yes** | no |
+
+All three are named "Bronzor" and all three evolve into Bronzong TEF 69, so a
+list may run any **mix** up to 4 total. The trade is clean and worth measuring
+directly in part 6: Poffin access versus Telepathic Psychic Energy access. A
+split (e.g. 2 TEF 68 + 2 PRE 66) keeps both and is its own candidate. Of the two
+Metal printings, **PRE 66 is the free pick** — 70 HP is still under the Poffin
+cap, so its extra 10 HP costs nothing.
 
 ### What actually varies
 
-Sixteen cards are identical across all eight lists — that shell is fixed. The
+Sixteen cards are identical across all six lists — that shell is fixed. The
 live variables are:
 
 | Variable | Values | Lists |
 |----------|--------|-------|
-| **Salvatore** | 0 or 1 | in 2,3,4,5,7 — **absent from 1,6,8** |
+| **Salvatore** | 0 or 1 | in 2,3,4,5 — **absent from 1,6** |
 | **`[P]` Energy base** | 4 basic / 4 Telepathic / 4 Telepathic + 2 basic | 1 / most / 5 |
 | **Switch** | 3 or 4 | — |
 | Bronzor | 2 or 3 | 3 only in list 5 |

@@ -167,7 +167,7 @@ At the attack step of the relevant turn, all of the following hold —
 Three constraints follow, and the decision tree must treat each as a first-class branch:
 
 - **Only one Energy attachment per turn.** The `[P]` may go onto the Bronzor on an earlier turn (it carries through evolution) or onto the Bronzong on the turn it attacks. Attaching earlier is more flexible, since it frees the later attachment for Enriching Energy's draw 4.
-- **Bronzong must be Active** (requirement 3). If Bronzor is on the Bench the player needs a switching effect — Bronzor's own retreat cost is **3**. The outs are Switch, Latias ex's Skyliner (free retreat for Basics), or Buneary's Run Around (an attack, so going second only).
+- **Bronzong must be Active** (requirement 3). If Bronzor is on the Bench the player must move the current Active out of the way. Note that **retreating costs the retreat cost of the Pokémon leaving the Active spot**, not the one being promoted — so Bronzor's own retreat cost of 3 is irrelevant here; what matters is what is currently Active. The outs are: lead Bronzor from setup (free); **Latias ex's Skyliner**, which makes *any Basic* Active retreat for free, and on turn 1 the Active is almost always a Basic; **Switch**; or **Buneary's Run Around** (an attack, so going second only).
 - **Salvatore does not solve the Active problem** — it evolves a Bronzor anywhere on the board. It removes the timing constraint, not the positioning one.
 
 ---

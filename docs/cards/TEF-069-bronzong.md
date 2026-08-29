@@ -27,8 +27,11 @@
   Energy** attached, on the player's own **turn 2** at the earliest.
 - The lock also stops **Rare Candy**, since the Stage 2 would be played from
   the opponent's hand to evolve.
-- Retreat cost 3 is punishing: promoting a benched Bronzor/Bronzong by
-  retreating is effectively impossible on turn 1-2 without a switching card.
+- Retreat cost 3 does **not** obstruct the target line. Retreating costs the
+  retreat cost of the Pokémon *leaving* the Active spot, so getting Bronzor
+  Active is priced by whatever is currently Active — typically a Basic, and
+  therefore **free** whenever Latias ex's Skyliner is in play. Bronzong's own 3
+  matters only after it is Active and wants out.
 
 **Verified against:** limitlesstcg.com/cards/tef/69 and Bulbapedia
 "Bronzong (Temporal Forces 69)", 2026-08-29. Two independent sources agree.
