@@ -1,0 +1,29 @@
+Pokémon: 12
+4 Duskull PRE 35
+2 Dusclops PRE 36
+4 Dusknoir PRE 37
+2 Bronzor TEF 68
+2 Bronzong TEF 69
+2 Buneary PFL 83
+2 Mega Lopunny ex PFL 84
+2 Mega Kangaskhan ex MEG 104
+1 Meowth ex POR 62
+1 Latias ex SSP 76
+1 Flutter Mane TEF 78
+1 Budew ASC 16
+
+Trainer: 10
+4 Lillie's Determination MEG 119
+4 Hilda WHT 84
+3 Ciphermaniac's Codebreaking TEF 145
+2 Boss's Orders MEG 114
+4 Rare Candy MEG 125
+4 Switch MEG 130
+4 Ultra Ball MEG 131
+4 Poké Pad POR 81
+1 Night Stretcher ASC 196
+1 Nighttime Mine ASC 197
+
+Energy: 2
+4 Basic {P} Energy SVE 5
+1 Enriching Energy SSP 191
