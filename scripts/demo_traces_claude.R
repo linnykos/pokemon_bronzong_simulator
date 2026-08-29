@@ -113,7 +113,8 @@ trace_list <- list()
 for(i in seq_len(num_replicates)){
   pair <- .run_replicate(seed_number = i, bool_going_first = FALSE)
   result <- summarise_replicate(pair, decklist_id = decklist$decklist_id,
-                                seed_number = i, bool_keep_trace = TRUE)
+                                seed_number = i,
+                                bool_keep_trace = !sampler_is_full(sampler))
 
   take_list <- sampler_take(sampler, result$bool_hit)
   sampler <- take_list$sampler
@@ -129,14 +130,16 @@ summary_list <- summarise_run(result_list)
 
 dir.create("results", showWarnings = FALSE)
 write_trace_file(trace_list, file.path("results", "demo_traces.txt"),
-                 summary_list)
+                 summary_list, decklist = decklist)
 
 print(paste0("hit rate: ", round(100 * summary_list$hit_rate, 2), "%"))
 print(paste0("mulligan rate: ", round(100 * summary_list$mulligan_rate, 2),
              "%  mean: ", round(summary_list$mean_mulligans, 3),
              "  max: ", summary_list$max_mulligans))
-print("blocking sub-goal tally among misses:")
-print(summary_list$block_tally_vec)
+print("unmet sub-goal tally (as a SET, over misses):")
+print(summary_list$unmet_tally_vec)
+print("play motifs:")
+print(summary_list$motif_tally_vec)
 print(paste0("misses with an unused out in hand: ", summary_list$num_unused_out))
 print(paste0("traces written: ", length(trace_list),
              " -> results/demo_traces.txt"))

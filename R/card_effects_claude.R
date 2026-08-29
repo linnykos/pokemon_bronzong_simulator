@@ -456,7 +456,7 @@ play_surfer <- function(pair, bench_idx){
     return(pair)
   }
 
-  pair$state <- .swap_active(state, bench_idx)
+  pair$state <- .swap_active(state, bench_idx, via_str = "Surfer")
   num_draw <- max(0L, 5L - length(pair$state$hand_vec))
 
   pair <- draw_to_hand(pair, num_cards = num_draw)
@@ -523,7 +523,7 @@ play_ciphermaniacs_codebreaking <- function(pair, target_id_vec){
 #' @export
 play_switch <- function(pair, bench_idx){
   pair <- .discard_from_hand(pair, "MEG-130")
-  pair$state <- .swap_active(pair$state, bench_idx)
+  pair$state <- .swap_active(pair$state, bench_idx, via_str = "Switch")
 
   pair
 }
@@ -571,7 +571,10 @@ retreat_active <- function(pair, bench_idx, discard_id_vec = NULL){
   }
 
   state$turn_flag_list$bool_retreated <- TRUE
-  pair$state <- .swap_active(state, bench_idx)
+  pair$state <- .swap_active(state, bench_idx,
+                             via_str = paste0("retreat(",
+                                              if(cost_val == 0) "free" else
+                                                paste0("paid ", cost_val), ")"))
 
   pair
 }
@@ -602,8 +605,8 @@ attack_run_around <- function(pair, bench_idx){
 
   state$turn_flag_list$bool_attacked <- TRUE
   state$turn_flag_list$bool_turn_over <- TRUE
-  state <- .swap_active(state, bench_idx)
-  pair$state <- .log_event(state, "Run Around")
+  state <- .swap_active(state, bench_idx, via_str = "Run Around")
+  pair$state <- state
 
   pair
 }
@@ -802,8 +805,7 @@ attack_evolution_jammer <- function(pair){
   }
 
   state <- .log_event(state, paste0(label, " -> ",
-                                    if(length(found_vec) == 0) "whiff"
-                                    else paste0(found_vec, collapse = ", ")))
+                                    .search_outcome(target_id_vec, found_vec)))
   pair$state <- state
   pair$knowledge <- knowledge_after_search(pair$knowledge, state)
 
@@ -843,8 +845,7 @@ attack_evolution_jammer <- function(pair){
   }
 
   state <- .log_event(state, paste0(label, " -> ",
-                                    if(length(found_vec) == 0) "whiff"
-                                    else paste0(found_vec, collapse = ", ")))
+                                    .search_outcome(target_id_vec, found_vec)))
   pair$state <- shuffle_deck(state)
   pair$knowledge <- knowledge_after_search(pair$knowledge, pair$state)
   pair$knowledge <- knowledge_after_shuffle(pair$knowledge)
@@ -902,12 +903,31 @@ attack_evolution_jammer <- function(pair){
 
 #' Swap the Active with a Bench slot, preserving both records intact
 #' @noRd
-.swap_active <- function(state, bench_idx){
+.swap_active <- function(state, bench_idx, via_str = "unknown"){
   check_whole_number(bench_idx, "bench_idx", 1L, length(state$bench_list))
 
   promoted <- state$bench_list[[bench_idx]]
   state$bench_list[[bench_idx]] <- state$active
   state$active <- promoted
 
-  .log_event(state, paste0("promote ", top_card(promoted)))
+  .log_event(state, paste0("promote ", top_card(promoted), " via ", via_str))
+}
+
+#' Describe how a search resolved
+#'
+#' Distinguishes a search the policy never aimed from one that aimed and failed.
+#' Logging both as "whiff" merged a DECISION defect with a DECK defect, which is
+#' precisely the distinction the trace file exists to draw: "whiff" reads as
+#' variance, and a declined search is a choice.
+#'
+#' @param target_id_vec what was asked for.
+#' @param found_vec what was retrieved.
+#'
+#' @returns A single description string.
+#' @noRd
+.search_outcome <- function(target_id_vec, found_vec){
+  if(length(found_vec) > 0) return(paste0(found_vec, collapse = ", "))
+  if(length(target_id_vec) == 0) return("DECLINED (no target named)")
+
+  paste0("whiff (", paste0(target_id_vec, collapse = ", "), " not in deck)")
 }

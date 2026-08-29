@@ -1,133 +1,153 @@
-# Decision traces
+# Decision traces -- read the header, then count motifs, then read traces.
 
-# READ THIS FIRST. These traces are a STRATIFIED sample, deliberately
-# over-weighted toward misses, because misses are what a decision tree is
-# tuned against. They are NOT representative of the outcome distribution.
-# Never compute a rate from this file -- the true rates are below and come
-# from every replicate in the run.
+# NOT a representative sample: stratified toward misses on purpose. Never
+# compute a rate from the traces; the rates below are over every replicate.
 
-decklist       : dl_764c9b9c
-scenario       : clear
-going          : second
-replicates     : 400
-hit rate (t<=2): 19.50%
-mulligan rate  : 13.50%   mean mulligans: 0.145
+decklist   : dl_764c9b9c
+cell       : clear, going second
+replicates : 400   misses: 322   traces kept: 16
+hit (t<=2) : 19.50%   turn split  t1=5 t2=73 late=0 never=322
+mulligans  : 13.50% of games, mean 0.145   (orthogonal -- never counts as a miss, ADR 0005)
 
-# Mulligans never count as a miss (ADR 0005): a hand with no Basic is
-# redrawn, and the redraw is what gets played. The two mulligan figures
-# above are ORTHOGONAL metrics, reported beside the hit rate, not folded
-# into it.
+# THE 60 CARDS IN THIS DECK. Do not recommend a card that is not here.
+#   1 Budew | 2 NightStretcher | 2 MegaKangaskhanex | 2 BosssOrders | 4 LilliesDetermination | 4 RareCandy | 3 Switch | 4 UltraBall | 2 Buneary | 2 MegaLopunnyex | 1 Meowthex | 4 PokePad | 4 TelepathicPsychicEnergy | 4 Duskull | 2 Dusclops | 4 Dusknoir | 1 Latiasex | 1 EnrichingEnergy | 2 Bronzor(TEF) | 2 Bronzong | 1 FlutterMane | 2 CiphermaniacsCodebreaking | 1 Salvatore | 1 JammingTower | 4 Hilda
 
-# blocking sub-goal among misses (see docs/03_decision_tree.md section 1):
-#   A bronzor_in_play: 149
-#   B bronzong_on_it: 153
-#   C bronzong_active: 1
-#   D psychic_attached: 19
-# misses with an unused out still in hand: 222  <- these are DECISION defects, not deck defects
+# UNMET SUB-GOALS, counted as a SET so a miss appears in every row it
+# belongs to. Rows therefore sum to more than the miss count, by design:
+# reporting only the first unmet goal made C look like it never failed.
+#   A bronzor_in_play    149/322
+#   B bronzong_on_it     302/322
+#   C bronzong_active    303/322
+#   D psychic_attached   322/322
 
-traces kept    : 16
+# PLAY MOTIFS across every miss. These are the counts worth acting on:
+#     108 / 322  Telepathic attached to a Colorless body (search dead)
+#     126 / 322  a search resolved with no target named
+#     154 / 322  Bronzor/Bronzong in play but never made Active
+#     185 / 322  a turn ended with the Supporter slot unspent
+#       0 / 322  combo assembled but Evolution Jammer never declared
+
+# misses holding a PLAYABLE out they did not play: 237/322
+#   (a lower bound on decision defects -- it can only see a card LEFT in
+#    hand, never one that was played wrongly. The motifs above catch those.)
 
 # ------------------------------------------------------------------
 
-#1 2nd clear mull=0 | MISS block=A (bronzor_in_play)
-  !! UNUSED OUT in hand: TelepathicPsychicEnergy
+#1/16 seed=1  MISS unmet=A,B,C,D first=A
+  !! Telepathic attached to a Colorless body (search dead)
+  !! a search resolved with no target named
   setup hand[Budew+MegaKangaskhanex+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Hilda] | lead MegaKangaskhanex, bench Duskull+Budew+Buneary
   T1    hand[TelepathicPsychicEnergy+Dusknoir+Dusknoir+Hilda] | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to MegaKangaskhanex | Telepathic Psychic: recipient not [P], no search
-  T2    hand[TelepathicPsychicEnergy+Dusknoir+Dusknoir+Bronzong+Hilda] | Hilda (evolution) -> whiff | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to MegaKangaskhanex | Telepathic Psychic: recipient not [P], no search
-  end  active=MegaKangaskhanex+PP  bench=Duskull,Budew,Buneary  hand=4
+  T2    hand[TelepathicPsychicEnergy+Dusknoir+Dusknoir+Bronzong+Hilda] | Hilda (evolution) -> DECLINED (no target named) | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to MegaKangaskhanex | Telepathic Psychic: recipient not [P], no search
+  end  active=MegaKangaskhanex[C]{TelepathicPsychicEnergy,TelepathicPsychicEnergy}  bench=Duskull[P],Budew[G],Buneary[C]  deck=42
 
-#2 2nd clear mull=1 | MISS block=A (bronzor_in_play)
-  !! UNUSED OUT in hand: UltraBall
+#2/16 seed=2 mull=1  MISS unmet=A,B,C,D first=A
+  !! PLAYABLE OUT unused: UltraBall
+  !! a turn ended with the Supporter slot unspent
   setup hand[Budew+UltraBall+Meowthex+Duskull+Duskull+Bronzong+FlutterMane] | lead FlutterMane, bench Budew+Duskull+Meowthex+Duskull
   T1    hand[MegaKangaskhanex+UltraBall+Bronzong] | bench MegaKangaskhanex
   T2    hand[UltraBall+Bronzong+JammingTower]
-  end  active=FlutterMane  bench=Budew,Duskull,Meowthex,Duskull,MegaKangaskhanex  hand=3
+  end  active=FlutterMane[P]  bench=Budew[G],Duskull[P],Meowthex[C],Duskull[P],MegaKangaskhanex[C]  deck=45
 
-#3 2nd clear mull=0 | MISS block=B (bronzong_on_it)
-  !! UNUSED OUT in hand: Bronzong
+#3/16 seed=3  MISS unmet=B,C,D first=B
+  !! PLAYABLE OUT unused: Bronzong
+  !! Telepathic attached to a Colorless body (search dead)
+  !! Bronzor/Bronzong in play but never made Active
   setup hand[MegaKangaskhanex+RareCandy+Duskull+Duskull+Dusclops+Dusknoir+Hilda] | lead MegaKangaskhanex, bench Duskull+Duskull
   T1    hand[RareCandy+Dusclops+Dusknoir+Bronzor(TEF)+Hilda] | bench Bronzor(TEF) | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to MegaKangaskhanex | Telepathic Psychic: recipient not [P], no search
   T2    hand[RareCandy+Dusclops+Dusknoir+Dusknoir+Bronzong]
-  end  active=MegaKangaskhanex+P  bench=Duskull,Duskull,Bronzor(TEF)  hand=5
+  end  active=MegaKangaskhanex[C]{TelepathicPsychicEnergy}  bench=Duskull[P],Duskull[P],Bronzor(TEF)[P]  deck=43
 
-#4 2nd clear mull=2 | MISS block=D (psychic_attached)
+#4/16 seed=4 mull=2  MISS unmet=D first=D
+  !! a turn ended with the Supporter slot unspent
   setup hand[LilliesDetermination+Switch+UltraBall+PokePad+Duskull+Bronzor(TEF)+Bronzong] | lead Bronzor(TEF), bench Duskull
   T1    hand[LilliesDetermination+RareCandy+Switch+UltraBall+PokePad+Bronzong]
   T2    hand[LilliesDetermination+RareCandy+Switch+UltraBall+PokePad+Dusclops+Bronzong] | evolve into Bronzong
-  end  active=Bronzong  bench=Duskull  hand=6
+  end  active=Bronzong[P]  bench=Duskull[P]  deck=45
 
-#5 2nd clear mull=1 | MISS block=B (bronzong_on_it)
-  !! UNUSED OUT in hand: Bronzong
+#5/16 seed=5 mull=1  MISS unmet=B,C,D first=B
+  !! PLAYABLE OUT unused: Bronzong
+  !! a search resolved with no target named
+  !! Bronzor/Bronzong in play but never made Active
   setup hand[NightStretcher+LilliesDetermination+PokePad+TelepathicPsychicEnergy+Dusknoir+Latiasex+Hilda] | lead Latiasex
-  T1    hand[NightStretcher+LilliesDetermination+MegaLopunnyex+PokePad+TelepathicPsychicEnergy+Dusknoir+Hilda] | Poke Pad -> Bronzor(TEF) | bench Bronzor(TEF) | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Latiasex | Telepathic Psychic Energy -> whiff
-  T2    hand[NightStretcher+LilliesDetermination+LilliesDetermination+MegaLopunnyex+TelepathicPsychicEnergy+Dusknoir+Bronzong] | attach TelepathicPsychicEnergy to Latiasex | Telepathic Psychic Energy -> whiff
-  end  active=Latiasex+PP  bench=Bronzor(TEF)  hand=6
+  T1    hand[NightStretcher+LilliesDetermination+MegaLopunnyex+PokePad+TelepathicPsychicEnergy+Dusknoir+Hilda] | Poke Pad -> Bronzor(TEF) | bench Bronzor(TEF) | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Latiasex | Telepathic Psychic Energy -> DECLINED (no target named)
+  T2    hand[NightStretcher+LilliesDetermination+LilliesDetermination+MegaLopunnyex+TelepathicPsychicEnergy+Dusknoir+Bronzong] | attach TelepathicPsychicEnergy to Latiasex | Telepathic Psychic Energy -> DECLINED (no target named)
+  end  active=Latiasex[P]{TelepathicPsychicEnergy,TelepathicPsychicEnergy}  bench=Bronzor(TEF)[P]  deck=42
 
-#6 2nd clear mull=0 | MISS block=A (bronzor_in_play)
-  !! UNUSED OUT in hand: UltraBall
+#6/16 seed=6  MISS unmet=A,B,C,D first=A
+  !! PLAYABLE OUT unused: UltraBall
+  !! a turn ended with the Supporter slot unspent
   setup hand[NightStretcher+LilliesDetermination+RareCandy+Duskull+Dusknoir+CiphermaniacsCodebreaking+JammingTower] | lead Duskull
   T1    hand[NightStretcher+LilliesDetermination+RareCandy+UltraBall+Dusknoir+CiphermaniacsCodebreaking+JammingTower]
   T2    hand[NightStretcher+LilliesDetermination+LilliesDetermination+RareCandy+UltraBall+Dusknoir+CiphermaniacsCodebreaking+JammingTower]
-  end  active=Duskull  bench=-  hand=8
+  end  active=Duskull[P]  bench=-  deck=45
 
-#7 2nd clear mull=0 | MISS block=B (bronzong_on_it)
-  !! UNUSED OUT in hand: UltraBall, PokePad
+#7/16 seed=7  MISS unmet=B,C,D first=B
+  !! PLAYABLE OUT unused: UltraBall, PokePad
+  !! Bronzor/Bronzong in play but never made Active
+  !! a turn ended with the Supporter slot unspent
   setup hand[NightStretcher+RareCandy+UltraBall+PokePad+PokePad+Duskull+Dusknoir] | lead Duskull
   T1    hand[NightStretcher+RareCandy+UltraBall+PokePad+PokePad+Dusknoir+EnrichingEnergy] | Poke Pad -> Bronzor(TEF) | bench Bronzor(TEF)
   T2    hand[NightStretcher+RareCandy+UltraBall+PokePad+Dusclops+Dusknoir+EnrichingEnergy]
-  end  active=Duskull  bench=Bronzor(TEF)  hand=7
+  end  active=Duskull[P]  bench=Bronzor(TEF)[P]  deck=44
 
-#8 2nd clear mull=0 | MISS block=A (bronzor_in_play)
+#8/16 seed=8  MISS unmet=A,B,C,D first=A
+  !! PLAYABLE OUT unused: Salvatore
+  !! a search resolved with no target named
+  !! a turn ended with the Supporter slot unspent
   setup hand[RareCandy+RareCandy+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Dusknoir+FlutterMane+Salvatore] | lead FlutterMane
-  T1    hand[BosssOrders+RareCandy+RareCandy+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Dusknoir+Salvatore] | attach TelepathicPsychicEnergy to FlutterMane | Telepathic Psychic Energy -> whiff
-  T2    hand[BosssOrders+RareCandy+RareCandy+TelepathicPsychicEnergy+Dusknoir+CiphermaniacsCodebreaking+Salvatore] | attach TelepathicPsychicEnergy to FlutterMane | Telepathic Psychic Energy -> whiff
-  end  active=FlutterMane+PP  bench=-  hand=6
+  T1    hand[BosssOrders+RareCandy+RareCandy+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Dusknoir+Salvatore] | attach TelepathicPsychicEnergy to FlutterMane | Telepathic Psychic Energy -> DECLINED (no target named)
+  T2    hand[BosssOrders+RareCandy+RareCandy+TelepathicPsychicEnergy+Dusknoir+CiphermaniacsCodebreaking+Salvatore] | attach TelepathicPsychicEnergy to FlutterMane | Telepathic Psychic Energy -> DECLINED (no target named)
+  end  active=FlutterMane[P]{TelepathicPsychicEnergy,TelepathicPsychicEnergy}  bench=-  deck=45
 
-#9 2nd clear mull=0 | MISS block=A (bronzor_in_play)
-  !! UNUSED OUT in hand: UltraBall
+#9/16 seed=9  MISS unmet=A,B,C,D first=A
+  !! PLAYABLE OUT unused: UltraBall
+  !! Telepathic attached to a Colorless body (search dead)
   setup hand[NightStretcher+BosssOrders+RareCandy+UltraBall+Buneary+CiphermaniacsCodebreaking+Hilda] | lead Buneary
   T1    hand[NightStretcher+BosssOrders+RareCandy+UltraBall+Dusknoir+CiphermaniacsCodebreaking+Hilda] | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Buneary | Telepathic Psychic: recipient not [P], no search
   T2    hand[NightStretcher+BosssOrders+RareCandy+RareCandy+UltraBall+Dusknoir+Bronzong+CiphermaniacsCodebreaking]
-  end  active=Buneary+P  bench=-  hand=8
+  end  active=Buneary[C]{TelepathicPsychicEnergy}  bench=-  deck=43
 
-#10 2nd clear mull=0 | MISS block=D (psychic_attached)
+#10/16 seed=10  MISS unmet=D first=D
   setup hand[LilliesDetermination+LilliesDetermination+LilliesDetermination+RareCandy+Dusknoir+Bronzor(TEF)+Salvatore] | lead Bronzor(TEF)
   T1    hand[BosssOrders+LilliesDetermination+LilliesDetermination+LilliesDetermination+RareCandy+Dusknoir+Salvatore] | evolve into Bronzong | Salvatore -> Bronzong
   T2    hand[MegaKangaskhanex+BosssOrders+LilliesDetermination+LilliesDetermination+LilliesDetermination+RareCandy+Dusknoir] | bench MegaKangaskhanex
-  end  active=Bronzong  bench=MegaKangaskhanex  hand=6
+  end  active=Bronzong[P]  bench=MegaKangaskhanex[C]  deck=44
 
-#11 2nd clear mull=0 | HIT t2
+#11/16 seed=11  HIT t2
   setup hand[Switch+MegaLopunnyex+TelepathicPsychicEnergy+Duskull+Bronzor(TEF)+JammingTower+Hilda] | lead Bronzor(TEF), bench Duskull
-  T1    hand[Switch+MegaLopunnyex+TelepathicPsychicEnergy+FlutterMane+JammingTower+Hilda] | bench FlutterMane | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> whiff
-  T2    hand[Switch+MegaLopunnyex+TelepathicPsychicEnergy+Dusknoir+Bronzong+JammingTower] | evolve into Bronzong | attach TelepathicPsychicEnergy to Bronzong | Telepathic Psychic Energy -> whiff | EVOLUTION JAMMER
-  end  active=Bronzong+PP  bench=Duskull,FlutterMane  hand=4
+  T1    hand[Switch+MegaLopunnyex+TelepathicPsychicEnergy+FlutterMane+JammingTower+Hilda] | bench FlutterMane | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> DECLINED (no target named)
+  T2    hand[Switch+MegaLopunnyex+TelepathicPsychicEnergy+Dusknoir+Bronzong+JammingTower] | evolve into Bronzong | attach TelepathicPsychicEnergy to Bronzong | Telepathic Psychic Energy -> DECLINED (no target named) | EVOLUTION JAMMER
+  end  active=Bronzong[P]{TelepathicPsychicEnergy,TelepathicPsychicEnergy}  bench=Duskull[P],FlutterMane[P]  deck=43
 
-#12 2nd clear mull=0 | MISS block=D (psychic_attached)
+#12/16 seed=12  MISS unmet=D first=D
   setup hand[NightStretcher+MegaKangaskhanex+Switch+MegaLopunnyex+Meowthex+Latiasex+Salvatore] | lead Meowthex, bench Latiasex+MegaKangaskhanex
-  T1    hand[NightStretcher+Switch+MegaLopunnyex+Bronzor(TEF)+Salvatore] | bench Bronzor(TEF) | promote Bronzor(TEF)
+  T1    hand[NightStretcher+Switch+MegaLopunnyex+Bronzor(TEF)+Salvatore] | bench Bronzor(TEF) | promote Bronzor(TEF) via Switch
   T2    hand[NightStretcher+MegaLopunnyex+Duskull+Salvatore] | bench Duskull | evolve into Bronzong | Salvatore -> Bronzong
-  end  active=Bronzong  bench=Latiasex,MegaKangaskhanex,Meowthex,Duskull  hand=2
+  end  active=Bronzong[P]  bench=Latiasex[P],MegaKangaskhanex[C],Meowthex[C],Duskull[P]  deck=44
 
-#13 2nd clear mull=0 | MISS block=B (bronzong_on_it)
+#13/16 seed=13  MISS unmet=B,C,D first=B
+  !! Bronzor/Bronzong in play but never made Active
+  !! a turn ended with the Supporter slot unspent
   setup hand[NightStretcher+BosssOrders+LilliesDetermination+RareCandy+Buneary+Duskull+Bronzor(TEF)] | lead Bronzor(TEF), bench Buneary+Duskull
   T1    hand[NightStretcher+BosssOrders+LilliesDetermination+RareCandy+Buneary] | bench Buneary
   T2    hand[NightStretcher+MegaKangaskhanex+BosssOrders+LilliesDetermination+RareCandy] | bench MegaKangaskhanex
-  end  active=Bronzor(TEF)  bench=Buneary,Duskull,Buneary,MegaKangaskhanex  hand=4
+  end  active=Bronzor(TEF)[P]  bench=Buneary[C],Duskull[P],Buneary[C],MegaKangaskhanex[C]  deck=45
 
-#14 2nd clear mull=0 | HIT t2
+#14/16 seed=14  HIT t2
   setup hand[LilliesDetermination+LilliesDetermination+RareCandy+Dusknoir+Bronzor(TEF)+FlutterMane+Hilda] | lead Bronzor(TEF), bench FlutterMane
-  T1    hand[NightStretcher+LilliesDetermination+LilliesDetermination+RareCandy+Dusknoir+Hilda] | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> whiff
+  T1    hand[NightStretcher+LilliesDetermination+LilliesDetermination+RareCandy+Dusknoir+Hilda] | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> DECLINED (no target named)
   T2    hand[NightStretcher+LilliesDetermination+LilliesDetermination+RareCandy+Dusknoir+Bronzong+CiphermaniacsCodebreaking] | evolve into Bronzong | EVOLUTION JAMMER
-  end  active=Bronzong+P  bench=FlutterMane  hand=6
+  end  active=Bronzong[P]{TelepathicPsychicEnergy}  bench=FlutterMane[P]  deck=43
 
-#16 2nd clear mull=1 | HIT t1
+#15/16 seed=16 mull=1  HIT t1
   setup hand[LilliesDetermination+Buneary+Buneary+Dusclops+EnrichingEnergy+Bronzor(TEF)+Salvatore] | lead Bronzor(TEF), bench Buneary+Buneary
-  T1    hand[LilliesDetermination+TelepathicPsychicEnergy+Dusclops+EnrichingEnergy+Salvatore] | evolve into Bronzong | Salvatore -> Bronzong | attach TelepathicPsychicEnergy to Bronzong | Telepathic Psychic Energy -> whiff | EVOLUTION JAMMER
+  T1    hand[LilliesDetermination+TelepathicPsychicEnergy+Dusclops+EnrichingEnergy+Salvatore] | evolve into Bronzong | Salvatore -> Bronzong | attach TelepathicPsychicEnergy to Bronzong | Telepathic Psychic Energy -> DECLINED (no target named) | EVOLUTION JAMMER
   T2    hand[LilliesDetermination+Dusclops+EnrichingEnergy+JammingTower] | EVOLUTION JAMMER
-  end  active=Bronzong+P  bench=Buneary,Buneary  hand=4
+  end  active=Bronzong[P]{TelepathicPsychicEnergy}  bench=Buneary[C],Buneary[C]  deck=44
 
-#17 2nd clear mull=0 | HIT t2
+#16/16 seed=17  HIT t2
   setup hand[PokePad+TelepathicPsychicEnergy+Duskull+Dusclops+Dusknoir+EnrichingEnergy+Bronzong] | lead Duskull
-  T1    hand[Switch+PokePad+TelepathicPsychicEnergy+Dusclops+Dusknoir+EnrichingEnergy+Bronzong] | Poke Pad -> Bronzor(TEF) | bench Bronzor(TEF) | promote Bronzor(TEF) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> whiff
+  T1    hand[Switch+PokePad+TelepathicPsychicEnergy+Dusclops+Dusknoir+EnrichingEnergy+Bronzong] | Poke Pad -> Bronzor(TEF) | bench Bronzor(TEF) | promote Bronzor(TEF) via Switch | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> DECLINED (no target named)
   T2    hand[UltraBall+Dusclops+Dusknoir+EnrichingEnergy+Bronzong] | evolve into Bronzong | EVOLUTION JAMMER
-  end  active=Bronzong+P  bench=Duskull  hand=4
+  end  active=Bronzong[P]{TelepathicPsychicEnergy}  bench=Duskull[P]  deck=44
