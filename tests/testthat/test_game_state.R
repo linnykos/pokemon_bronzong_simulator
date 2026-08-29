@@ -187,3 +187,61 @@ test_that("the event log grows and is stamped with the turn", {
   expect_true(length(state$event_log) > num_before)
   expect_true(grepl("^T2:", state$event_log[length(state$event_log)]))
 })
+
+test_that("the Stadium in play is counted as a card in the game", {
+  ## Found by the correctness audit, and the nastiest of the batch. A played
+  ## Stadium sits in state$stadium -- neither hand nor discard -- and both
+  ## count_copies() and the belief state's .visible_count() omitted it. The card
+  ## vanished from the census, and knowledge_after_search() then deduced it was
+  ## PRIZED while it sat face up on the table, corrupting the ADR 0003 deduction
+  ## for any game where a Stadium was played.
+  ##
+  ## The test helper had its own census that DID count the stadium, which is
+  ## exactly why the suite masked this instead of catching it. Assert against the
+  ## production census here.
+  pair <- .make_pair(hand_id_vec = "TWM-153", turn_number = 2L)
+  num_before <- as.integer(count_copies(pair$state, "TWM-153"))
+  num_total_before <- length(all_cards_in_game(pair$state))
+
+  pair <- play_stadium(pair, "TWM-153")
+
+  expect_equal(as.integer(count_copies(pair$state, "TWM-153")), num_before)
+  expect_equal(length(all_cards_in_game(pair$state)), num_total_before)
+})
+
+test_that("a played Stadium is not deduced to be prized", {
+  card_df <- .test_card_df()
+  decklist <- read_decklist("decklists/decklist1.txt", card_df)
+  set.seed(2)
+  pair <- setup_game(decklist, card_df, bool_going_first = FALSE)
+  pair$state <- begin_turn(pair$state)
+
+  if("ASC-197" %in% pair$state$deck_vec){
+    pair$state <- move_cards(pair$state, "ASC-197", from = "deck", to = "hand")
+  }
+  if("ASC-197" %in% pair$state$hand_vec){
+    pair <- play_stadium(pair, "ASC-197")
+    pair$knowledge <- knowledge_after_search(pair$knowledge, pair$state)
+
+    expect_equal(sum(pair$knowledge$known_unavailable_vec), 6)
+    expect_equal(as.integer(pair$knowledge$known_unavailable_vec[["ASC-197"]]), 0)
+  }
+})
+
+test_that("count_copies returns an integer vector, even when empty", {
+  ## sapply() over an empty input returns a list, and sum() then errors on it.
+  pair <- .make_pair()
+
+  expect_true(is.integer(count_copies(pair$state, character(0))))
+  expect_length(count_copies(pair$state, character(0)), 0)
+  expect_true(is.integer(count_copies(pair$state, "TEF-069")))
+})
+
+test_that("bool_decked_out exists from the start", {
+  ## Documented as "the flag exists so a bug shows up as a flag", but it was
+  ## absent until an over-draw created it, so `if(state$bool_decked_out)` failed
+  ## with "argument is of length zero".
+  pair <- .make_pair()
+
+  expect_false(pair$state$bool_decked_out)
+})

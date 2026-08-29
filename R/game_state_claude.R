@@ -56,6 +56,7 @@ new_game_state <- function(decklist,
                  scenario = scenario,
                  turn_flag_list = .new_turn_flags(),
                  num_mulligans = 0L,
+                 bool_decked_out = FALSE,
                  card_df = card_df,
                  event_log = character(0)),
             class = "bronzong_state")
@@ -116,7 +117,8 @@ all_in_play <- function(state){
        bool_retreated = FALSE,
        bool_attacked = FALSE,
        bool_turn_over = FALSE,
-       bool_run_errand_used = FALSE)
+       bool_run_errand_used = FALSE,
+       bool_last_ditch_used = FALSE)
 }
 
 #' Begin this player's next turn
@@ -251,14 +253,43 @@ count_copies <- function(state, card_id_vec){
   stopifnot(inherits(state, "bronzong_state"))
 
   card_id_vec <- canonical_card_id(card_id_vec)
+  # sapply() over an empty input returns a list, not an integer vector, and
+  # sum() then errors on it. Return the right shape explicitly.
+  if(length(card_id_vec) == 0){
+    return(stats::setNames(integer(0), character(0)))
+  }
+
+  everywhere_vec <- all_cards_in_game(state)
+
+  stats::setNames(as.integer(sapply(card_id_vec,
+                                    function(one_id) sum(everywhere_vec == one_id))),
+                  card_id_vec)
+}
+
+#' Every card in the game, across every zone
+#'
+#' The single definition of "where cards can be". Every census must go through
+#' here, because a zone omitted from one census and not another is how a card
+#' silently ceases to exist.
+#'
+#' The Stadium in play is a zone in its own right and is easy to forget: it is
+#' neither in the hand nor in the discard while it is on the table. Omitting it
+#' made a played Stadium look like a missing card, which
+#' \code{knowledge_after_search()} then deduced was **prized** -- corrupting the
+#' ADR 0003 prize deduction for any game in which a Stadium was played.
+#'
+#' @param state a `"bronzong_state"`.
+#'
+#' @returns A character vector of every card id currently in the game.
+#' @export
+all_cards_in_game <- function(state){
+  stopifnot(inherits(state, "bronzong_state"))
+
   in_play_vec <- unlist(lapply(all_in_play(state), function(x) x$stack_vec))
   energy_vec <- unlist(lapply(all_in_play(state), function(x) x$energy_vec))
 
-  everywhere_vec <- c(state$deck_vec, state$hand_vec, state$discard_vec,
-                      state$prize_vec, in_play_vec, energy_vec)
-
-  stats::setNames(sapply(card_id_vec, function(one_id) sum(everywhere_vec == one_id)),
-                  card_id_vec)
+  c(state$deck_vec, state$hand_vec, state$discard_vec, state$prize_vec,
+    in_play_vec, energy_vec, state$stadium[!is.na(state$stadium)])
 }
 
 #' Append an event to the state's log

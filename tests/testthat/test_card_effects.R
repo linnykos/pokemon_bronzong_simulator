@@ -576,3 +576,112 @@ test_that("only a Stadium may be played as a Stadium", {
 
   expect_error(play_stadium(pair, "MEG-130"), regexp = "not a Stadium")
 })
+
+test_that("a finished turn blocks benching, evolving and drawing too", {
+  ## The first can_act() pass gated only Supporter/Energy/Item/retreat/attack, so
+  ## a replicate could Run Around and then keep developing the board -- exactly
+  ## the cost that makes Run Around a last resort.
+  pair <- .make_pair(active_id = "TEF-068", bench_id_vec = "PRE-035",
+                     hand_id_vec = c("PFL-083", "TEF-069"), turn_number = 2L)
+  pair$state$active$stack_vec <- c("TEF-068", "TEF-069")
+  pair$state$active$energy_vec <- "SVE-005"
+  pair <- attack_evolution_jammer(pair)
+
+  expect_error(play_basic_to_bench(pair, "PFL-083"), regexp = "turn is over")
+  expect_error(draw_to_hand(pair, num_cards = 1L), regexp = "turn is over")
+  expect_error(evolve_pokemon(pair, "TEF-069", target_is_active = FALSE,
+                              bench_idx = 1L), regexp = "turn is over")
+})
+
+test_that("Last-Ditch Catch may only be used once per turn", {
+  ## "You can't use more than 1 Ability that has Last-Ditch in its name each
+  ## turn." Two Meowth ex benched in one turn tutored two Supporters.
+  pair <- .make_pair(hand_id_vec = c("POR-062", "POR-062"), turn_number = 2L)
+
+  pair <- play_basic_to_bench(pair, "POR-062", supporter_target_id = "WHT-084")
+  expect_error(play_basic_to_bench(pair, "POR-062",
+                                   supporter_target_id = "WHT-084"),
+               regexp = "Last-Ditch")
+
+  ## Benching the second WITHOUT using the Ability is still legal.
+  expect_silent(play_basic_to_bench(pair, "POR-062"))
+})
+
+test_that("Salvatore rejects a target whose only copies are already in play", {
+  ## An in-play Bronzong is public and unfetchable for the same reason a
+  ## discarded one is. Subtracting only the discard let a second Salvatore be
+  ## declared after the first had already evolved the last Bronzong.
+  pair <- .make_pair(active_id = "TEF-068", bench_id_vec = "TEF-068",
+                     turn_number = 2L)
+  num_in_deck <- sum(pair$state$deck_vec == "TEF-069")
+  if(num_in_deck > 1){
+    pair$state <- move_cards(pair$state, rep("TEF-069", num_in_deck - 1),
+                             from = "deck", to = "discard")
+  }
+  pair$state <- move_cards(pair$state, "TEF-069", from = "deck", to = "discard")
+  pair$state$discard_vec <- pair$state$discard_vec[
+    -length(pair$state$discard_vec)]
+  pair$state$bench_list[[1]]$stack_vec <- c("TEF-068", "TEF-069")
+
+  expect_false(is_salvatore_target(pair$state, "TEF-069"))
+})
+
+test_that("a bench index of zero or beyond the bench is rejected", {
+  ## bench_idx = 0 died with "attempt to select less than one element" rather
+  ## than a domain error, and a negative index would silently mis-target.
+  pair <- .make_pair(active_id = "TEF-068", bench_id_vec = "PRE-035",
+                     hand_id_vec = c("POR-088", "TEF-069"), turn_number = 2L)
+
+  expect_error(attach_energy(pair, "POR-088", target_is_active = FALSE,
+                             bench_idx = 0L))
+  expect_error(attach_energy(pair, "POR-088", target_is_active = FALSE,
+                             bench_idx = 9L))
+  expect_error(evolve_pokemon(pair, "TEF-069", target_is_active = FALSE,
+                              bench_idx = 0L))
+})
+
+test_that("energy attached to a benched Pokemon survives being switched in", {
+  ## The turn-1 line attaches to a Bronzor that is not yet Active, so this path
+  ## has to work: attach on the bench, promote, evolve, attack.
+  pair <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                     hand_id_vec = c("SVE-005", "MEG-130", "TEF-069"),
+                     turn_number = 2L)
+
+  pair <- attach_energy(pair, "SVE-005", target_is_active = FALSE,
+                        bench_idx = 1L)
+  expect_equal(pair$state$bench_list[[1]]$energy_vec, "SVE-005")
+
+  pair <- play_switch(pair, bench_idx = 1L)
+  expect_equal(pair$state$active$energy_vec, "SVE-005")
+
+  pair <- evolve_pokemon(pair, "TEF-069", target_is_active = TRUE)
+  expect_true(can_use_evolution_jammer(pair$state))
+})
+
+test_that("Salvatore can evolve a BENCHED Bronzor", {
+  ## Salvatore evolves a Pokemon anywhere on the board -- it fixes timing, not
+  ## positioning, which is the distinction the decision tree turns on.
+  pair <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                     hand_id_vec = "TEF-160", turn_number = 1L)
+
+  pair <- play_salvatore(pair, target_id = "TEF-069", target_is_active = FALSE,
+                         bench_idx = 1L)
+
+  expect_equal(top_card(pair$state$bench_list[[1]]), "TEF-069")
+  ## Still not attackable: it is on the Bench.
+  expect_false(can_use_evolution_jammer(pair$state))
+})
+
+test_that("Pokegear shuffles away a pending stacked top of deck", {
+  ## docs/cards/BLK-084 warns never to play it after a Codebreaking stack. The
+  ## engine must actually destroy the stack, so a policy that misorders them is
+  ## penalised rather than silently getting away with it.
+  pair <- .make_pair(hand_id_vec = c("TEF-145", "BLK-084"), turn_number = 1L)
+  pair <- play_ciphermaniacs_codebreaking(pair,
+                                          target_id_vec = c("TEF-069", "WHT-084"))
+  expect_length(pair$knowledge$top_known_vec, 2)
+
+  pair <- play_pokegear(pair)
+
+  expect_length(pair$knowledge$top_known_vec, 0)
+})

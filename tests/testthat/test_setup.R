@@ -223,3 +223,29 @@ test_that("the default placement leads a Bronzor whenever it holds one", {
     }
   }
 })
+
+test_that("set_prizes(0) leaves the deck alone instead of destroying it", {
+  ## `deck_vec[-integer(0)]` returns an EMPTY vector, not the deck. The guard
+  ## admits num_prizes = 0, so this was one negative index away from silently
+  ## wiping all 60 cards.
+  card_df <- .test_card_df()
+  decklist <- .test_decklist()
+  state <- new_game_state(decklist, card_df, bool_going_first = FALSE)
+  num_before <- length(state$deck_vec)
+
+  state <- set_prizes(state, num_prizes = 0L)
+
+  expect_equal(length(state$deck_vec), num_before)
+  expect_length(state$prize_vec, 0)
+})
+
+test_that("the mulligan bound fires at the bound, not one past it", {
+  card_df <- .test_card_df()
+  tmp_file <- tempfile(fileext = ".txt")
+  writeLines(c("4 Switch MEG 130", "56 Basic {P} Energy SVE 5"), tmp_file)
+  decklist <- read_decklist(tmp_file, card_df)
+  state <- new_game_state(decklist, card_df, bool_going_first = FALSE)
+
+  expect_error(deal_opening_hand(state, max_mulligans = 3L),
+               regexp = "exceeded 3 mulligans")
+})

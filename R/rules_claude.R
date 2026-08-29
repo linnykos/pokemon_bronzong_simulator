@@ -194,12 +194,20 @@ is_salvatore_target <- function(state, card_id_vec){
   # is not a legal target. Prizes are NOT public, so a fully prized target stays
   # legal to declare and simply whiffs -- which is the ADR 0003-consistent
   # reading and the only way the player learns it was prized.
+  # A copy is fetchable only if it is in the deck or the prizes. Subtracting
+  # just the discard was not enough: an in-play copy is public and unfetchable
+  # for exactly the same reason a discarded one is, and a copy in hand is one
+  # the player can see too. Counting deck + prizes directly covers all three,
+  # and deliberately keeps a fully PRIZED target legal to declare -- prizes are
+  # not public, so the declaration is legal and simply whiffs, which is how the
+  # player learns it was prized (ADR 0003).
+  #
   # unname(): sapply() over a character vector returns a NAMED result, and the
   # names propagate through `&` into the return value. A named logical is not
-  # identical() to a bare one, which silently breaks callers that compare
-  # against TRUE/FALSE. Every predicate in this file returns bare logicals.
+  # identical() to a bare one, which silently breaks callers comparing against
+  # TRUE/FALSE. Every predicate in this file returns bare logicals.
   num_in_deck_or_prize_vec <- unname(sapply(row_df$card_id, function(one_id){
-    as.integer(count_copies(state, one_id)) - sum(state$discard_vec == one_id)
+    sum(state$deck_vec == one_id) + sum(state$prize_vec == one_id)
   }))
 
   unname(is_evolution_vec & !row_df$has_ability &

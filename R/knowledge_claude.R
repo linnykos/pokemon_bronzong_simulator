@@ -227,9 +227,16 @@ believed_deck_count <- function(knowledge, state, card_id_vec){
 #' @returns An integer vector aligned with `card_id_vec`.
 #' @noRd
 .visible_count <- function(state, card_id_vec){
+  if(length(card_id_vec) == 0) return(integer(0))
+
   in_play_vec <- unlist(lapply(all_in_play(state), function(x) x$stack_vec))
   energy_vec <- unlist(lapply(all_in_play(state), function(x) x$energy_vec))
-  visible_vec <- c(state$hand_vec, state$discard_vec, in_play_vec, energy_vec)
+
+  # The Stadium in play is face up on the table and is as visible as anything on
+  # the board. Omitting it made a played Stadium unaccounted for, and the prize
+  # deduction in knowledge_after_search() then concluded it was prized.
+  visible_vec <- c(state$hand_vec, state$discard_vec, in_play_vec, energy_vec,
+                   state$stadium[!is.na(state$stadium)])
 
   as.integer(sapply(card_id_vec, function(one_id) sum(visible_vec == one_id)))
 }

@@ -33,7 +33,12 @@
 play_basic_to_bench <- function(pair, card_id, supporter_target_id = NULL){
   state <- pair$state
   stopifnot(is_basic_pokemon(state$card_df, card_id))
+  if(!can_act(state)) stop("the turn is over")
   if(!has_bench_space(state)) stop("bench is full")
+  if(canonical_card_id(card_id) == "POR-062" && !is.null(supporter_target_id) &&
+     isTRUE(state$turn_flag_list$bool_last_ditch_used)){
+    stop("only 1 Last-Ditch Ability may be used each turn")
+  }
 
   state <- move_cards(state, card_id, from = "hand", to = "discard")
   state$discard_vec <- state$discard_vec[-length(state$discard_vec)]
@@ -45,6 +50,7 @@ play_basic_to_bench <- function(pair, card_id, supporter_target_id = NULL){
   pair$state <- state
 
   if(canonical_card_id(card_id) == "POR-062" && !is.null(supporter_target_id)){
+    pair$state$turn_flag_list$bool_last_ditch_used <- TRUE
     pair <- .search_deck_to_hand(pair,
                                  target_id_vec = supporter_target_id,
                                  allowed_fn = .is_supporter,
@@ -89,7 +95,8 @@ attach_energy <- function(pair,
     state$active$energy_vec <- c(state$active$energy_vec, card_id)
     recipient_id <- top_card(state$active)
   } else {
-    stopifnot(!is.na(bench_idx), bench_idx <= length(state$bench_list))
+    stopifnot(!is.na(bench_idx), bench_idx >= 1,
+              bench_idx <= length(state$bench_list))
     state$bench_list[[bench_idx]]$energy_vec <-
       c(state$bench_list[[bench_idx]]$energy_vec, card_id)
     recipient_id <- top_card(state$bench_list[[bench_idx]])
@@ -121,6 +128,8 @@ attach_energy <- function(pair,
 #' @returns The updated pair.
 #' @export
 draw_to_hand <- function(pair, num_cards){
+  if(!can_act(pair$state)) stop("the turn is over")
+
   pair$state <- draw_cards(pair$state, num_cards = num_cards)
   pair$knowledge <- knowledge_after_draw(pair$knowledge, num_cards = num_cards)
 
@@ -141,6 +150,11 @@ evolve_pokemon <- function(pair,
                            target_is_active = TRUE,
                            bench_idx = NA_integer_){
   state <- pair$state
+  if(!can_act(state)) stop("the turn is over")
+  if(!target_is_active){
+    stopifnot(!is.na(bench_idx), bench_idx >= 1,
+              bench_idx <= length(state$bench_list))
+  }
   target <- if(target_is_active) state$active else state$bench_list[[bench_idx]]
 
   if(!can_evolve(state, target, evolution_card_id)){

@@ -42,7 +42,7 @@ deal_opening_hand <- function(state,
     if(any(is_basic_pokemon(state$card_df, state$hand_vec))) break
 
     num_mulligans <- num_mulligans + 1L
-    if(num_mulligans > max_mulligans){
+    if(num_mulligans >= max_mulligans){
       stop("exceeded ", max_mulligans, " mulligans; the deck almost certainly ",
            "contains no Basic Pokemon, which validate_decklist() should have ",
            "caught")
@@ -129,6 +129,11 @@ set_prizes <- function(state, num_prizes = 6L){
     stop("deck holds ", length(state$deck_vec), " cards; cannot set aside ",
          num_prizes, " prizes")
   }
+
+  # `deck_vec[-integer(0)]` returns an EMPTY vector, not the deck, so a request
+  # for zero prizes would silently destroy the whole deck. Return early rather
+  # than relying on the negative index to be a no-op.
+  if(num_prizes == 0) return(state)
 
   idx_vec <- seq_len(num_prizes)
   state$prize_vec <- state$deck_vec[idx_vec]
