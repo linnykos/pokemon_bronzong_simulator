@@ -187,9 +187,16 @@ test_that("Buddy-Buddy Poffin puts Pokemon on the Bench, never the Active", {
 test_that("Poffin stops at the bench limit instead of overfilling", {
   pair <- .make_pair(bench_id_vec = rep("PRE-035", 4), hand_id_vec = "TEF-144")
 
+  before_vec <- .card_multiset(pair$state)
   pair <- play_buddy_buddy_poffin(pair, target_id_vec = c("PFL-083", "ASC-016"))
 
-  expect_true(length(pair$state$bench_list) <= 5)
+  ## `<= 5` passed even if Poffin benched nothing at all. Assert the bench is
+  ## exactly full, that the first target got the last slot, and that the second
+  ## is still in the deck rather than lost.
+  expect_equal(length(pair$state$bench_list), 5)
+  expect_equal(top_card(pair$state$bench_list[[5]]), "PFL-083")
+  expect_true("ASC-016" %in% pair$state$deck_vec)
+  expect_equal(.card_multiset(pair$state), before_vec)
 })
 
 test_that("Hilda fetches an Evolution and an Energy together", {
@@ -289,13 +296,19 @@ test_that("Lillie's Determination shuffles the old hand away", {
   pair <- .make_pair(hand_id_vec = c("MEG-119", "MEG-114", "CRI-082"),
                      turn_number = 2L)
   pair$state <- set_prizes(pair$state)
-  num_hand_before <- length(pair$state$hand_vec)
+  hand_before_vec <- setdiff(pair$state$hand_vec, "MEG-119")
 
   pair <- play_lillies_determination(pair)
 
   expect_length(pair$state$hand_vec, 8)
-  expect_true(num_hand_before != 8 || TRUE)
-  ## The old hand went into the deck, not the discard.
+  ## Was a tautology: `x || TRUE` is unconditionally TRUE and tested nothing.
+  ## The old hand goes into the DECK, not the discard, so each pre-Lillie's card
+  ## must now be either in the deck or redrawn into the new hand -- never in the
+  ## discard.
+  for(one_id in hand_before_vec){
+    expect_true(one_id %in% c(pair$state$deck_vec, pair$state$hand_vec),
+                info = one_id)
+  }
   expect_false("MEG-114" %in% pair$state$discard_vec)
 })
 
@@ -684,4 +697,144 @@ test_that("Pokegear shuffles away a pending stacked top of deck", {
   pair <- play_pokegear(pair)
 
   expect_length(pair$knowledge$top_known_vec, 0)
+})
+
+test_that("a search card fetches at most what its text allows", {
+  ## The highest-risk gap the coverage audit found. Poke Pad, Ultra Ball, Hilda
+  ## and Last-Ditch Catch each fetch ONE card, but none capped the target
+  ## vector, so passing a vector -- the natural thing for a policy to do, and
+  ## what play_pokegear() already accepts -- silently tutored several cards at
+  ## once with no error and a conserved multiset.
+  pair <- .make_pair(hand_id_vec = c("POR-081", "MEG-131", "WHT-084", "POR-062",
+                                     "MEG-114", "CRI-082"),
+                     turn_number = 2L)
+
+  expect_error(play_poke_pad(pair, target_id = c("TEF-069", "PRE-035")),
+               regexp = "at most 1")
+  expect_error(play_ultra_ball(pair, discard_id_vec = c("MEG-114", "CRI-082"),
+                               target_id = c("TEF-069", "SSP-076")),
+               regexp = "at most 1")
+  expect_error(play_hilda(pair, evolution_id = c("TEF-069", "PRE-036"),
+                          energy_id = "POR-088"),
+               regexp = "at most 1")
+  expect_error(play_basic_to_bench(pair, "POR-062",
+                                   supporter_target_id = c("WHT-084",
+                                                           "TEF-160")),
+               regexp = "at most 1")
+  expect_error(play_buddy_buddy_poffin(
+    .make_pair(hand_id_vec = "TEF-144", turn_number = 2L),
+    target_id_vec = c("PRE-035", "PFL-083", "ASC-016")), regexp = "at most 2")
+})
+
+test_that("a fractional bench index is rejected, not truncated", {
+  ## `[[` truncates a double, so bench_idx = 1.9 silently targeted slot 1. The
+  ## range guards pass, because 1.9 really is between 1 and the bench size. A
+  ## policy computing an index arithmetically would hit the wrong Pokemon.
+  pair <- .make_pair(active_id = "PRE-035",
+                     bench_id_vec = c("TEF-068", "PFL-083"),
+                     hand_id_vec = c("POR-088", "TEF-069", "MEG-130"),
+                     turn_number = 2L)
+
+  expect_error(attach_energy(pair, "POR-088", target_is_active = FALSE,
+                             bench_idx = 1.9), regexp = "whole number")
+  expect_error(evolve_pokemon(pair, "TEF-069", target_is_active = FALSE,
+                              bench_idx = 1.9), regexp = "whole number")
+  expect_error(play_switch(pair, bench_idx = 1.9), regexp = "whole number")
+})
+
+test_that("retreating spends non-Psychic Energy first", {
+  ## The rules let the player choose which Energy pays. Paying with the
+  ## first-attached one could discard the Telepathic Psychic attached on turn 1
+  ## and keep a Colorless Enriching Energy, failing sub-goal D for a reason no
+  ## player would have chosen -- understating consistency.
+  pair <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                     turn_number = 2L)
+  pair$state$active$energy_vec <- c("POR-088", "SSP-191")
+
+  pair <- retreat_active(pair, bench_idx = 1L)
+
+  expect_true("SSP-191" %in% pair$state$discard_vec)
+  expect_false("POR-088" %in% pair$state$discard_vec)
+})
+
+test_that("the retreat payment can be chosen explicitly", {
+  pair <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                     turn_number = 2L)
+  pair$state$active$energy_vec <- c("POR-088", "SSP-191")
+
+  pair <- retreat_active(pair, bench_idx = 1L, discard_id_vec = "POR-088")
+
+  expect_true("POR-088" %in% pair$state$discard_vec)
+  expect_error(retreat_active(pair, bench_idx = 1L,
+                              discard_id_vec = c("POR-088", "SSP-191")))
+})
+
+test_that("the metric records the attack, not merely its availability", {
+  ## ADR 0004 asks whether the player ATTACKED. can_use_evolution_jammer() only
+  ## says the attack is available, so a turn where the policy had the option and
+  ## then switched away would have scored as a hit.
+  pair <- .make_pair(active_id = "TEF-068", bench_id_vec = "PRE-035",
+                     hand_id_vec = "MEG-130", turn_number = 2L)
+  pair$state$active$stack_vec <- c("TEF-068", "TEF-069")
+  pair$state$active$energy_vec <- "SVE-005"
+
+  expect_true(can_use_evolution_jammer(pair$state))
+  expect_true(is.na(pair$state$jammer_turn))
+
+  ## Switch away instead of attacking: available, but never used.
+  switched <- play_switch(pair, bench_idx = 1L)
+  expect_false(can_use_evolution_jammer(switched$state))
+  expect_true(is.na(switched$state$jammer_turn))
+
+  ## Actually attacking is what sets it.
+  attacked <- attack_evolution_jammer(pair)
+  expect_equal(attacked$state$jammer_turn, 2L)
+})
+
+test_that("Brock's Scouting evolution mode actually fetches", {
+  ## Previously only exercised via its error case.
+  pair <- .make_pair(hand_id_vec = "JTG-146", turn_number = 2L)
+
+  pair <- play_brocks_scouting(pair, mode = "evolution",
+                               target_id_vec = "TEF-069")
+
+  expect_true("TEF-069" %in% pair$state$hand_vec)
+})
+
+test_that("Lillie's Determination draws 6 when fewer than six prizes remain", {
+  ## The `else 6` branch was dead in the suite.
+  pair <- .make_pair(hand_id_vec = "MEG-119", turn_number = 2L)
+  pair$state <- set_prizes(pair$state, num_prizes = 5L)
+
+  pair <- play_lillies_determination(pair)
+
+  expect_length(pair$state$hand_vec, 6)
+})
+
+test_that("Poffin can fetch the 70 HP Bronzor printing", {
+  ## PRE-066 is the card the whole alternate-printing argument rests on, and it
+  ## was only ever checked as data, never through Poffin's own filter.
+  pair <- .make_pair(hand_id_vec = c("TEF-144", "PRE-066"), turn_number = 2L)
+  pair$state <- move_cards(pair$state, "PRE-066", from = "hand", to = "deck")
+
+  pair <- play_buddy_buddy_poffin(pair, target_id_vec = "PRE-066")
+
+  expect_equal(top_card(pair$state$bench_list[[1]]), "PRE-066")
+})
+
+test_that("a Stage 2 line evolves through its Stage 1", {
+  ## Duskull -> Dusclops -> Dusknoir was never exercised.
+  pair <- .make_pair(active_id = "PRE-035",
+                     hand_id_vec = c("PRE-036", "PRE-037"), turn_number = 2L)
+
+  pair <- evolve_pokemon(pair, "PRE-036", target_is_active = TRUE)
+  expect_equal(top_card(pair$state$active), "PRE-036")
+  ## Not twice in one turn.
+  expect_error(evolve_pokemon(pair, "PRE-037", target_is_active = TRUE))
+
+  pair$state <- begin_turn(pair$state)
+  pair <- evolve_pokemon(pair, "PRE-037", target_is_active = TRUE)
+  expect_equal(top_card(pair$state$active), "PRE-037")
+  expect_equal(pair$state$active$stack_vec,
+               c("PRE-035", "PRE-036", "PRE-037"))
 })

@@ -25,6 +25,32 @@ for(one_name in names(decklist_list)){
                " cards, id ", decklist_list[[one_name]]$decklist_id))
 }
 
+# Build a Bronzor-Active position by MOVING cards, never by overwriting an
+# in-play record. Overwriting destroys whatever was there and conjures a new
+# card: the census count stays at 60 while the multiset is corrupted, and the
+# prize deduction then reports 7 prized cards instead of 6.
+.promote_bronzor <- function(pair){
+  bronzor_id <- "TEF-068"
+  if(top_card(pair$state$active) == bronzor_id) return(pair)
+
+  if(!bronzor_id %in% pair$state$deck_vec){
+    stop("no Bronzor available in the deck for the smoke fixture")
+  }
+  pair$state <- move_cards(pair$state, bronzor_id, from = "deck", to = "hand")
+  pair <- play_basic_to_bench(pair, bronzor_id)
+  .swap_in_last_bench(pair)
+}
+
+# Promote the bench slot just added. Swaps the two records rather than
+# overwriting either.
+.swap_in_last_bench <- function(pair){
+  idx <- length(pair$state$bench_list)
+  promoted <- pair$state$bench_list[[idx]]
+  pair$state$bench_list[[idx]] <- pair$state$active
+  pair$state$active <- promoted
+  pair
+}
+
 # --- setup conserves cards -------------------------------------------------
 
 set.seed(10)
@@ -34,12 +60,10 @@ pair <- setup_game(decklist = decklist_list[["decklist2"]],
                    scenario = "clear",
                    verbose = 1)
 
-num_in_play <- length(unlist(lapply(all_in_play(pair$state),
-                                    function(x) x$stack_vec)))
-num_total <- length(pair$state$deck_vec) + length(pair$state$hand_vec) +
-  length(pair$state$prize_vec) + length(pair$state$discard_vec) + num_in_play
-print(paste0("cards accounted for after setup: ", num_total))
-stopifnot(num_total == 60)
+census_vec <- sort(all_cards_in_game(pair$state))
+print(paste0("cards accounted for after setup: ", length(census_vec)))
+stopifnot(length(census_vec) == 60,
+          identical(census_vec, sort(decklist_list[["decklist2"]]$card_id_vec)))
 
 print(pair$state)
 
@@ -109,7 +133,7 @@ print("shuffle clears deck ORDER knowledge but keeps CONTENTS knowledge")
 demo <- setup_game(decklist = decklist_list[["decklist2"]],
                    card_df = card_df,
                    bool_going_first = FALSE)
-demo$state$active <- new_in_play("TEF-068", turn_played = 0L)
+demo <- .promote_bronzor(demo)
 demo$state <- begin_turn(demo$state)
 
 stopifnot(!can_evolve(demo$state, demo$state$active, "TEF-069"))
@@ -119,7 +143,8 @@ print("turn 1: normal evolution blocked, Salvatore evolution allowed")
 
 # Dusknoir has Cursed Blast, so Salvatore may never fetch it; Bronzong has no
 # Ability, so it may.
-demo$state$bench_list <- list(new_in_play("PRE-035", turn_played = 0L))
+# Salvatore target legality reads what is in play; the Bronzor promoted above
+# is enough, so no extra bench manipulation is needed here.
 stopifnot(is_salvatore_target(demo$state, "TEF-069"))
 stopifnot(!is_salvatore_target(demo$state, "PRE-036"))
 print("Salvatore targets: Bronzong yes, Dusclops no")
@@ -129,7 +154,7 @@ print("Salvatore targets: Bronzong yes, Dusclops no")
 kill <- setup_game(decklist = decklist_list[["decklist2"]],
                    card_df = card_df,
                    bool_going_first = FALSE)
-kill$state$active <- new_in_play("TEF-068", turn_played = 0L)
+kill <- .promote_bronzor(kill)
 kill$state <- begin_turn(kill$state)
 
 # Force the pieces into hand so the line is reachable deterministically. A real
@@ -157,5 +182,10 @@ stopifnot(kill$knowledge$bool_deck_seen)
 
 cat("\n--- event log ---\n")
 cat(paste0(kill$state$event_log, collapse = "\n"), "\n")
+
+# The multiset must be untouched by everything above.
+stopifnot(identical(sort(all_cards_in_game(kill$state)),
+                    sort(decklist_list[["decklist2"]]$card_id_vec)))
+print("card multiset conserved through the whole line")
 
 print("ALL SMOKE TESTS PASSED")

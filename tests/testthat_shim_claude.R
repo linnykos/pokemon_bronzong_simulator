@@ -96,13 +96,30 @@ expect_error <- function(object, regexp = NULL, info = NULL){
   invisible(NULL)
 }
 
-expect_silent <- function(object, info = NULL){
-  result <- try(force(object), silent = TRUE)
+# Matches testthat::expect_silent, which takes NO `info` argument and fails on
+# printed output and warnings as well as errors. The shim previously accepted
+# `info` and checked only for errors, so tests written against it would not have
+# run unchanged under real testthat -- defeating the point of the shim.
+expect_silent <- function(object){
+  warning_vec <- character(0)
+  output_str <- utils::capture.output({
+    result <- withCallingHandlers(
+      try(force(object), silent = TRUE),
+      warning = function(w){
+        warning_vec <<- c(warning_vec, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      })
+  })
+
   if(inherits(result, "try-error")){
-    .record_failure(paste0("expected no error, got: ",
-                           conditionMessage(attr(result, "condition")),
-                           .info_suffix(info)))
+    .record_failure(paste0("expected silence, got error: ",
+                           conditionMessage(attr(result, "condition"))))
+  } else if(length(warning_vec) > 0){
+    .record_failure(paste0("expected silence, got warning: ", warning_vec[1]))
+  } else if(length(output_str) > 0){
+    .record_failure(paste0("expected silence, got output: ", output_str[1]))
   }
+
   invisible(NULL)
 }
 

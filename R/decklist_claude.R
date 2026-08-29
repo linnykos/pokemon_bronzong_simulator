@@ -195,6 +195,21 @@ print.bronzong_decklist <- function(x, ...){
   pattern <- "^([0-9]+) +.* +([A-Z]{3}) +([0-9]+)$"
   keep_vec <- grepl(pattern, line_vec)
 
+  # Anything that is neither blank nor a section header must be a card line. A
+  # line that merely fails to match used to be dropped in silence, which turned
+  # a lowercase set code ("tef 68"), a "4x" count prefix, a missing space
+  # ("TEF69") or a PTCG-Live variant tag ("4 Bronzor TEF 68 PH") into a legal
+  # 56-card deck with no complaint -- and every result computed on it would be
+  # against the wrong denominator. Headers are the only non-card lines the
+  # export format produces, and they always contain a colon; card lines never
+  # do.
+  is_ignorable_vec <- line_vec == "" | grepl(":", line_vec, fixed = TRUE)
+  unparsed_vec <- line_vec[!keep_vec & !is_ignorable_vec]
+  if(length(unparsed_vec) > 0){
+    stop("could not parse ", length(unparsed_vec), " line(s): ",
+         paste0("'", unparsed_vec, "'", collapse = ", "))
+  }
+
   if(!any(keep_vec)) return(data.frame(count = integer(0), card_id = character(0)))
 
   matched_vec <- line_vec[keep_vec]

@@ -113,3 +113,20 @@
   sort(c(state$deck_vec, state$hand_vec, state$prize_vec, state$discard_vec,
          in_play_vec, energy_vec, state$stadium[!is.na(state$stadium)]))
 }
+
+#' Run an effect only if its card is genuinely in the deck
+#'
+#' Returns `NULL` when the card is not available, so a sweep skips that cell
+#' instead of manufacturing a position. Deliberately does NOT use
+#' `.force_into_hand()`, which adds a copy to the deck when none is present:
+#' that inflates the total above the decklist count and would corrupt any test
+#' whose subject is the decklist arithmetic itself.
+#' @noRd
+.run_with <- function(card_id, pair, effect_fn){
+  card_id <- canonical_card_id(card_id)
+  if(!card_id %in% pair$state$deck_vec) return(NULL)
+
+  pair$state <- move_cards(pair$state, card_id, from = "deck", to = "hand")
+
+  effect_fn(pair)
+}

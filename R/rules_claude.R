@@ -190,10 +190,8 @@ is_salvatore_target <- function(state, card_id_vec){
 
   # Per the published ruling (docs/cards/TEF-160-salvatore.md), Salvatore may
   # not be played unless a legal target actually exists, and the game checks
-  # PUBLIC zones. The discard is public, so a card whose every copy sits there
-  # is not a legal target. Prizes are NOT public, so a fully prized target stays
-  # legal to declare and simply whiffs -- which is the ADR 0003-consistent
-  # reading and the only way the player learns it was prized.
+  # PUBLIC zones.
+  #
   # A copy is fetchable only if it is in the deck or the prizes. Subtracting
   # just the discard was not enough: an in-play copy is public and unfetchable
   # for exactly the same reason a discarded one is, and a copy in hand is one
@@ -312,4 +310,37 @@ can_use_evolution_jammer <- function(state){
   if(top_card(state$active) != "TEF-069") return(FALSE)
 
   has_evolution_jammer_cost(state, state$active)
+}
+
+#' Require a whole-number index or count
+#'
+#' R's `[[` truncates a double index, so `bench_idx = 1.9` silently targets slot
+#' 1 and a policy computing an index arithmetically hits the wrong Pokemon with
+#' no error. Range guards alone do not catch it, because 1.9 is genuinely
+#' between 1 and the bench size.
+#'
+#' @param value_val the value to check.
+#' @param name_str the argument name, for the error message.
+#' @param min_val the smallest admissible value.
+#' @param max_val the largest admissible value, or `NA` for unbounded.
+#'
+#' @returns `invisible(TRUE)`; errors if the value is not a whole number in
+#'   range.
+#' @export
+check_whole_number <- function(value_val, name_str, min_val = 1L,
+                               max_val = NA_integer_){
+  if(length(value_val) != 1 || is.na(value_val) || !is.numeric(value_val)){
+    stop("`", name_str, "` must be a single number")
+  }
+  if(value_val != as.integer(value_val)){
+    stop("`", name_str, "` must be a whole number; got ", value_val)
+  }
+  if(value_val < min_val){
+    stop("`", name_str, "` must be at least ", min_val, "; got ", value_val)
+  }
+  if(!is.na(max_val) && value_val > max_val){
+    stop("`", name_str, "` must be at most ", max_val, "; got ", value_val)
+  }
+
+  invisible(TRUE)
 }

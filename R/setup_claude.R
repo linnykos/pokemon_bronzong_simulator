@@ -123,7 +123,8 @@ place_opening_pokemon <- function(state,
 #' @returns The updated state.
 #' @export
 set_prizes <- function(state, num_prizes = 6L){
-  stopifnot(inherits(state, "bronzong_state"), num_prizes >= 0)
+  stopifnot(inherits(state, "bronzong_state"))
+  check_whole_number(num_prizes, "num_prizes", 0L)
 
   if(length(state$deck_vec) < num_prizes){
     stop("deck holds ", length(state$deck_vec), " cards; cannot set aside ",
@@ -169,6 +170,12 @@ setup_game <- function(decklist,
                        seed_number = NULL,
                        verbose = 0){
   stopifnot(inherits(decklist, "bronzong_decklist"), is.function(placement_fn))
+
+  # Validate here, not only in a script. Nothing else on the engine path called
+  # validate_decklist(), so an illegal deck -- a short one from a mis-parsed
+  # file, say -- would set up and play to completion, and every rate computed
+  # from it would be against the wrong denominator.
+  validate_decklist(decklist, card_df, bool_stop_on_error = TRUE)
 
   state <- new_game_state(decklist = decklist,
                           card_df = card_df,

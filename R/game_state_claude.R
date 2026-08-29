@@ -32,6 +32,11 @@
 #'     \item{scenario}{character.}
 #'     \item{turn_flag_list}{per-turn limits; see \code{.new_turn_flags()}.}
 #'     \item{num_mulligans}{integer, how many times this player mulliganed.}
+#'     \item{jammer_turn}{integer, the turn on which Evolution Jammer was
+#'       actually ATTACKED WITH, or `NA`. This is the field the metric reads
+#'       (ADR 0004) -- never \code{can_use_evolution_jammer()}, which only says
+#'       the attack was available and would score a turn where the player had
+#'       the option and did something else.}
 #'     \item{event_log}{character vector, appended to by every mutation.}
 #'   }
 #' @export
@@ -57,6 +62,7 @@ new_game_state <- function(decklist,
                  turn_flag_list = .new_turn_flags(),
                  num_mulligans = 0L,
                  bool_decked_out = FALSE,
+                 jammer_turn = NA_integer_,
                  card_df = card_df,
                  event_log = character(0)),
             class = "bronzong_state")
@@ -158,7 +164,8 @@ begin_turn <- function(state){
 #'   drawing `NA`s.
 #' @export
 draw_cards <- function(state, num_cards){
-  stopifnot(inherits(state, "bronzong_state"), num_cards >= 0)
+  stopifnot(inherits(state, "bronzong_state"))
+  check_whole_number(num_cards, "num_cards", 0L)
 
   num_available <- length(state$deck_vec)
   if(num_cards > num_available){

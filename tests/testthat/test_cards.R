@@ -26,7 +26,7 @@ test_that("every card in every decklist is in the database", {
   expect_true(length(file_vec) > 0)
 
   for(one_file in file_vec){
-    expect_silent(read_decklist(one_file, card_df), info = one_file)
+    expect_silent(read_decklist(one_file, card_df))
   }
 })
 
@@ -133,4 +133,42 @@ test_that("is_basic_pokemon is FALSE for Trainers and Energy", {
   expect_false(is_basic_pokemon(card_df, "TEF-069"), info = "Stage 1")
   expect_false(is_basic_pokemon(card_df, "MEG-130"), info = "Switch is an Item")
   expect_false(is_basic_pokemon(card_df, "SVE-005"), info = "Energy")
+})
+
+test_that("the shuffles column agrees with what the effects actually do", {
+  ## `shuffles` is documented as "read by the belief state to invalidate known
+  ## deck ordering", but nothing reads it -- every effect hardcodes its own
+  ## shuffle. That makes it dead data that can drift from behaviour silently.
+  ## Tie the two together: for each card marked as shuffling, playing it must
+  ## clear any known top-of-deck ordering.
+  card_df <- build_card_database()
+
+  effect_list <- list(
+    "POR-081" = function(p) play_poke_pad(p, target_id = "TEF-069"),
+    "MEG-131" = function(p) play_ultra_ball(p,
+                                            discard_id_vec = c("MEG-114",
+                                                               "MEG-114"),
+                                            target_id = "TEF-069"),
+    "TEF-144" = function(p) play_buddy_buddy_poffin(p,
+                                                    target_id_vec = "PRE-035"),
+    "BLK-084" = function(p) play_pokegear(p),
+    "WHT-084" = function(p) play_hilda(p, evolution_id = "TEF-069",
+                                       energy_id = "POR-088"),
+    "JTG-146" = function(p) play_brocks_scouting(p, mode = "evolution",
+                                                 target_id_vec = "TEF-069"),
+    "MEG-119" = function(p) play_lillies_determination(p))
+
+  for(one_id in names(effect_list)){
+    expect_true(lookup_card(card_df, one_id)$shuffles, info = one_id)
+
+    pair <- .make_pair(hand_id_vec = c(one_id, "MEG-114", "MEG-114"),
+                       turn_number = 2L)
+    pair$knowledge <- knowledge_after_stacking(pair$knowledge, "TEF-069")
+    pair <- effect_list[[one_id]](pair)
+
+    expect_length(pair$knowledge$top_known_vec, 0)
+  }
+
+  ## And the converse for a card marked as not shuffling.
+  expect_false(lookup_card(card_df, "MEG-130")$shuffles, info = "Switch")
 })

@@ -54,7 +54,8 @@ play_basic_to_bench <- function(pair, card_id, supporter_target_id = NULL){
     pair <- .search_deck_to_hand(pair,
                                  target_id_vec = supporter_target_id,
                                  allowed_fn = .is_supporter,
-                                 label = "Last-Ditch Catch")
+                                 label = "Last-Ditch Catch",
+                                 max_targets = 1L)
   }
 
   pair
@@ -95,8 +96,7 @@ attach_energy <- function(pair,
     state$active$energy_vec <- c(state$active$energy_vec, card_id)
     recipient_id <- top_card(state$active)
   } else {
-    stopifnot(!is.na(bench_idx), bench_idx >= 1,
-              bench_idx <= length(state$bench_list))
+    check_whole_number(bench_idx, "bench_idx", 1L, length(state$bench_list))
     state$bench_list[[bench_idx]]$energy_vec <-
       c(state$bench_list[[bench_idx]]$energy_vec, card_id)
     recipient_id <- top_card(state$bench_list[[bench_idx]])
@@ -152,8 +152,7 @@ evolve_pokemon <- function(pair,
   state <- pair$state
   if(!can_act(state)) stop("the turn is over")
   if(!target_is_active){
-    stopifnot(!is.na(bench_idx), bench_idx >= 1,
-              bench_idx <= length(state$bench_list))
+    check_whole_number(bench_idx, "bench_idx", 1L, length(state$bench_list))
   }
   target <- if(target_is_active) state$active else state$bench_list[[bench_idx]]
 
@@ -191,7 +190,8 @@ play_poke_pad <- function(pair, target_id = NULL){
                          row_df <- lookup_card(card_df, card_id_vec)
                          row_df$category == "pokemon" & !row_df$has_rule_box
                        },
-                       label = "Poke Pad")
+                       label = "Poke Pad",
+                       max_targets = 1L)
 }
 
 #' Ultra Ball: discard 2, then search for any Pokemon
@@ -218,7 +218,8 @@ play_ultra_ball <- function(pair, discard_id_vec, target_id = NULL){
                        allowed_fn = function(card_df, card_id_vec){
                          lookup_card(card_df, card_id_vec)$category == "pokemon"
                        },
-                       label = "Ultra Ball")
+                       label = "Ultra Ball",
+                       max_targets = 1L)
 }
 
 #' Buddy-Buddy Poffin: up to 2 Basics with 70 HP or less, onto the Bench
@@ -232,8 +233,6 @@ play_ultra_ball <- function(pair, discard_id_vec, target_id = NULL){
 #' @returns The updated pair.
 #' @export
 play_buddy_buddy_poffin <- function(pair, target_id_vec = character(0)){
-  stopifnot(length(target_id_vec) <= 2)
-
   pair <- .discard_from_hand(pair, "TEF-144")
 
   .search_deck_to_bench(pair,
@@ -314,14 +313,14 @@ play_hilda <- function(pair, evolution_id = NULL, energy_id = NULL){
       row_df <- lookup_card(card_df, card_id_vec)
       row_df$category == "pokemon" & !is.na(row_df$evolves_from)
     },
-    label = "Hilda (evolution)", bool_shuffle = FALSE)
+    label = "Hilda (evolution)", max_targets = 1L, bool_shuffle = FALSE)
 
   .search_deck_to_hand(
     pair, target_id_vec = energy_id,
     allowed_fn = function(card_df, card_id_vec){
       lookup_card(card_df, card_id_vec)$category == "energy"
     },
-    label = "Hilda (energy)")
+    label = "Hilda (energy)", max_targets = 1L)
 }
 
 #' Salvatore: fetch an Ability-less Evolution and put it straight onto its base
@@ -386,8 +385,6 @@ play_salvatore <- function(pair,
 #' @export
 play_brocks_scouting <- function(pair, mode, target_id_vec){
   stopifnot(mode %in% c("basics", "evolution"))
-  if(mode == "basics") stopifnot(length(target_id_vec) <= 2)
-  if(mode == "evolution") stopifnot(length(target_id_vec) <= 1)
 
   pair <- .play_supporter_from_hand(pair, "JTG-146")
 
@@ -405,7 +402,8 @@ play_brocks_scouting <- function(pair, mode, target_id_vec){
 
   .search_deck_to_hand(pair, target_id_vec = target_id_vec,
                        allowed_fn = allowed_fn,
-                       label = paste0("Brock's Scouting (", mode, ")"))
+                       label = paste0("Brock's Scouting (", mode, ")"),
+                       max_targets = if(mode == "basics") 2L else 1L)
 }
 
 #' Lillie's Determination: shuffle the hand away, then draw 6, or 8 on 6 prizes
@@ -478,7 +476,10 @@ play_surfer <- function(pair, bench_idx){
 #' @returns The updated pair.
 #' @export
 play_ciphermaniacs_codebreaking <- function(pair, target_id_vec){
-  stopifnot(length(target_id_vec) <= 2)
+  if(length(target_id_vec) > 2){
+    stop("Ciphermaniac's Codebreaking may fetch at most 2 card(s); asked for ",
+         length(target_id_vec))
+  }
 
   pair <- .play_supporter_from_hand(pair, "TEF-145")
   state <- pair$state
@@ -534,17 +535,38 @@ play_switch <- function(pair, bench_idx){
 #'
 #' @param pair a `list(state, knowledge)`.
 #' @param bench_idx the Bench slot to promote.
+#' @param discard_id_vec which attached Energy pays the cost. `NULL` spends
+#'   non-`[P]` Energy first, which is what a player wanting to keep Evolution
+#'   Jammer live would do.
 #'
 #' @returns The updated pair.
 #' @export
-retreat_active <- function(pair, bench_idx){
+retreat_active <- function(pair, bench_idx, discard_id_vec = NULL){
   state <- pair$state
   if(!can_retreat(state)) stop("cannot retreat right now")
 
   cost_val <- retreat_cost(state)
   if(cost_val > 0){
-    paid_vec <- state$active$energy_vec[seq_len(cost_val)]
-    state$active$energy_vec <- state$active$energy_vec[-seq_len(cost_val)]
+    if(is.null(discard_id_vec)){
+      # The rules let the PLAYER choose which Energy pays the cost. Paying with
+      # the first-attached Energy threw away whichever happened to be attached
+      # earliest -- reachably, the Telepathic Psychic Energy attached on turn 1
+      # to fire its search, while keeping a Colorless Enriching Energy. Sub-goal
+      # D then failed for a reason no player would have chosen, understating
+      # consistency. Default to spending non-`[P]` Energy first.
+      is_psychic_vec <- is_psychic_source(state$card_df, state$active$energy_vec)
+      order_vec <- c(which(!is_psychic_vec), which(is_psychic_vec))
+      paid_idx_vec <- order_vec[seq_len(cost_val)]
+    } else {
+      paid_idx_vec <- match(canonical_card_id(discard_id_vec),
+                            state$active$energy_vec)
+      if(anyNA(paid_idx_vec) || length(paid_idx_vec) != cost_val){
+        stop("`discard_id_vec` must name exactly ", cost_val,
+             " Energy attached to the Active Pokemon")
+      }
+    }
+    paid_vec <- state$active$energy_vec[paid_idx_vec]
+    state$active$energy_vec <- state$active$energy_vec[-paid_idx_vec]
     state$discard_vec <- c(state$discard_vec, paid_vec)
   }
 
@@ -691,6 +713,14 @@ attack_evolution_jammer <- function(pair){
 
   state$turn_flag_list$bool_attacked <- TRUE
   state$turn_flag_list$bool_turn_over <- TRUE
+
+  # Record the turn the attack was DECLARED, not merely the turn it became
+  # available. ADR 0004 measures whether the player attacked; a turn on which
+  # Jammer was momentarily legal and the policy then switched, retreated, or
+  # passed must NOT score as a hit. Scoring reads this field, never
+  # can_use_evolution_jammer().
+  if(is.na(state$jammer_turn)) state$jammer_turn <- state$turn_number
+
   pair$state <- .log_event(state, "EVOLUTION JAMMER")
 
   pair
@@ -743,9 +773,22 @@ attack_evolution_jammer <- function(pair){
                                  target_id_vec,
                                  allowed_fn,
                                  label,
+                                 max_targets,
                                  bool_shuffle = TRUE){
   state <- pair$state
   target_id_vec <- canonical_card_id(as.character(target_id_vec))
+
+  # `max_targets` is mandatory and enforced here rather than left to each
+  # caller. Poffin, Brock's Scouting and Codebreaking checked their own limits;
+  # Poke Pad, Ultra Ball, Hilda and Last-Ditch Catch did not, so passing a
+  # target VECTOR to a card that fetches ONE silently tutored the whole deck
+  # with no error and a conserved multiset. A part-5 policy passing a preference
+  # vector -- the natural thing to write, and what play_pokegear() already takes
+  # -- would have inflated every consistency number.
+  if(length(target_id_vec) > max_targets){
+    stop(label, " may fetch at most ", max_targets, " card(s); asked for ",
+         length(target_id_vec))
+  }
 
   found_vec <- character(0)
   if(length(target_id_vec) > 0){
@@ -774,9 +817,15 @@ attack_evolution_jammer <- function(pair){
 
 #' Resolve a deck search that puts Pokemon directly onto the Bench
 #' @noRd
-.search_deck_to_bench <- function(pair, target_id_vec, allowed_fn, label){
+.search_deck_to_bench <- function(pair, target_id_vec, allowed_fn, label,
+                                  max_targets = 2L){
   state <- pair$state
   target_id_vec <- canonical_card_id(as.character(target_id_vec))
+
+  if(length(target_id_vec) > max_targets){
+    stop(label, " may fetch at most ", max_targets, " card(s); asked for ",
+         length(target_id_vec))
+  }
 
   found_vec <- character(0)
   if(length(target_id_vec) > 0){
@@ -854,7 +903,7 @@ attack_evolution_jammer <- function(pair){
 #' Swap the Active with a Bench slot, preserving both records intact
 #' @noRd
 .swap_active <- function(state, bench_idx){
-  stopifnot(bench_idx >= 1, bench_idx <= length(state$bench_list))
+  check_whole_number(bench_idx, "bench_idx", 1L, length(state$bench_list))
 
   promoted <- state$bench_list[[bench_idx]]
   state$bench_list[[bench_idx]] <- state$active

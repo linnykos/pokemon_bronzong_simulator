@@ -193,6 +193,15 @@ believed_deck_count <- function(knowledge, state, card_id_vec){
   card_id_vec <- canonical_card_id(card_id_vec)
   if(length(card_id_vec) == 0) return(stats::setNames(integer(0), character(0)))
 
+  # Route through lookup_card() purely for its loud-failure contract. Without
+  # it, an unknown or mistyped id (say "TEF-68" for "TEF-068") answered 0 /
+  # FALSE, so a policy asking about a typo would be told the card is not
+  # findable and would decline a search it should have made -- invisible in an
+  # aggregate rate. lookup_card()'s own documentation warns that a silent NA
+  # here "propagates into every downstream rule as a false negative"; these
+  # queries were bypassing exactly that.
+  lookup_card(state$card_df, card_id_vec)
+
   # Derived, never stored. What is in the deck is what the decklist held, minus
   # everything the player can see, minus what a search proved to be prized. This
   # is exactly the arithmetic a real player does, and because it reads the

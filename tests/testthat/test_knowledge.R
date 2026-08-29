@@ -269,3 +269,83 @@ test_that("believed deck count matches the truth after a search, always", {
     }
   }
 })
+
+test_that("the prize deduction is exact after every real search effect", {
+  ## The coverage audit's highest-value gap. Every prize-deduction test called
+  ## knowledge_after_search() DIRECTLY on a fresh setup_game(); none went
+  ## through a card. The last round's worst bug -- a played Stadium being
+  ## deduced as prized -- was exactly that shape, so drive the deduction through
+  ## each effect and assert the deduced multiset EQUALS the real prize pile.
+  card_df <- .test_card_df()
+  decklist <- .test_decklist()
+
+  ## Each entry returns NULL when its precondition is not met for this deal,
+  ## rather than forcing the position. `.force_into_hand()` ADDS a copy to the
+  ## deck when none is there, which would inflate the total above the decklist
+  ## count and break the very arithmetic under test -- at seed 6 both
+  ## Ciphermaniac's are already out of the deck (one in hand, one prized).
+  effect_list <- list(
+    poke_pad = function(pair) .run_with("POR-081", pair, function(p){
+      play_poke_pad(p, target_id = "TEF-069")
+    }),
+    poffin = function(pair) .run_with("TEF-144", pair, function(p){
+      play_buddy_buddy_poffin(p, target_id_vec = "PRE-035")
+    }),
+    hilda = function(pair) .run_with("WHT-084", pair, function(p){
+      play_hilda(p, evolution_id = "TEF-069", energy_id = "POR-088")
+    }),
+    brocks = function(pair) .run_with("JTG-146", pair, function(p){
+      play_brocks_scouting(p, mode = "basics", target_id_vec = "SSP-076")
+    }),
+    codebreaking = function(pair) .run_with("TEF-145", pair, function(p){
+      play_ciphermaniacs_codebreaking(p, target_id_vec = "TEF-069")
+    }),
+    telepathic = function(pair) .run_with("POR-088", pair, function(p){
+      ## The trigger fires only when the RECIPIENT is [P]. At several seeds the
+      ## Active is Mega Kangaskhan ex (Colorless), where firing nothing is the
+      ## CORRECT behaviour -- so skip rather than assert a search happened.
+      if(lookup_card(p$state$card_df,
+                     top_card(p$state$active))$ptype != "psychic") return(NULL)
+      attach_energy(p, "POR-088", target_is_active = TRUE,
+                    search_id_vec = "PRE-035")
+    }),
+    stadium_then_search = function(pair) .run_with("TWM-153", pair, function(p){
+      p <- play_stadium(p, "TWM-153")
+      .run_with("POR-081", p, function(q) play_poke_pad(q, target_id = "TEF-069"))
+    }))
+
+  num_cells_run <- 0L
+  for(one_name in names(effect_list)){
+    for(one_seed in 1:8){
+      set.seed(one_seed)
+      pair <- setup_game(decklist, card_df, bool_going_first = FALSE)
+      pair$state <- begin_turn(pair$state)
+      prize_vec <- sort(pair$state$prize_vec)
+
+      pair <- effect_list[[one_name]](pair)
+      if(is.null(pair)) next
+      num_cells_run <- num_cells_run + 1L
+      label_str <- paste0(one_name, " seed ", one_seed)
+
+      expect_true(pair$knowledge$bool_deck_seen, info = label_str)
+
+      deduced_vec <- rep(names(pair$knowledge$known_unavailable_vec),
+                         times = pair$knowledge$known_unavailable_vec)
+      expect_equal(sort(deduced_vec), prize_vec, info = label_str)
+    }
+  }
+
+  ## Guard against the whole sweep skipping itself into vacuity.
+  expect_true(num_cells_run > 30)
+})
+
+test_that("belief queries reject an unknown card id instead of answering FALSE", {
+  ## Named in a test whose body never covered it. A mistyped id ("TEF-68" for
+  ## "TEF-068") was answered FALSE / 0, so a policy would decline a search it
+  ## should have made -- invisible in an aggregate rate.
+  pair <- .make_pair()
+
+  expect_error(believes_findable(pair$knowledge, pair$state, "ZZZ-999"))
+  expect_error(believes_findable(pair$knowledge, pair$state, "TEF-68"))
+  expect_error(believed_deck_count(pair$knowledge, pair$state, "ZZZ-999"))
+})

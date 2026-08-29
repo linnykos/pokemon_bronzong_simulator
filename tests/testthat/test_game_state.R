@@ -201,12 +201,15 @@ test_that("the Stadium in play is counted as a card in the game", {
   ## production census here.
   pair <- .make_pair(hand_id_vec = "TWM-153", turn_number = 2L)
   num_before <- as.integer(count_copies(pair$state, "TWM-153"))
-  num_total_before <- length(all_cards_in_game(pair$state))
+  ## Compare the MULTISET, not the length: a mutation that swaps one card for
+  ## another keeps the count at 60 while destroying one card and conjuring
+  ## another, and a length check cannot see it.
+  before_vec <- sort(all_cards_in_game(pair$state))
 
   pair <- play_stadium(pair, "TWM-153")
 
   expect_equal(as.integer(count_copies(pair$state, "TWM-153")), num_before)
-  expect_equal(length(all_cards_in_game(pair$state)), num_total_before)
+  expect_equal(sort(all_cards_in_game(pair$state)), before_vec)
 })
 
 test_that("a played Stadium is not deduced to be prized", {

@@ -69,8 +69,35 @@ test_that("mulligans conserve the deck and are counted", {
 
     expect_equal(length(state$deck_vec) + length(state$hand_vec), 60,
                  info = paste0("seed ", one_seed))
-    expect_true(state$num_mulligans >= 0)
   }
+})
+
+test_that("a mulligan is actually taken and counted when one is forced", {
+  ## `num_mulligans >= 0` was vacuous on a counter initialised to 0L, and no
+  ## test in the suite ever exercised a non-zero mulligan. Engineer a deck with
+  ## a single Basic so mulligans are near-certain, and assert the counter moves
+  ## while the deck is still conserved.
+  card_df <- .test_card_df()
+  tmp_file <- tempfile(fileext = ".txt")
+  writeLines(c("1 Bronzor TEF 68", "59 Basic {P} Energy SVE 5"), tmp_file)
+  decklist <- read_decklist(tmp_file, card_df)
+
+  num_with_mulligan <- 0L
+  for(one_seed in 1:25){
+    set.seed(one_seed)
+    state <- new_game_state(decklist, card_df, bool_going_first = FALSE)
+    state <- deal_opening_hand(state)
+
+    expect_true(any(is_basic_pokemon(card_df, state$hand_vec)),
+                info = paste0("seed ", one_seed))
+    expect_equal(length(state$deck_vec) + length(state$hand_vec), 60,
+                 info = paste0("seed ", one_seed))
+    if(state$num_mulligans > 0) num_with_mulligan <- num_with_mulligan + 1L
+  }
+
+  ## With 1 Basic in 60 the chance of no mulligan in a 7-card hand is ~12%, so
+  ## over 25 seeds at least one mulligan is effectively certain.
+  expect_true(num_with_mulligan > 0)
 })
 
 test_that("a deck with no Basic Pokemon aborts rather than looping forever", {
@@ -217,10 +244,14 @@ test_that("the default placement leads a Bronzor whenever it holds one", {
     in_play_vec <- unlist(lapply(all_in_play(pair$state), top_card))
     bronzor_vec <- c("TEF-068", "PRE-066", "SSP-126")
 
-    if(any(in_play_vec %in% bronzor_vec)){
-      expect_true(top_card(pair$state$active) %in% bronzor_vec,
-                  info = paste0("seed ", one_seed))
-    }
+    ## Previously the whole assertion sat inside this `if`, so it fired on only
+    ## 10 of 30 seeds and would have gone silently vacuous on a decklist edit.
+    ## Assert the contrapositive unconditionally instead: if a Bronzor is in
+    ## play at all, it must be the ACTIVE one.
+    bool_any_bronzor <- any(in_play_vec %in% bronzor_vec)
+    bool_active_bronzor <- top_card(pair$state$active) %in% bronzor_vec
+    expect_equal(bool_any_bronzor, bool_active_bronzor,
+                 info = paste0("seed ", one_seed))
   }
 })
 

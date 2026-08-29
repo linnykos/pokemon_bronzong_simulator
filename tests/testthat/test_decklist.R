@@ -184,9 +184,42 @@ test_that("a decklist citing an unknown printing fails loudly", {
   expect_error(read_decklist(tmp_file, card_df), regexp = "unknown card id")
 })
 
-test_that("a file with no card lines is an error, not an empty deck", {
+test_that("a file with only headers and blanks is an error, not an empty deck", {
   card_df <- build_card_database()
-  tmp_file <- .write_temp_decklist(c("Pokemon: 24", "", "some prose"))
+  tmp_file <- .write_temp_decklist(c("Pokemon: 24", "", "Trainer: 31"))
 
   expect_error(read_decklist(tmp_file, card_df), regexp = "no card lines")
+})
+
+test_that("an unparsable line is an error, not a silently shorter deck", {
+  ## Found by the coverage audit and the highest-risk parsing defect: lines that
+  ## failed the pattern were dropped in SILENCE, so a lowercase set code, a "4x"
+  ## count prefix, a missing space, or a PTCG-Live variant tag each produced a
+  ## legal-looking 56-card deck. Every rate computed on it would be against the
+  ## wrong denominator, and nothing would have complained.
+  card_df <- build_card_database()
+
+  bad_line_list <- list("lowercase set" = "4 Bronzor tef 68",
+                        "x-prefixed count" = "4x Bronzor TEF 68",
+                        "missing space" = "4 Bronzor TEF68",
+                        "variant tag" = "4 Bronzor TEF 68 PH",
+                        "prose" = "some prose")
+
+  for(one_name in names(bad_line_list)){
+    tmp_file <- .write_temp_decklist(c("Pokemon: 1",
+                                       bad_line_list[[one_name]],
+                                       "4 Basic {P} Energy SVE 5"))
+    expect_error(read_decklist(tmp_file, card_df),
+                 regexp = "could not parse", info = one_name)
+  }
+})
+
+test_that("headers and blank lines are still ignored, not treated as errors", {
+  ## The stricter parser must not reject the real files' own headers.
+  card_df <- build_card_database()
+  file_vec <- list.files("decklists", pattern = "[.]txt$", full.names = TRUE)
+
+  for(one_file in file_vec){
+    expect_silent(read_decklist(one_file, card_df))
+  }
 })
