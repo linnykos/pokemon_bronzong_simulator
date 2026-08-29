@@ -48,18 +48,27 @@ Six cards are imported as **candidates not yet in any list**: Buddy-Buddy Poffin
 - **Three different cards are named "Bronzor."** Never write "Bronzor" without a set and number.
 - **Retreating costs the retreat cost of the Pokémon *leaving* the Active spot.** Bronzor's retreat 3 does not obstruct promoting it; what matters is what is currently Active. Latias ex's Skyliner makes any *Basic* Active retreat free, and on turn 1 the Active is almost always a Basic.
 - **The transcription source mis-renders attacks as Abilities.** It did so for Evolution Jammer and Itchy Pollen. Any card whose details drive the decision tree gets a second, pointed query.
-- **Base R only.** R 4.6.1 has no jsonlite, yaml, testthat, or tidyverse installed. The simulator is being written dependency-free; adding `testthat` for part 4 is an open offer, not a decision.
+- **Base R only.** R 4.6.1 has no jsonlite, yaml, testthat, or tidyverse installed. The simulator is dependency-free. testthat cannot be installed here (R has no CRAN access), so `tests/testthat_shim_claude.R` stands in; the test files use testthat's real API and will run unchanged under `devtools::test()` if testthat ever becomes available.
 
 ## Open Questions / Next Steps
 
-1. **Write part 3** — the English decision tree for turns 1–2. Structure it as four branches: going first vs. second, crossed with Salvatore vs. no Salvatore, since those produce genuinely different play patterns.
-2. **Getting Bronzong *Active* is the suspected bottleneck**, not drawing it — Salvatore fixes timing but not positioning. Confirm this in the sim rather than assuming it.
-3. **Open: the Salvatore first-turn ruling has no citable source** (ADR 0001). Kevin has now confirmed it twice and is confident; his expertise is the citation. Residual risk only — an official ruling in `additional_context/` would close it.
-8. **Open: confirm one wording in ADR 0003.** Kevin wrote that the sim "should NOT immediately know what's benched before the first deck-search card is played." Implemented as *deck contents / what is prized*, since that is what a deck search actually reveals. Flagged in the ADR in case something else was meant.
-9. **Open: `Mystery Garden` is modelled as inert but is not.** Its text is a live turn-1/2 draw effect ("discard an Energy from hand, draw until your hand matches your `[P]` Pokemon in play"). It is in no decklist yet, so this only bites when it is added as a candidate. `docs/03a_card_playbook.md` still lists it as an open question.
-10. **Open: the smoke script is not run by the test runner.** It is the only place a full hand-played line is exercised end to end; wire it in or fold it into the suite.
-11. **Open: Surfer's tension with Salvatore is untested.** Both are Supporters and only one may be played per turn, so going second with Bronzor benched the player cannot both switch and Salvatore-evolve. Switch (an Item) does the positioning without spending the Supporter slot, which likely makes it better than Surfer for the turn-1 line — worth measuring rather than assuming.
-4. **Open: Nighttime Mine's effect text is uncorroborated** and looks implausible (hoses Tera Pokémon; no list runs Tera). decklist1 only, and inert for the metric either way.
-5. **Open: the Bronzor printing trade-off is unmeasured.** Buddy-Buddy Poffin caps at 70 HP, so it cannot fetch Bronzor TEF 68 (80 HP) but can fetch PRE 66 (70) and SSP 126 (60) — at the cost of those being Metal, so Telepathic Psychic Energy can no longer find them. A 2/2 split keeps both routes and is its own candidate.
-6. **Open: whether to install `testthat`** for part 4's tests, or hand-roll assertions in base R.
-7. **Open: `CONTEXT.md` coinages need sign-off** — *on time*, *by turn 2*, *shell*, *whiff*, and *cell* are Claude's terms, marked `[unconfirmed]` in that file.
+### Needs Kevin
+1. **Review part 3.** `docs/03_decision_tree.md` and `docs/03a_card_playbook.md` each end with numbered questions — lead order at setup, Switch-vs-Surfer for the turn-1 kill, whether Ciphermaniac's is ever right on turn 1, the Ultra Ball discard priority, and whether to record turn-3 outcomes.
+2. **Sign off the `CONTEXT.md` coinages** — *on time*, *earliest legal turn*, *shell*, *whiff*, *cell*, marked `[unconfirmed]` in that file.
+3. **Decide the mulligan-bonus divergence.** The opening hand omits the bonus cards owed for an opponent's mulligans, because no opponent is modelled. Biases consistency **downward** by an unknown amount. Fixing it means modelling an opposing decklist or assuming a distribution.
+4. **Confirm one wording in ADR 0003.** Kevin wrote "should NOT immediately know what's benched before the first deck-search card is played." Implemented as *deck contents / what is prized*, since that is what a deck search reveals.
+
+### Next work
+5. **Part 5 — the policy.** A direct translation of part 3, so it waits on the review above.
+6. **Part 6 — the registry** over 10,000 replicates per (decklist, scenario, first/second) cell.
+7. **Wire the smoke script into the test runner.** It is the only end-to-end hand-played line and nothing currently runs it automatically.
+
+### Hypotheses to test rather than assume
+8. **Getting Bronzong *Active* is the suspected bottleneck**, not drawing it — Salvatore fixes timing, not positioning.
+9. **The Bronzor printing trade-off.** Poffin caps at 70 HP, so it cannot fetch TEF 68 (80) but can fetch PRE 66 (70) and SSP 126 (60) — at the cost of those being Metal, so Telepathic Psychic Energy can no longer find them. A 2/2 split keeps both routes.
+10. **Surfer competes with Salvatore for the one Supporter slot**, so Switch (an Item) is probably better for the turn-1 line.
+
+### Loose ends
+11. **`Mystery Garden` is modelled as inert but is not.** Its text is a live turn-1/2 draw effect. In no decklist yet, so it only bites when added as a candidate.
+12. **Nighttime Mine's effect text is uncorroborated** and looks implausible (hoses Tera Pokémon; no list runs Tera). decklist1 only, inert for the metric either way.
+13. **The Salvatore first-turn ruling has no citable public source** (ADR 0001) — Kevin's expertise is the citation. Residual risk only.
