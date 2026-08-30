@@ -11,8 +11,15 @@
 # be rewritten without touching the rules.
 #
 # Cards that are inert for turns 1-2 -- Boss's Orders, Special Red Card, Night
-# Stretcher, the Stadiums, Rare Candy -- have no function here on purpose. They
-# are playable and change nothing that the metric reads.
+# Stretcher, the Stadiums -- have no function here on purpose. They are playable
+# and change nothing that the metric reads.
+#
+# Rare Candy was on that list until 2026-08-29 and should not have been: it is
+# the only route from a Duskull Active to a Dusknoir, whose Cursed Blast Knocks
+# itself Out and so lets us promote a benched Bronzor. That is a switching
+# effect, i.e. sub-goal C -- see docs/03_decision_tree.md section 8. The lesson
+# generalises: "inert for the metric" is a claim about every line the card
+# appears in, not about the card's headline use.
 
 # ---------------------------------------------------------------------------
 # Primitives shared by many cards
@@ -186,10 +193,7 @@ play_poke_pad <- function(pair, target_id = NULL){
 
   .search_deck_to_hand(pair,
                        target_id_vec = target_id,
-                       allowed_fn = function(card_df, card_id_vec){
-                         row_df <- lookup_card(card_df, card_id_vec)
-                         row_df$category == "pokemon" & !row_df$has_rule_box
-                       },
+                       allowed_fn = ALLOWED_TARGET_LIST$poke_pad,
                        label = "Poke Pad",
                        max_targets = 1L)
 }
@@ -215,9 +219,7 @@ play_ultra_ball <- function(pair, discard_id_vec, target_id = NULL){
 
   .search_deck_to_hand(pair,
                        target_id_vec = target_id,
-                       allowed_fn = function(card_df, card_id_vec){
-                         lookup_card(card_df, card_id_vec)$category == "pokemon"
-                       },
+                       allowed_fn = ALLOWED_TARGET_LIST$ultra_ball,
                        label = "Ultra Ball",
                        max_targets = 1L)
 }
@@ -237,12 +239,7 @@ play_buddy_buddy_poffin <- function(pair, target_id_vec = character(0)){
 
   .search_deck_to_bench(pair,
                         target_id_vec = target_id_vec,
-                        allowed_fn = function(card_df, card_id_vec){
-                          row_df <- lookup_card(card_df, card_id_vec)
-                          row_df$category == "pokemon" &
-                            row_df$stage == "basic" &
-                            !is.na(row_df$hp) & row_df$hp <= 70
-                        },
+                        allowed_fn = ALLOWED_TARGET_LIST$poffin,
                         label = "Buddy-Buddy Poffin")
 }
 
@@ -309,17 +306,12 @@ play_hilda <- function(pair, evolution_id = NULL, energy_id = NULL){
 
   pair <- .search_deck_to_hand(
     pair, target_id_vec = evolution_id,
-    allowed_fn = function(card_df, card_id_vec){
-      row_df <- lookup_card(card_df, card_id_vec)
-      row_df$category == "pokemon" & !is.na(row_df$evolves_from)
-    },
+    allowed_fn = ALLOWED_TARGET_LIST$evolution,
     label = "Hilda (evolution)", max_targets = 1L, bool_shuffle = FALSE)
 
   .search_deck_to_hand(
     pair, target_id_vec = energy_id,
-    allowed_fn = function(card_df, card_id_vec){
-      lookup_card(card_df, card_id_vec)$category == "energy"
-    },
+    allowed_fn = ALLOWED_TARGET_LIST$energy,
     label = "Hilda (energy)", max_targets = 1L)
 }
 
@@ -729,9 +721,220 @@ attack_evolution_jammer <- function(pair){
   pair
 }
 
+#' Rare Candy: a Basic straight to its Stage 2
+#'
+#' Legality is \code{can_rare_candy()}'s job; this only performs the evolution.
+#'
+#' Rare Candy was modelled as inert until Kevin pointed out (2026-08-29) that it
+#' is the only route from a **Duskull** Active to a Dusknoir, and therefore the
+#' enabler of the Cursed Blast escape in docs/03_decision_tree.md section 8. It
+#' is still never played in preference to evolving Bronzong.
+#'
+#' @param pair a `list(state, knowledge)`.
+#' @param stage2_card_id the Stage 2 card in hand.
+#' @param target_is_active whether the target is the Active.
+#' @param bench_idx which Bench slot, when `target_is_active` is `FALSE`.
+#'
+#' @returns The updated pair.
+#' @export
+play_rare_candy <- function(pair,
+                            stage2_card_id,
+                            target_is_active = TRUE,
+                            bench_idx = NA_integer_){
+  state <- pair$state
+  if(!can_act(state)) stop("the turn is over")
+  if(!can_play_item(state)) stop("Items are locked this turn (Itchy Pollen)")
+  if(!target_is_active){
+    check_whole_number(bench_idx, "bench_idx", 1L, length(state$bench_list))
+  }
+  target <- if(target_is_active) state$active else state$bench_list[[bench_idx]]
+  if(is.null(target)) stop("no Pokemon to play Rare Candy onto")
+
+  if(!can_rare_candy(state, target, stage2_card_id)){
+    stop("illegal Rare Candy: ", stage2_card_id, " onto ", top_card(target))
+  }
+
+  # Rare Candy itself is discarded; the Stage 2 round-trips through the discard
+  # the same way every other card leaving the hand does, so the multiset
+  # bookkeeping has one code path.
+  pair <- .discard_from_hand(pair, "MEG-125")
+  state <- pair$state
+  state <- move_cards(state, stage2_card_id, from = "hand", to = "discard")
+  state$discard_vec <- state$discard_vec[-length(state$discard_vec)]
+
+  pair$state <- .apply_evolution(state, stage2_card_id, target_is_active,
+                                 bench_idx)
+  pair
+}
+
+# ---------------------------------------------------------------------------
+# Knock Outs
+# ---------------------------------------------------------------------------
+
+#' Cursed Blast: Knock Out our own Pokemon on purpose
+#'
+#' Dusclops (PRE 36) and Dusknoir (PRE 37) share the Ability: put damage
+#' counters on one of the opponent's Pokemon, then this Pokemon is Knocked Out.
+#'
+#' **The damage is the part that does not matter here.** No opponent is modelled
+#' (CLAUDE.md), and 5 or 13 counters would be irrelevant to a metric ending on
+#' turn 2 in any case. What matters is the self-Knock Out, because the player
+#' whose Pokemon was Knocked Out chooses the replacement Active -- making this a
+#' switching effect that costs no Switch, no Supporter slot, no retreat and no
+#' Energy. See docs/03_decision_tree.md section 8.
+#'
+#' The Ability is usable from the Bench too, where it does nothing for us; that
+#' is allowed here because it is legal, and left to the policy to avoid.
+#'
+#' @param pair a `list(state, knowledge)`.
+#' @param bench_idx which Benched Dusclops/Dusknoir uses it, or `NULL` for the
+#'   Active.
+#' @param promote_idx which Benched Pokemon becomes the new Active, required
+#'   when the Active is the one using it.
+#'
+#' @returns The updated pair.
+#' @export
+use_cursed_blast <- function(pair, bench_idx = NULL, promote_idx = NULL){
+  state <- pair$state
+  if(!can_act(state)) stop("the turn is over")
+
+  user <- if(is.null(bench_idx)) state$active else {
+    check_whole_number(bench_idx, "bench_idx", 1L, length(state$bench_list))
+    state$bench_list[[bench_idx]]
+  }
+  if(is.null(user)) stop("no Pokemon to use Cursed Blast")
+  if(!top_card(user) %in% c("PRE-036", "PRE-037")){
+    stop("Cursed Blast needs Dusclops or Dusknoir, not ", top_card(user))
+  }
+  # A POLICY guard, not a rule: the rules permit using the Ability with an empty
+  # Bench, and rules section 8 then loses us the game on the spot. knock_out()
+  # models that faithfully; nothing should ever ask for it.
+  if(is.null(bench_idx) && length(state$bench_list) == 0){
+    stop("Cursed Blast on the Active with an empty Bench loses the game")
+  }
+
+  pair$state <- .log_event(state, paste0("Cursed Blast ", top_card(user)))
+
+  knock_out(pair, bench_idx = bench_idx, promote_idx = promote_idx)
+}
+
+#' Knock Out a Pokemon we control, and promote its replacement
+#'
+#' Rules section 7. Nothing in the measured window deals damage to us, so the
+#' only route here is a **self-inflicted** Knock Out: Cursed Blast, which
+#' docs/03_decision_tree.md section 8 uses as a switching effect, because the
+#' player whose Pokemon was Knocked Out is the one who chooses the replacement
+#' Active.
+#'
+#' **No Prize is awarded, and that is correct.** The Prize for our Pokemon goes
+#' to the OPPONENT, from the opponent's own pile, and this simulator models one
+#' player (CLAUDE.md). Our `prize_vec` is therefore untouched -- which is also
+#' why Lillie's Determination still draws 8 on a turn we Cursed Blast. The bug
+#' and the correct behaviour look identical here, so the assertion lives in the
+#' tests rather than in a reader's memory.
+#'
+#' @param pair a `list(state, knowledge)`.
+#' @param bench_idx which Benched Pokemon is Knocked Out, or `NULL` for the
+#'   Active.
+#' @param promote_idx which Benched Pokemon becomes the new Active, required
+#'   only when the Active was the one Knocked Out. Indexes the bench **after**
+#'   the Knocked Out Pokemon has been removed.
+#'
+#' @returns The updated pair. When the Active is Knocked Out with an empty
+#'   Bench, `state$bool_no_pokemon` is set and the turn ends: rules section 8
+#'   makes that an immediate loss, and this function stays faithful to the rule
+#'   rather than refusing the play. \code{use_cursed_blast()} is where the
+#'   policy is stopped from getting there.
+#' @export
+knock_out <- function(pair, bench_idx = NULL, promote_idx = NULL){
+  state <- pair$state
+  stopifnot(inherits(state, "bronzong_state"))
+
+  if(is.null(bench_idx)){
+    if(is.null(state$active)) stop("there is no Active Pokemon to Knock Out")
+    victim <- state$active
+    state$active <- NULL
+  } else {
+    check_whole_number(bench_idx, "bench_idx", 1L, length(state$bench_list))
+    victim <- state$bench_list[[bench_idx]]
+    state$bench_list <- state$bench_list[-bench_idx]
+  }
+
+  # The whole stack AND everything attached. Missing the energy_vec here is a
+  # silent card leak of exactly the kind the conservation tests exist for.
+  state$discard_vec <- c(state$discard_vec, victim$stack_vec, victim$energy_vec)
+  state <- .log_event(state, paste0("KNOCKED OUT ", top_card(victim)))
+
+  if(!is.null(state$active)){
+    pair$state <- state
+    return(pair)
+  }
+
+  if(length(state$bench_list) == 0){
+    state$bool_no_pokemon <- TRUE
+    state$turn_flag_list$bool_turn_over <- TRUE
+    state <- .log_event(state, "no Pokemon left in play -- game lost")
+    pair$state <- state
+    return(pair)
+  }
+
+  check_whole_number(promote_idx, "promote_idx", 1L, length(state$bench_list))
+  promoted <- state$bench_list[[promote_idx]]
+  state$bench_list <- state$bench_list[-promote_idx]
+  state$active <- promoted
+  pair$state <- .log_event(state, paste0("promote ", top_card(promoted),
+                                         " via Knock Out"))
+
+  pair
+}
+
 # ---------------------------------------------------------------------------
 # Internals
 # ---------------------------------------------------------------------------
+
+#' What each search card is allowed to fetch
+#'
+#' Named rather than written inline at each call site, because the POLICY has to
+#' ask the same question before it commits a target: `.search_deck_to_hand()`
+#' asserts legality with `stopifnot()`, so a policy that names an illegal target
+#' does not misplay, it dies. The first draft of R/decision_claude.R asked Poke
+#' Pad for Latias ex -- a rule-box Pokemon it cannot fetch -- and killed a third
+#' of the replicates. One definition each, consulted by both sides.
+#'
+#' @param card_df the card database.
+#' @param card_id_vec candidate targets.
+#'
+#' @returns A logical vector.
+#' @export
+ALLOWED_TARGET_LIST <- list(
+  poke_pad = function(card_df, card_id_vec){
+    row_df <- lookup_card(card_df, card_id_vec)
+    row_df$category == "pokemon" & !row_df$has_rule_box
+  },
+  ultra_ball = function(card_df, card_id_vec){
+    lookup_card(card_df, card_id_vec)$category == "pokemon"
+  },
+  poffin = function(card_df, card_id_vec){
+    row_df <- lookup_card(card_df, card_id_vec)
+    row_df$category == "pokemon" & row_df$stage == "basic" &
+      !is.na(row_df$hp) & row_df$hp <= 70
+  },
+  telepathic = function(card_df, card_id_vec){
+    row_df <- lookup_card(card_df, card_id_vec)
+    row_df$category == "pokemon" & row_df$stage == "basic" &
+      !is.na(row_df$ptype) & row_df$ptype == "psychic"
+  },
+  evolution = function(card_df, card_id_vec){
+    row_df <- lookup_card(card_df, card_id_vec)
+    row_df$category == "pokemon" & !is.na(row_df$evolves_from)
+  },
+  energy = function(card_df, card_id_vec){
+    lookup_card(card_df, card_id_vec)$category == "energy"
+  },
+  basic_pokemon = function(card_df, card_id_vec){
+    row_df <- lookup_card(card_df, card_id_vec)
+    row_df$category == "pokemon" & row_df$stage == "basic"
+  })
 
 #' Is each card a Supporter?
 #' @noRd
@@ -880,12 +1083,7 @@ attack_evolution_jammer <- function(pair){
   stopifnot(length(search_id_vec) <= 2)
 
   .search_deck_to_bench(pair, target_id_vec = search_id_vec,
-                        allowed_fn = function(card_df, card_id_vec){
-                          row_df <- lookup_card(card_df, card_id_vec)
-                          row_df$category == "pokemon" &
-                            row_df$stage == "basic" &
-                            !is.na(row_df$ptype) & row_df$ptype == "psychic"
-                        },
+                        allowed_fn = ALLOWED_TARGET_LIST$telepathic,
                         label = "Telepathic Psychic Energy")
 }
 

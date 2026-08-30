@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>How the Bronzong simulator works</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">How the Bronzong simulator works</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#how-the-bronzong-simulator-works"
+id="toc-how-the-bronzong-simulator-works">How the Bronzong simulator
+works</a></li>
+<li><a href="#overview" id="toc-overview">Overview</a></li>
+<li><a href="#the-deck" id="toc-the-deck">The deck</a></li>
+<li><a href="#one-game-played-slowly"
+id="toc-one-game-played-slowly">One game, played slowly</a>
+<ul>
+<li><a href="#turn-1" id="toc-turn-1">Turn 1</a></li>
+<li><a href="#turn-2" id="toc-turn-2">Turn 2</a></li>
+<li><a href="#what-the-window-closed-on"
+id="toc-what-the-window-closed-on">What the window closed on</a></li>
+</ul></li>
+<li><a href="#both-cells-at-scale" id="toc-both-cells-at-scale">Both
+cells, at scale</a>
+<ul>
+<li><a href="#which-sub-goal-actually-fails"
+id="toc-which-sub-goal-actually-fails">Which sub-goal actually
+fails</a></li>
+<li><a href="#hit-rate-by-the-basic-that-led"
+id="toc-hit-rate-by-the-basic-that-led">Hit rate by the Basic that
+led</a></li>
+<li><a href="#play-motifs" id="toc-play-motifs">Play motifs</a></li>
+</ul></li>
+<li><a href="#the-trace-file" id="toc-the-trace-file">The trace
+file</a></li>
+<li><a href="#a-question-the-demo-raised-for-the-tree"
+id="toc-a-question-the-demo-raised-for-the-tree">A question the demo
+raised for the tree</a></li>
+<li><a href="#what-the-policy-does-not-do-yet"
+id="toc-what-the-policy-does-not-do-yet">What the policy does not do
+yet</a></li>
+<li><a href="#what-we-glossed-over" id="toc-what-we-glossed-over">What
+we glossed over</a></li>
+<li><a href="#references" id="toc-references">References</a></li>
+</ul>
+</nav>
+<h1 id="how-the-bronzong-simulator-works">How the Bronzong simulator
+works</h1>
+<p><em>Kevin Z. Lin — 2026-08-29</em></p>
+<h1 id="overview">Overview</h1>
+<p>This is a walkthrough of the simulator as it stands, built to be
+argued with. The policy it runs — <code>R/decision_claude.R</code> — is
+a <strong>first draft translation of
+<code>docs/03_decision_tree.md</code></strong>, written so the tree and
+the code can be read side by side. It will make choices you disagree
+with. Those disagreements are the output this document is for.</p>
+<p><strong>The question the whole thing answers:</strong> over many
+simulated games, how often can the player attack with <strong>Evolution
+Jammer on or before their own turn 2</strong>? One fixed bar, the same
+going first and going second (ADR 0004), reported separately for the two
+coin-flip branches and never pooled (ADR 0002).</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Stage</th>
+<th>What it does</th>
+<th>Functions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Setup</td>
+<td>Shuffle, mulligan, place the Active, set prizes</td>
+<td><code>setup_game()</code>, <code>policy_placement()</code></td>
+</tr>
+<tr>
+<td>Turns 1–2</td>
+<td>Draw, then play the decision tree</td>
+<td><code>policy_turn()</code>, <code>play_replicate()</code></td>
+</tr>
+<tr>
+<td>Measure</td>
+<td>One replicate → hit / miss, turn achieved, diagnosis</td>
+<td><code>summarise_replicate()</code></td>
+</tr>
+<tr>
+<td>Aggregate</td>
+<td>Many replicates → one rate per cell</td>
+<td><code>summarise_run()</code></td>
+</tr>
+<tr>
+<td>Diagnose</td>
+<td>A stratified sample of readable traces</td>
+<td><code>write_trace_file()</code></td>
+</tr>
+</tbody>
+</table>
+<p>Two things the simulator is careful about, because both are easy to
+get silently wrong:</p>
+<ul>
+<li><strong>The policy may not see hidden information</strong> (ADR
+0003). It reads the hand, the board and the discard, plus a belief state
+that only learns what a real player would learn. A search that fails
+because the card was prized is information the player
+<em>earns</em>.</li>
+<li><strong>Mulligans are never a miss</strong> (ADR 0005). A hand with
+no Basic is redrawn and the redraw is played; the cost is reported
+beside the rate, never folded into it.</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(one_file <span class="cf">in</span> <span class="fu">list.files</span>(<span class="st">&quot;../R&quot;</span>, <span class="at">pattern =</span> <span class="st">&quot;[.]R$&quot;</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)){</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">source</span>(one_file)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>card_df <span class="ot">&lt;-</span> <span class="fu">build_card_database</span>()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>decklist <span class="ot">&lt;-</span> <span class="fu">read_decklist</span>(<span class="st">&quot;../decklists/decklist2.txt&quot;</span>, card_df)</span></code></pre></div>
+<h1 id="the-deck">The deck</h1>
+<p><code>decklist2</code>, chosen because it runs <strong>both</strong>
+Salvatore and Latias ex — so the turn-1 kill line and the free-retreat
+rung of the §4.3 ladder both get exercised.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>count_vec <span class="ot">&lt;-</span> decklist<span class="sc">$</span>count_vec</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">count =</span> <span class="fu">as.integer</span>(count_vec),</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">card =</span> <span class="fu">lookup_card</span>(card_df, <span class="fu">names</span>(count_vec))<span class="sc">$</span>name,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">row.names =</span> <span class="cn">NULL</span>)</span></code></pre></div>
+<pre><code>   count                        card
+1      1                       Budew
+2      2             Night Stretcher
+3      2          Mega Kangaskhan ex
+4      2               Boss&#39;s Orders
+5      4      Lillie&#39;s Determination
+6      4                  Rare Candy
+7      3                      Switch
+8      4                  Ultra Ball
+9      2                     Buneary
+10     2             Mega Lopunny ex
+11     1                   Meowth ex
+12     4                    Poke Pad
+13     4   Telepathic Psychic Energy
+14     4                     Duskull
+15     2                    Dusclops
+16     4                    Dusknoir
+17     1                   Latias ex
+18     1            Enriching Energy
+19     2                     Bronzor
+20     2                    Bronzong
+21     1                Flutter Mane
+22     2 Ciphermaniac&#39;s Codebreaking
+23     1                   Salvatore
+24     1               Jamming Tower
+25     4                       Hilda</code></pre>
+<p>The four sub-goals that must all hold at the attack step, from §1 of
+the decision tree:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th></th>
+<th>Sub-goal</th>
+<th>Satisfied by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>A Bronzor is in play</td>
+<td>setup, Poké Pad, Ultra Ball, Brock’s Scouting, benching one</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>Bronzong is on it</td>
+<td>Hilda, Salvatore, or drawn and evolved</td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td>Bronzong is <strong>Active</strong></td>
+<td>led at setup, free retreat, Switch, Surfer, Run Around, Cursed
+Blast</td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>A <code>[P]</code> source is attached</td>
+<td>basic Psychic or Telepathic Psychic Energy</td>
+</tr>
+</tbody>
+</table>
+<h1 id="one-game-played-slowly">One game, played slowly</h1>
+<p>The most useful part of this document. A single seed, going second,
+played turn by turn — every decision the policy takes is logged as it
+happens.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>seed_number <span class="ot">&lt;-</span> <span class="dv">8</span><span class="dt">L</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>pair <span class="ot">&lt;-</span> <span class="fu">setup_game</span>(decklist, card_df,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                   <span class="at">bool_going_first =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">placement_fn =</span> policy_placement,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">seed_number =</span> seed_number)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">&quot;opening hand: &quot;</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>             <span class="fu">paste0</span>(<span class="fu">lookup_card</span>(card_df, pair<span class="sc">$</span>state<span class="sc">$</span>hand_vec)<span class="sc">$</span>name,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>)))</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">&quot;led: &quot;</span>, <span class="fu">lookup_card</span>(card_df, <span class="fu">top_card</span>(pair<span class="sc">$</span>state<span class="sc">$</span>active))<span class="sc">$</span>name))</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">&quot;bench: &quot;</span>, <span class="fu">length</span>(pair<span class="sc">$</span>state<span class="sc">$</span>bench_list), <span class="st">&quot; Pokemon&quot;</span>))</span></code></pre></div>
+<pre><code>[1] &quot;opening hand: Telepathic Psychic Energy, Salvatore, Telepathic Psychic Energy, Rare Candy, Rare Candy, Dusknoir&quot;
+[1] &quot;led: Flutter Mane&quot;
+[1] &quot;bench: 0 Pokemon&quot;</code></pre>
+<p>Note the empty Bench. §3 says to place the Active and stop: a benched
+Basic can never be un-benched, and the slots are wanted for Latias
+ex.</p>
+<h2 id="turn-1">Turn 1</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>pair<span class="sc">$</span>state <span class="ot">&lt;-</span> <span class="fu">begin_turn</span>(pair<span class="sc">$</span>state)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>pair <span class="ot">&lt;-</span> <span class="fu">draw_to_hand</span>(pair, <span class="at">num_cards =</span> <span class="dv">1</span><span class="dt">L</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>pair <span class="ot">&lt;-</span> <span class="fu">policy_turn</span>(pair)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(<span class="fu">readable_log</span>(pair<span class="sc">$</span>state, <span class="at">turn_number =</span> <span class="dv">1</span><span class="dt">L</span>))</span></code></pre></div>
+<pre><code>attach TelepathicPsychicEnergy to FlutterMane
+Telepathic Psychic Energy -&gt; Bronzor(TEF), Latiasex</code></pre>
+<h2 id="turn-2">Turn 2</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>pair<span class="sc">$</span>state <span class="ot">&lt;-</span> <span class="fu">begin_turn</span>(pair<span class="sc">$</span>state)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>pair <span class="ot">&lt;-</span> <span class="fu">draw_to_hand</span>(pair, <span class="at">num_cards =</span> <span class="dv">1</span><span class="dt">L</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>pair <span class="ot">&lt;-</span> <span class="fu">policy_turn</span>(pair)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(<span class="fu">readable_log</span>(pair<span class="sc">$</span>state, <span class="at">turn_number =</span> <span class="dv">2</span><span class="dt">L</span>))</span></code></pre></div>
+<pre><code>promote Bronzor(TEF) via retreat(free)
+attach TelepathicPsychicEnergy to Bronzor(TEF)
+Telepathic Psychic Energy -&gt; Duskull</code></pre>
+<h2 id="what-the-window-closed-on">What the window closed on</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">summarise_replicate</span>(pair, decklist<span class="sc">$</span>decklist_id, seed_number,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">bool_keep_trace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">&quot;hit: &quot;</span>, result<span class="sc">$</span>bool_hit,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>             <span class="st">&quot;   turn achieved: &quot;</span>, result<span class="sc">$</span>jammer_turn))</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(result<span class="sc">$</span>trace_vec)</span></code></pre></div>
+<pre><code>[1] &quot;hit: FALSE   turn achieved: NA&quot;
+#8  MISS unmet=B,C,D first=B
+  !! PLAYABLE OUT unused: Salvatore
+  !! a turn ended with the Supporter slot unspent
+  setup hand[RareCandy+RareCandy+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Dusknoir+FlutterMane+Salvatore] | lead FlutterMane
+  T1    attach TelepathicPsychicEnergy to FlutterMane | Telepathic Psychic Energy -&gt; Bronzor(TEF), Latiasex
+  T2    promote Bronzor(TEF) via retreat(free) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -&gt; Duskull
+  end of turn 2 -- board state when the window closed; setup lead=FlutterMane
+    active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
+    bench    FlutterMane[P]{TelepathicPsychicEnergy} played=T0 | Latiasex[P] played=T1 | Duskull[P] played=T2
+    hand     Salvatore, RareCandy, RareCandy, Dusknoir, BosssOrders, Dusknoir
+    discard  -
+    zones    deck=42 prizes=6 stadium=-
+    turn     energy=spent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Duskull, Budew, PokePad, Bronzong, NightStretcher, TelepathicPsychicEnergy</code></pre>
+<p>That block is what a trace looks like. <code>end of turn 2</code> is
+recorded in full (ADR 0007) because the board reached by turn 2 is a
+question worth asking later, and the window stops there — there is no
+turn 3 anywhere in the simulator.</p>
+<h1 id="both-cells-at-scale">Both cells, at scale</h1>
+<p>Going first and going second are different games and get different
+numbers. Each cell is 1,000 replicates of the <code>clear</code>
+scenario.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>num_replicates <span class="ot">&lt;-</span> <span class="dv">1000</span><span class="dt">L</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>run_cell <span class="ot">&lt;-</span> <span class="cf">function</span>(bool_going_first, <span class="at">scenario =</span> <span class="st">&quot;clear&quot;</span>){</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(<span class="fu">seq_len</span>(num_replicates), <span class="cf">function</span>(i){</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    one_pair <span class="ot">&lt;-</span> <span class="fu">play_replicate</span>(decklist, card_df,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                               <span class="at">bool_going_first =</span> bool_going_first,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>                               <span class="at">scenario =</span> scenario,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>                               <span class="at">seed_number =</span> i)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise_replicate</span>(one_pair, decklist<span class="sc">$</span>decklist_id, i)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>second_list <span class="ot">&lt;-</span> <span class="fu">run_cell</span>(<span class="at">bool_going_first =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>first_list <span class="ot">&lt;-</span> <span class="fu">run_cell</span>(<span class="at">bool_going_first =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>second_summary <span class="ot">&lt;-</span> <span class="fu">summarise_run</span>(second_list)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>first_summary <span class="ot">&lt;-</span> <span class="fu">summarise_run</span>(first_list)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">cell =</span> <span class="fu">c</span>(<span class="st">&quot;going second&quot;</span>, <span class="st">&quot;going first&quot;</span>),</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>           <span class="at">hit_rate =</span> <span class="fu">c</span>(second_summary<span class="sc">$</span>hit_rate, first_summary<span class="sc">$</span>hit_rate),</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>           <span class="at">turn1 =</span> <span class="fu">c</span>(second_summary<span class="sc">$</span>turn_tally_vec[[<span class="st">&quot;t1&quot;</span>]],</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>                     first_summary<span class="sc">$</span>turn_tally_vec[[<span class="st">&quot;t1&quot;</span>]]),</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>           <span class="at">turn2 =</span> <span class="fu">c</span>(second_summary<span class="sc">$</span>turn_tally_vec[[<span class="st">&quot;t2&quot;</span>]],</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>                     first_summary<span class="sc">$</span>turn_tally_vec[[<span class="st">&quot;t2&quot;</span>]]),</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>           <span class="at">never =</span> <span class="fu">c</span>(second_summary<span class="sc">$</span>turn_tally_vec[[<span class="st">&quot;never&quot;</span>]],</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>                     first_summary<span class="sc">$</span>turn_tally_vec[[<span class="st">&quot;never&quot;</span>]]),</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>           <span class="at">row.names =</span> <span class="cn">NULL</span>)</span></code></pre></div>
+<pre><code>          cell hit_rate turn1 turn2 never
+1 going second    0.508    12   496   492
+2  going first    0.499     0   499   501</code></pre>
+<p>Going second hits on turn 1 sometimes and going first never does —
+that is Salvatore, and it is the only place its speed is visible,
+because the primary outcome deliberately prices a turn-1 kill and a
+turn-2 conventional line the same.</p>
+<p><strong>Mulligans, reported beside the rate and never inside
+it</strong> (ADR 0005):</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">cell =</span> <span class="fu">c</span>(<span class="st">&quot;going second&quot;</span>, <span class="st">&quot;going first&quot;</span>),</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">mulligan_rate =</span> <span class="fu">c</span>(second_summary<span class="sc">$</span>mulligan_rate,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                             first_summary<span class="sc">$</span>mulligan_rate),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">mean_mulligans =</span> <span class="fu">c</span>(second_summary<span class="sc">$</span>mean_mulligans,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                              first_summary<span class="sc">$</span>mean_mulligans),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">row.names =</span> <span class="cn">NULL</span>)</span></code></pre></div>
+<pre><code>          cell mulligan_rate mean_mulligans
+1 going second         0.135          0.149
+2  going first         0.135          0.149</code></pre>
+<h2 id="which-sub-goal-actually-fails">Which sub-goal actually
+fails</h2>
+<p>Counted as a <strong>set</strong>, so a miss appears in every row it
+belongs to. Rows sum to more than the miss count on purpose: reporting
+only the first unmet sub-goal made C look like it never failed, which is
+the exact opposite of the truth.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">subgoal =</span> <span class="fu">names</span>(SUBGOAL_VEC),</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">meaning =</span> <span class="fu">as.character</span>(SUBGOAL_VEC),</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">going_second =</span> <span class="fu">as.integer</span>(second_summary<span class="sc">$</span>unmet_tally_vec),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">going_first =</span> <span class="fu">as.integer</span>(first_summary<span class="sc">$</span>unmet_tally_vec),</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">row.names =</span> <span class="cn">NULL</span>)</span></code></pre></div>
+<pre><code>  subgoal          meaning going_second going_first
+1       A  bronzor_in_play          115         111
+2       B   bronzong_on_it          284         288
+3       C  bronzong_active          347         401
+4       D psychic_attached          467         415</code></pre>
+<p>§1 of the decision tree claims <strong>C is the sub-goal that
+actually fails</strong> — getting Bronzong <em>Active</em>, not drawing
+it. These counts are the first real test of that claim.</p>
+<h2 id="hit-rate-by-the-basic-that-led">Hit rate by the Basic that
+led</h2>
+<p>§3’s lead order is an untested default that you asked to settle from
+the logs. This is the table that settles it — computed over every
+replicate, so unlike the traces it may be read as a rate.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>lead_df <span class="ot">&lt;-</span> second_summary<span class="sc">$</span>lead_hit_df</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>lead_df<span class="sc">$</span>lead <span class="ot">&lt;-</span> <span class="fu">lookup_card</span>(card_df, lead_df<span class="sc">$</span>lead_card_id)<span class="sc">$</span>name</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>lead_df[<span class="fu">order</span>(<span class="sc">-</span>lead_df<span class="sc">$</span>hit_rate), <span class="fu">c</span>(<span class="st">&quot;lead&quot;</span>, <span class="st">&quot;num_replicates&quot;</span>, <span class="st">&quot;num_hit&quot;</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                                    <span class="st">&quot;hit_rate&quot;</span>)]</span></code></pre></div>
+<pre><code>                lead num_replicates num_hit  hit_rate
+7            Bronzor            251     171 0.6812749
+6          Latias ex             32      20 0.6250000
+1              Budew             41      22 0.5365854
+5            Duskull            243     119 0.4897119
+3            Buneary            164      68 0.4146341
+2 Mega Kangaskhan ex            215      88 0.4093023
+4          Meowth ex             26      10 0.3846154
+8       Flutter Mane             28      10 0.3571429</code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>plot_df <span class="ot">&lt;-</span> lead_df[<span class="fu">order</span>(lead_df<span class="sc">$</span>hit_rate), ]</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>graphics<span class="sc">::</span><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">11</span>, <span class="dv">2</span>, <span class="dv">2</span>))</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>graphics<span class="sc">::</span><span class="fu">barplot</span>(plot_df<span class="sc">$</span>hit_rate, <span class="at">names.arg =</span> plot_df<span class="sc">$</span>lead, <span class="at">horiz =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">las =</span> <span class="dv">1</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">col =</span> <span class="st">&quot;#4C72B0&quot;</span>,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">xlab =</span> <span class="st">&quot;hit rate (Evolution Jammer by turn 2)&quot;</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>graphics<span class="sc">::</span><span class="fu">abline</span>(<span class="at">v =</span> second_summary<span class="sc">$</span>hit_rate, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&quot;#C44E52&quot;</span>)</span></code></pre></div>
+<figure>
+<img src="figure/fig-12.png"
+alt="Hit rate by opening lead, going second" />
+<figcaption aria-hidden="true">Hit rate by opening lead, going
+second</figcaption>
+</figure>
+<p>The dashed line is the cell’s overall rate. Leading a Bronzor is
+worth far more than any other lead, which is what §3 assumes.</p>
+<p><strong>Two things in this table argue against §3 as
+written</strong>, and both need a better policy before they are worth
+acting on:</p>
+<ul>
+<li><strong>Mega Kangaskhan ex is §3’s recommended non-Bronzor lead and
+comes out near the bottom</strong> (40.9%, n = 215). That is partly real
+and partly an artefact: the policy never uses Run Errand, so leading
+Kangaskhan currently draws nothing and the lead is being judged with its
+whole upside switched off.</li>
+<li><strong>Latias ex is the best non-Bronzor lead here</strong> (62.5%,
+n = 32), and §3 says to lead it only when nothing else is available.
+Skyliner works from the Bench, so the tree’s reasoning is sound — but
+leading it does get the free retreat online on turn 1 with no card
+spent. The sample is small; treat it as a question, not a result.</li>
+</ul>
+<p>This is exactly the loop the trace machinery exists for: the tree
+makes a claim, the run tests it, and the disagreement is where the next
+revision goes.</p>
+<h2 id="play-motifs">Play motifs</h2>
+<p>Counted over every miss. These are the counts to act on: each one
+names a pattern the policy produced, so a high count is a decision to
+change rather than a card to add.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">motif =</span> <span class="fu">as.character</span>(MOTIF_VEC),</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">going_second =</span> <span class="fu">as.integer</span>(second_summary<span class="sc">$</span>motif_tally_vec),</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">going_first =</span> <span class="fu">as.integer</span>(first_summary<span class="sc">$</span>motif_tally_vec),</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">row.names =</span> <span class="cn">NULL</span>)</span></code></pre></div>
+<pre><code>                                                  motif going_second
+1 Telepathic attached to a Colorless body (search dead)            0
+2                a search resolved with no target named           71
+3        Bronzor/Bronzong in play but never made Active           94
+4          a turn ended with the Supporter slot unspent          473
+5   combo assembled but Evolution Jammer never declared            0
+  going_first
+1           0
+2          80
+3         165
+4         307
+5           0</code></pre>
+<h1 id="the-trace-file">The trace file</h1>
+<p>The second output. A run writes a small sample of readable traces,
+<strong>stratified toward misses on purpose</strong> (ADR 0006), because
+hits teach nothing about what to change.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>sampler <span class="ot">&lt;-</span> <span class="fu">new_trace_sampler</span>(<span class="at">max_miss =</span> <span class="dv">8</span><span class="dt">L</span>, <span class="at">max_hit =</span> <span class="dv">2</span><span class="dt">L</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>trace_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="fu">seq_along</span>(second_list)){</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  take_list <span class="ot">&lt;-</span> <span class="fu">sampler_take</span>(sampler, second_list[[i]]<span class="sc">$</span>bool_hit)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  sampler <span class="ot">&lt;-</span> take_list<span class="sc">$</span>sampler</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span>take_list<span class="sc">$</span>bool_keep) <span class="cf">next</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  one_pair <span class="ot">&lt;-</span> <span class="fu">play_replicate</span>(decklist, card_df, <span class="at">bool_going_first =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>                             <span class="at">seed_number =</span> i)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  trace_list[[<span class="fu">length</span>(trace_list) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">&lt;-</span> <span class="fu">summarise_replicate</span>(</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    one_pair, decklist<span class="sc">$</span>decklist_id, i, <span class="at">bool_keep_trace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>trace_path <span class="ot">&lt;-</span> <span class="st">&quot;demo_traces.txt&quot;</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="fu">write_trace_file</span>(trace_list, trace_path, second_summary, <span class="at">decklist =</span> decklist)</span></code></pre></div>
+<blockquote>
+<p><strong>Never compute a rate from a trace file.</strong> The sample
+is deliberately not representative of the outcome distribution — it is
+roughly 80% misses by construction. The file leads with the true rates
+for exactly this reason, and the natural thing for a reader to do is
+count the traces anyway.</p>
+</blockquote>
+<p>Two of the sampled traces:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>line_vec <span class="ot">&lt;-</span> <span class="fu">readLines</span>(trace_path)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>start_idx <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">&quot;^#[0-9]+/&quot;</span>, line_vec)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(line_vec[start_idx[<span class="dv">1</span>]<span class="sc">:</span>(start_idx[<span class="dv">3</span>] <span class="sc">-</span> <span class="dv">1</span>)])</span></code></pre></div>
+<pre><code>#1/10 seed=1  MISS unmet=A,B,C,D first=A
+  !! PLAYABLE OUT unused: TelepathicPsychicEnergy
+  !! a search resolved with no target named
+  !! a turn ended with the Supporter slot unspent
+  setup hand[Budew+MegaKangaskhanex+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Hilda] | lead MegaKangaskhanex
+  T1    hand[Budew+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Dusknoir+Hilda] | Hilda (evolution) -&gt; Bronzong | Hilda (energy) -&gt; DECLINED (no target named)
+  T2    hand[Budew+LilliesDetermination+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Dusknoir+Bronzong]
+  end of turn 2 -- board state when the window closed; setup lead=MegaKangaskhanex
+    active   MegaKangaskhanex[C] played=T0
+    bench    -
+    hand     Duskull, Budew, TelepathicPsychicEnergy, Buneary, Dusknoir, Dusknoir, Bronzong, LilliesDetermination
+    discard  Hilda
+    zones    deck=44 prizes=6 stadium=-
+    turn     energy=unspent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): RareCandy, Switch, Bronzong, TelepathicPsychicEnergy, UltraBall, Bronzor(TEF)
+
+#2/10 seed=2 mull=1  MISS unmet=C,D first=C
+  !! Bronzor/Bronzong in play but never made Active
+  !! a turn ended with the Supporter slot unspent
+  setup hand[Budew+UltraBall+Meowthex+Duskull+Duskull+Bronzong+FlutterMane] | lead Duskull
+  T1    hand[Budew+MegaKangaskhanex+UltraBall+Meowthex+Duskull+Bronzong+FlutterMane] | bench Meowthex | Last-Ditch Catch -&gt; Salvatore | Ultra Ball -&gt; Bronzor(TEF) | bench Bronzor(TEF)
+  T2    hand[MegaKangaskhanex+RareCandy+Duskull+Bronzong+Salvatore] | evolve into Bronzong
+  end of turn 2 -- board state when the window closed; setup lead=Duskull
+    active   Duskull[P] played=T0
+    bench    Meowthex[C] played=T1 | Bronzor(TEF)&gt;Bronzong[P] played=T1 evo=T2
+    hand     Duskull, MegaKangaskhanex, Salvatore, RareCandy
+    discard  UltraBall, FlutterMane, Budew
+    zones    deck=43 prizes=6 stadium=-
+    turn     energy=unspent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Hilda, Switch, Hilda, TelepathicPsychicEnergy, Dusknoir, LilliesDetermination
+</code></pre>
+<p>Each trace carries two fields that exist to separate a
+<strong>deck</strong> problem from a <strong>decision</strong> problem.
+<code>unmet=</code> names the sub-goals that were still open, and a
+<code>!! PLAYABLE OUT unused</code> line means the card that would have
+fixed it was in hand and was not played — that is a bug in
+<code>docs/03_decision_tree.md</code>, not in the 60 cards.</p>
+<h1 id="a-question-the-demo-raised-for-the-tree">A question the demo
+raised for the tree</h1>
+<p>The narrated game above ends with <strong>Salvatore in hand,
+unplayed, on turn 2</strong> — flagged by the trace as a playable out.
+That is the policy following §6, whose priority 1 reads <em>“Turn 1
+going second, and the kill is live. Never otherwise on turn 1 — its
+exemption is wasted on turn 2.”</em> Read literally, Salvatore is never
+played on turn 2 at all.</p>
+<p>But on turn 2 Salvatore still fetches Bronzong <strong>and</strong>
+evolves in one card, which is a perfectly good turn-2 play when Hilda is
+not in hand. The wasted part is its first-turn exemption, not the card.
+<strong>Should §6 list Salvatore as a turn-2 Supporter, ranked against
+Hilda?</strong> In this game it would have whiffed — Bronzong was
+prized, which the player could not have known — and even the whiff would
+have been worth having, since it reveals the prize.</p>
+<h1 id="what-the-policy-does-not-do-yet">What the policy does not do
+yet</h1>
+<p>Stated plainly so your feedback lands on decisions rather than on
+known gaps.</p>
+<ul>
+<li><strong>It leaves the Supporter slot unspent far too often</strong>
+— the single biggest motif count above. It plays Hilda when Hilda is in
+hand and mostly nothing otherwise; Brock’s Scouting, Lillie’s and
+Ciphermaniac’s are all implemented but rarely chosen.</li>
+<li><strong>It never plays Pokégear 3.0</strong>, which is the only Item
+that digs for a Supporter and is exactly what the going-first branch
+lacks.</li>
+<li><strong>It never takes the Cursed Blast escape</strong> (§8). The
+machinery exists — <code>play_rare_candy()</code>,
+<code>use_cursed_blast()</code>, <code>knock_out()</code> — but the
+policy never sets up the Duskull-Active line that reaches it.</li>
+<li><strong>It does not use Mega Kangaskhan ex’s Run Errand</strong>, so
+leading Kangaskhan currently draws no cards, which makes the lead table
+above unfair to it.</li>
+<li><strong>Retreat is only taken when free.</strong> A paid retreat is
+never considered, even when the Energy spent would have been wasted
+anyway.</li>
+<li><strong>The <code>item_lock</code> scenario is not shown
+here</strong> — only <code>clear</code>. It is implemented and runs; it
+just is not in this document.</li>
+</ul>
+<h1 id="what-we-glossed-over">What we glossed over</h1>
+<ul>
+<li><strong>The opponent is a scenario, not a board.</strong> No
+opposing decklist is modelled, which is also why the opening hand omits
+the bonus cards owed for an opponent’s mulligans — biasing every rate
+slightly downward by an unknown amount.</li>
+<li><strong>Only one decklist appears here.</strong> Part 6 is the
+registry that runs all six across both cells and both scenarios; this
+document runs one cell pair by hand.</li>
+<li><strong>The lead order and Ciphermaniac’s timing are defaults, not
+rulings.</strong> Both are written to be overturned by the tables above
+once the policy is good enough for those tables to mean something.</li>
+</ul>
+<h1 id="references">References</h1>
+<ul>
+<li><code>docs/01_rules_standard.md</code> — the rules this engine
+implements</li>
+<li><code>docs/03_decision_tree.md</code> — the tree this policy
+translates, §9 for the answers and corrections so far</li>
+<li><code>docs/adr/</code> — the seven decisions that were expensive to
+make</li>
+<li><code>CONTEXT.md</code> — what this project’s words mean</li>
+</ul>
+</body>
+</html>

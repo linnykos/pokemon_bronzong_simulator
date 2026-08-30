@@ -71,6 +71,7 @@ Folders this project depends on that live **outside** the project root.
 | Location name | Purpose | Copy semantics |
 |---|---|---|
 | `R_BIN` | The R installation's `bin/` directory, holding `Rscript`. R is **not on `PATH`** on the author's machine, so scripts are invoked through this location. | per-person copy — independent |
+| `PANDOC` | A `pandoc` executable, used by `scripts/knit_rmd_claude.R` to turn the knitted `demo/*.md` into `.html`. Optional: without it the `.md` is still produced, and the `.md` is the artefact that matters. | per-person copy — independent |
 
 Git remote (same for everyone): `https://github.com/linnykos/pokemon_bronzong_simulator.git`
 

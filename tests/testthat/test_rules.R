@@ -302,3 +302,76 @@ test_that("a prized Salvatore target is still declarable", {
 
   expect_true(is_salvatore_target(pair$state, "TEF-069"))
 })
+
+# ---------------------------------------------------------------------------
+# Rare Candy
+# ---------------------------------------------------------------------------
+
+test_that("Rare Candy allows the jump can_evolve correctly refuses", {
+  ## The two predicates must disagree, and that is the point. can_evolve()
+  ## matches `evolves_from` by name, so Duskull -> Dusknoir is illegal there and
+  ## legal here; a single predicate with a flag would have had to weaken the
+  ## name match for every card.
+  pair <- .make_pair(active_id = "PRE-035", hand_id_vec = "PRE-037",
+                     turn_number = 2L)
+
+  expect_false(can_evolve(pair$state, pair$state$active, "PRE-037"))
+  expect_true(can_rare_candy(pair$state, pair$state$active, "PRE-037"))
+})
+
+test_that("Rare Candy needs the Stage 2 in HAND, not in the deck", {
+  ## Found by review, and it had already produced two false accusations in the
+  ## demo trace file. Rare Candy does not search: a Dusknoir in the deck is no
+  ## use at all. The trace diagnosis asks this predicate speculatively, so
+  ## without the check it reported the Cursed Blast escape as an unused out
+  ## precisely when the escape was impossible.
+  in_deck <- .make_pair(active_id = "PRE-035", turn_number = 2L)
+  in_hand <- .make_pair(active_id = "PRE-035", hand_id_vec = "PRE-037",
+                        turn_number = 2L)
+
+  expect_true("PRE-037" %in% in_deck$state$deck_vec)
+  expect_false(can_rare_candy(in_deck$state, in_deck$state$active, "PRE-037"))
+  expect_true(can_rare_candy(in_hand$state, in_hand$state$active, "PRE-037"))
+})
+
+test_that("Rare Candy walks the line rather than hard-coding one pair", {
+  ## The intermediate stage is resolved from card_df: Dusknoir evolves from
+  ## Dusclops, Dusclops from Duskull. A Stage 2 whose line does not reach this
+  ## Basic must be refused, or Rare Candy becomes "any Stage 2 onto any Basic".
+  bronzor_pair <- .make_pair(active_id = "TEF-068", hand_id_vec = "PRE-037",
+                             turn_number = 2L)
+  duskull_pair <- .make_pair(active_id = "PRE-035", hand_id_vec = "TEF-069",
+                             turn_number = 2L)
+
+  expect_false(can_rare_candy(bronzor_pair$state, bronzor_pair$state$active,
+                              "PRE-037"))
+  ## And it is not a general evolution shortcut: Bronzong is a Stage 1.
+  expect_false(can_rare_candy(duskull_pair$state, duskull_pair$state$active,
+                              "TEF-069"))
+})
+
+test_that("Rare Candy obeys every evolution timing rule", {
+  ## Its own text repeats two of them -- "not during your first turn or on a
+  ## Basic put into play this turn" -- and the evolved-this-turn rule covers the
+  ## third. Swept because each is a separate early return.
+  grid_df <- expand.grid(turn_number = 1:2, turn_played = 0:2)
+
+  for(i in seq_len(nrow(grid_df))){
+    label_str <- paste0("turn ", grid_df$turn_number[i],
+                        ", played T", grid_df$turn_played[i])
+    pair <- .make_pair(active_id = "PRE-035", hand_id_vec = "PRE-037",
+                       turn_number = grid_df$turn_number[i])
+    pair$state$active$turn_played <- as.integer(grid_df$turn_played[i])
+
+    bool_expected <- grid_df$turn_number[i] > 1L &&
+      grid_df$turn_played[i] != grid_df$turn_number[i]
+    expect_equal(can_rare_candy(pair$state, pair$state$active, "PRE-037"),
+                 bool_expected, info = label_str)
+  }
+
+  ## Already evolved this turn: refused even on turn 2 from a setup placement.
+  pair <- .make_pair(active_id = "PRE-035", hand_id_vec = "PRE-037",
+                     turn_number = 2L)
+  pair$state$active$turn_evolved <- 2L
+  expect_false(can_rare_candy(pair$state, pair$state$active, "PRE-037"))
+})

@@ -37,6 +37,10 @@
 #'     \item{scenario}{character.}
 #'     \item{turn_flag_list}{per-turn limits; see \code{.new_turn_flags()}.}
 #'     \item{num_mulligans}{integer, how many times this player mulliganed.}
+#'     \item{bool_no_pokemon}{logical, set when a Knock Out leaves no Pokemon to
+#'       promote. Rules section 8 makes that an immediate loss; it can only
+#'       arise here from a self-inflicted Cursed Blast on an empty Bench, which
+#'       \code{use_cursed_blast()} refuses.}
 #'     \item{jammer_turn}{integer, the turn on which Evolution Jammer was
 #'       actually ATTACKED WITH, or `NA`. This is the field the metric reads
 #'       (ADR 0004) -- never \code{can_use_evolution_jammer()}, which only says
@@ -68,6 +72,7 @@ new_game_state <- function(decklist,
                  turn_flag_list = .new_turn_flags(),
                  num_mulligans = 0L,
                  bool_decked_out = FALSE,
+                 bool_no_pokemon = FALSE,
                  jammer_turn = NA_integer_,
                  card_df = card_df,
                  event_log = character(0),

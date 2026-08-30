@@ -218,7 +218,8 @@ Turns are numbered **per player**:
 - To attack, the Active Pokémon must have at least the Energy shown in the attack's cost. Colorless (`C`) may be paid by any Energy type.
 - Apply **Weakness** (×2 in current Standard), then **Resistance** (−30), then other effects, in that order.
 - If damage on a Pokémon is ≥ its HP it is **Knocked Out**: it and everything attached go to the discard pile, and the attacking player **takes 1 Prize card** — or more if the Knocked Out Pokémon's rule box says so (Pokémon *ex* give up **2 Prizes**).
-- After a Knock Out, the player with no Active Pokémon promotes a Benched Pokémon.
+- **A Knock Out need not come from an attack, and the Prize always goes to the *other* player.** Dusclops and Dusknoir's Cursed Blast Knocks Out its own user, and the opponent takes the Prize from *their* pile. Our own Prize count is therefore unchanged — which is why Lillie's Determination still draws 8 on a turn we Cursed Blast, and why this simulator, which models one player, awards no Prize at all for a self-inflicted Knock Out. See `docs/03_decision_tree.md` §8.
+- After a Knock Out, **the player whose Pokémon was Knocked Out chooses** which of their Benched Pokémon is promoted. That choice is what makes Cursed Blast a switching effect rather than only a cost.
 
 ---
 

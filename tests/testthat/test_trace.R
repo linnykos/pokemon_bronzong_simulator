@@ -414,6 +414,61 @@ test_that("Telepathic is an out for A only when a [P] body can receive it", {
   expect_true("POR-088" %in% unused_outs(metal_pair$state, "D"))
 })
 
+test_that("Rare Candy is an out for C only with the whole line in place", {
+  ## The Cursed Blast escape (docs/03_decision_tree.md section 8) is the only
+  ## way Rare Candy reaches sub-goal C, and every piece has to be held at once.
+  ##
+  ## The first version of this check got two things backwards and a review
+  ## caught both, after they had already produced false accusations in the
+  ## shipped demo file. It asked for the Dusknoir in the DECK -- Rare Candy does
+  ## not search, so that flagged the escape exactly when it was impossible --
+  ## and it accepted a benched bare Bronzor, though sub-goal C is
+  ## `bronzong_active` and promoting a Bronzor does not meet it.
+  full <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                     hand_id_vec = c("MEG-125", "PRE-037", "TEF-069"),
+                     turn_number = 2L)
+
+  expect_true("C" %in% unmet_subgoals(full$state))
+  expect_true("MEG-125" %in% unused_outs(full$state, "C"))
+
+  ## A benched Bronzong needs no Bronzong in hand: C is met by promoting it.
+  evolved <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                        hand_id_vec = c("MEG-125", "PRE-037"),
+                        turn_number = 2L)
+  evolved$state$bench_list[[1]]$stack_vec <- c("TEF-068", "TEF-069")
+  expect_true("MEG-125" %in% unused_outs(evolved$state, "C"))
+
+  ## Each missing precondition, one at a time.
+  no_dusknoir <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                            hand_id_vec = c("MEG-125", "TEF-069"),
+                            turn_number = 2L)
+  expect_true("PRE-037" %in% no_dusknoir$state$deck_vec)
+  expect_false("MEG-125" %in% unused_outs(no_dusknoir$state, "C"))
+
+  ## A bare benched Bronzor with no Bronzong to put on it: promoting it leaves C
+  ## exactly as unmet as before.
+  bare_bronzor <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                             hand_id_vec = c("MEG-125", "PRE-037"),
+                             turn_number = 2L)
+  expect_false("MEG-125" %in% unused_outs(bare_bronzor$state, "C"))
+
+  no_bronzor <- .make_pair(active_id = "PRE-035", bench_id_vec = "MEG-104",
+                           hand_id_vec = c("MEG-125", "PRE-037", "TEF-069"),
+                           turn_number = 2L)
+  expect_false("MEG-125" %in% unused_outs(no_bronzor$state, "C"))
+
+  wrong_active <- .make_pair(active_id = "MEG-104", bench_id_vec = "TEF-068",
+                             hand_id_vec = c("MEG-125", "PRE-037", "TEF-069"),
+                             turn_number = 2L)
+  expect_false("MEG-125" %in% unused_outs(wrong_active$state, "C"))
+
+  ## Turn 1: Rare Candy's own text forbids it, so the line does not exist yet.
+  too_early <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                          hand_id_vec = c("MEG-125", "PRE-037", "TEF-069"),
+                          turn_number = 1L)
+  expect_false("MEG-125" %in% unused_outs(too_early$state, "C"))
+})
+
 test_that("the run is grouped by the Basic that led at setup", {
   ## Kevin deferred the section 3 lead order to "the simulation logs"
   ## (2026-08-29). ADR 0006 forbids reading a rate off the traces, which are

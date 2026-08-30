@@ -26,7 +26,7 @@ different resources and fail for different reasons:
 |---|---|---|---|
 | **A** | A **Bronzor** is in play | Setup placement, Poké Pad, Ultra Ball, Buddy-Buddy Poffin*, Brock's Scouting, Telepathic Psychic Energy* | a search card |
 | **B** | **Bronzong** is on it | Hilda, Salvatore, Poké Pad, Ultra Ball, Brock's Scouting, or drawn | the Supporter slot, usually |
-| **C** | Bronzong is **Active** | Led Bronzor at setup, Switch, Surfer, Latias ex + retreat, Buneary's Run Around | the Supporter slot, or an Item, or the retreat — or, for Run Around, the turn's Energy attachment (§4.2) |
+| **C** | Bronzong is **Active** | Led Bronzor at setup, Latias ex + retreat, Switch, Surfer, Buneary's Run Around, Cursed Blast (§8) | the Supporter slot, or an Item, or the retreat — or, for Run Around, the turn's Energy attachment (§4.2); ordered in §4.3 |
 | **D** | A **`[P]` source** is attached | Basic Psychic or Telepathic Psychic Energy | **the turn's one Energy attachment** |
 
 \* printing-dependent — Poffin needs a ≤70 HP Bronzor, Telepathic needs a `[P]` one.
@@ -36,9 +36,9 @@ C has few, and the cheapest one — *lead Bronzor as the Active at setup* — ha
 chosen before any card is drawn. This is the single most important claim in this
 document and part 6 should test it rather than assume it.
 
-## 2. The three resource conflicts
+## 2. The four resource conflicts
 
-Almost every hard choice on turns 1–2 is one of these three.
+Almost every hard choice on turns 1–2 is one of these four.
 
 **The Supporter slot (one per turn).** Six Supporters want it: Hilda (fetches
 Bronzong + Energy), Salvatore (fetches *and* evolves), Lillie's Determination (draw 8
@@ -56,6 +56,21 @@ evolution, and it frees turn 2's attachment. Attaching Telepathic Psychic Energy
 wants it to use Run Errand (draw 2). Flutter Mane wants it for Midnight Fluttering.
 Budew wants it to attack Itchy Pollen. These are mutually exclusive on turn 1 unless a
 free switch exists.
+
+**Bench space (five slots, and one of them is spoken for).** Kevin, 2026-08-29: *"be
+sure to not overfill bench spaces… One of them (realistically) has to be saved for
+Latias."* This is the conflict that constrains the other three, and the draft of this
+document ignored it — three separate sections said to bench every Basic in hand, as
+though a body on the Bench were free. It is not:
+
+- **A benched Basic cannot be un-benched.** Playing it converts a card that still had
+  options — an Ultra Ball discard, a Lillie's redraw — into a body that does nothing
+  unless it is Latias ex, Meowth ex, or the Bronzor itself.
+- **Latias ex needs a slot**, and it is the one Basic whose mere presence advances a
+  sub-goal (Skyliner → C).
+- Filling the Bench early is therefore a **cost paid for nothing** in most hands. The
+  rule everywhere below is: bench a Pokémon when the body does work *this turn* or the
+  next, and otherwise leave it in hand.
 
 ## 3. Setup: which Basic leads
 
@@ -77,7 +92,8 @@ for parts 5 and 6 —
 - every trace records **which Basic actually led**, so the order can be re-derived
   from logs rather than re-argued.
 
-**If no Bronzor is in hand**, lead in this order, and bench everything else:
+**If no Bronzor is in hand**, lead in this order — and, per the rule below, bench
+none of the rest:
 
 1. **Mega Kangaskhan ex** — Run Errand draws 2 on turn 1 from the Active spot, and
    with Latias ex benched it retreats for free afterwards. Best combination of
@@ -93,11 +109,18 @@ for parts 5 and 6 —
 6. **Flutter Mane / Latias ex** — lead only if nothing else is available. Latias ex is
    far more valuable benched, where Skyliner still works and it is not exposed.
 
-**Bench everything else that is a Basic**, with two ordering notes: bench **Latias ex**
-early (Skyliner is passive and makes every later retreat free), and bench **Meowth ex**
-from hand rather than at setup **only if** the deck still holds a Supporter worth
-finding — at setup its Ability does not trigger at all, so a setup Meowth ex is a
-wasted Ability either way. Prefer to hold it and bench it on turn 1.
+**Bench nothing at setup** (Kevin, 2026-08-29). Place the Active and stop; every other
+Basic stays in hand, where benching it later is a *decision* taken with information
+rather than a placement made blind. Latias ex included — Skyliner does nothing before
+our first turn anyway, and benching it on turn 1 costs the same nothing. Meowth ex in
+particular must be held: its Ability triggers only on being played from hand onto the
+Bench, so a setup Meowth ex is a wasted Ability outright.
+
+**Why this is safe here, and why it would not be in a real game.** An empty Bench
+means a Knocked Out Active loses the game on the spot. Inside this window it cannot
+happen: the only damage either scenario deals is Itchy Pollen's 10, and the smallest
+body we would ever lead is Duskull's 60 HP. Do not carry this rule past turn 2 or into
+a scenario that can attack for real.
 
 ## 4. Turn 1 — going second
 
@@ -108,16 +131,18 @@ whole combo can happen now.
 Bronzor is Active (or can be made Active for free), **Salvatore** is in hand, a
 `[P]` source is in hand, and Bronzong is not fully prized. Sequence:
 
-1. Play all free Items first — Poké Pad, Buddy-Buddy Poffin, Ultra Ball — to find the
-   `[P]` source or a Bronzor if either is missing. **Do this before Salvatore**, since
-   Salvatore shuffles.
-2. If Bronzor is benched rather than Active, use **Switch** (an Item — it does not
-   cost the Supporter slot). Do *not* use Surfer here: it would consume the Supporter
-   slot that Salvatore needs. **Settled** (Kevin, 2026-08-29), on two grounds: the
-   Supporter-slot argument, and the plainer one that **no decklist currently runs
-   Surfer** — `docs/cards/SSP-187-surfer.md` records it as a candidate only, so today
-   the choice is moot. It becomes live only if a Surfer list is added, and the ranking
-   should then be re-checked from the logs rather than assumed to have survived.
+1. Play the free Items — Poké Pad, Buddy-Buddy Poffin, Ultra Ball — to find the `[P]`
+   source or a Bronzor if either is missing. **The order against Salvatore does not
+   matter** (Kevin, 2026-08-29); the draft claimed it did, on the grounds that
+   Salvatore shuffles. A shuffle costs nothing when every play involved is a *search*.
+   Only two orderings actually bind anywhere in this document, and neither is this
+   one: a pending **Ciphermaniac's** stack versus any shuffling card (§5, §7), and
+   **Lillie's Determination**, which shuffles the hand into the deck and so must come
+   after everything you meant to play (§6).
+2. If Bronzor is benched rather than Active, move it — see **§4.3** for the ladder.
+   Within *this* line the Supporter slot is Salvatore's, so Surfer is unavailable
+   whatever the hand looks like: playing it does not lose the switch, it loses the
+   turn-1 kill.
 3. Play **Salvatore** → fetch Bronzong, evolve the Bronzor.
 4. Attach the `[P]` source to Bronzong.
 5. Attack Evolution Jammer. **Turn ends immediately.**
@@ -152,17 +177,48 @@ symmetric:
 
 Otherwise the turn-1 build order is:
 
-1. Bench every Basic in hand (free, and grows the board for later searches).
-   Bench **Meowth ex** here to trigger Last-Ditch Catch → fetch the Supporter that
-   turn 2 will want (usually **Hilda**).
+1. Bench **selectively** — see §4.4. Not every Basic in hand.
 2. Play free search Items — **Poké Pad** first (no cost), then **Buddy-Buddy Poffin**,
    then **Ultra Ball** only if its two-card discard is affordable.
-3. Get Bronzor Active if it is not: **Switch**, else free retreat under Latias ex.
+3. Get Bronzor Active if it is not — the ladder in §4.3.
 4. Play the Supporter — see §6 for which.
 5. Attach the `[P]` source to **Bronzor**, so turn 2's attachment is free.
    Prefer **Telepathic Psychic Energy** here if Bronzor is the `[P]` printing, since
    the attach also searches two Basics onto the Bench.
 6. Play a Stadium if holding one and it is not disruptive to us.
+
+**4.3 Moving Bronzor into the Active spot.** Stated once here; §5 and §7 use the same
+ladder. Take the first that is available:
+
+1. **Free retreat under Latias ex.** Skyliner zeroes the retreat of every *Basic* we
+   control, and on turns 1–2 the Active is almost always a Basic. The retreat is the
+   turn's, it is otherwise unused, and it costs no card — so **do not spend a Switch
+   while Skyliner covers the Active** (Kevin, 2026-08-29). Unavailable if something
+   locks the retreat, and — the case that matters later — Skyliner does **not** cover
+   a Stage 1, which is exactly how a Dusclops gets stuck (§8).
+2. **Switch.** An Item, so it costs no Supporter slot; the right answer whenever the
+   retreat is not free.
+3. **Surfer.** Costs the Supporter slot, so it loses to Switch by default — **except
+   on a nearly empty hand**, where "draw until you hold 5" makes it a switch *and* a
+   refill and it can be the better card outright (Kevin, 2026-08-29). Never in the
+   §4.1 kill line, where the slot is Salvatore's.
+4. **Buneary's Run Around** — last resort only, and read §4.2 first: it spends the
+   turn's Energy attachment and strands it on the Bench.
+
+**4.4 What to bench, and when.** The Bench is a scarce resource (§2), so benching is a
+play to be justified, not a reflex. Bench:
+
+- **Latias ex — always, at the first opportunity.** It is the one Basic whose presence
+  alone advances a sub-goal, and it makes step 1 of §4.3 free for the rest of the game.
+- **Meowth ex — when a specific Supporter is wanted and is not in hand**, since
+  Last-Ditch Catch fetches exactly that (usually **Hilda**). If the Supporter we want
+  is already in hand, benching Meowth ex buys a wasted Ability and a spent slot.
+- **A Bronzor**, when none is in play — that is sub-goal A, and benching is its
+  cheapest out.
+- **Everything else only when Lillie's Determination is this turn's Supporter**, and
+  then *before* playing it. Lillie's shuffles the **hand into the deck**, so any
+  Pokémon still in hand is buried; putting them on the Bench first keeps them
+  (Kevin, 2026-08-29). This is the one case where filling the Bench is correct.
 
 ## 5. Turn 1 — going first
 
@@ -170,13 +226,15 @@ The weak branch, and the one the deck is built to survive rather than exploit.
 **No Supporter, no attack.** Turn 1 is purely Items, Energy, benching, and retreating,
 and the whole turn exists to set up turn 2.
 
-1. Bench every Basic in hand, **Meowth ex included** — its Ability is not a Supporter,
-   so it still works, and the Supporter it finds is played on turn 2. This makes
-   Meowth ex disproportionately valuable on this branch.
+1. Bench selectively, per §4.4 — **Meowth ex is the exception worth taking here**. Its
+   Ability is not a Supporter, so it works on a turn when no Supporter may be played,
+   and the card it finds is played on turn 2. That makes Meowth ex disproportionately
+   valuable on this branch, and it is the one branch where benching it is close to
+   automatic: the Supporter we want is by definition not playable yet.
 2. Play free search Items — Poké Pad, Buddy-Buddy Poffin — targeting **Bronzor first**
    (sub-goal A), then whatever is missing.
 3. **Ultra Ball**, if affordable, is the only Item that finds **Latias ex**.
-4. Get Bronzor Active: **Switch**, else free retreat under Latias ex. Doing this on
+4. Get Bronzor Active — the §4.3 ladder, so free retreat before Switch. Doing this on
    turn 1 is strongly preferred, because turn 2 needs its Supporter slot for Hilda or
    Salvatore, not for Surfer.
 5. Attach the `[P]` source to Bronzor.
@@ -194,8 +252,8 @@ play the first that applies:
 | 1 | **Salvatore** | Turn 1 going second, and the kill is live (§4.1). Never otherwise on turn 1 — its exemption is wasted on turn 2. |
 | 2 | **Hilda** | Bronzong or the `[P]` source is missing. Fetches both in one card; the single most efficient Supporter for sub-goals B and D. |
 | 3 | **Brock's Scouting** | Bronzor is missing *and* Latias ex is wanted — Basics mode gets both, and it is the only free way to find Latias ex. Otherwise use Evolution mode for Bronzong only if Hilda is gone. |
-| 4 | **Lillie's Determination** | Hand is weak and nothing above applies. Draws **8** while both players still have 6 Prizes. **Play everything else first** — it shuffles the hand away. |
-| 5 | **Surfer** | Bronzor is benched, no Switch, and no Salvatore line this turn. Solves C and refills. Play last in the turn so the refill is large. |
+| 4 | **Lillie's Determination** | Hand is weak and nothing above applies. Draws **8** while *we* still hold 6 Prizes. **Play everything else first** — it shuffles the hand into the deck — and **bench the Pokémon you want to keep before playing it** (§4.4), or they are buried with the rest of the hand. |
+| 5 | **Surfer** | Bronzor is benched and the §4.3 ladder has got that far — no free retreat, no Switch, no Salvatore line this turn. Solves C and refills. Play last in the turn so the refill is large; on a nearly empty hand it can be the better card even against a Switch. |
 | 6 | **Ciphermaniac's Codebreaking** | **`P2T1` only** — going second, on our first turn — and only when nothing above applies. It stacks two cards on top, of which turn 2 draws exactly **one**. Never followed by any shuffling card. |
 
 **Why Ciphermaniac's is confined to `P2T1`** (Kevin, 2026-08-29). Three facts fence it
@@ -222,7 +280,9 @@ By now sub-goals A and D should be done. Turn 2 resolves B and C and attacks.
 
 1. Play free Items first (they may still find what is missing) — but **not** anything
    that shuffles if a Ciphermaniac's stack is pending and undrawn.
-2. Resolve **C** if still open: Switch, free retreat under Latias ex, or Surfer.
+2. Resolve **C** if still open — the §4.3 ladder: free retreat under Latias ex, then
+   Switch, then Surfer. If the Active is a Dusclops or a Duskull and none of those is
+   available, the Cursed Blast route in §8 is the last door.
 3. Resolve **B**: evolve Bronzor → Bronzong from hand, or fetch it with Hilda /
    Salvatore / Brock's Scouting.
 4. Resolve **D** if still open: attach a `[P]` source. Remember Enriching Energy is
@@ -252,10 +312,45 @@ at the moment the window closes:
 
 Recorded so the policy is not written to chase them:
 
-- **Do not evolve Dusknoir** with Rare Candy on turn 2 in preference to Bronzong.
+- **Do not evolve Dusknoir** with Rare Candy on turn 2 *in preference to* Bronzong.
   Dusknoir is the deck's damage plan, not its lock plan, and the metric measures only
-  the lock.
-- **Do not use Dusclops/Dusknoir's Cursed Blast**, which Knocks Out the user.
+  the lock. **One exception, below.**
+- **Do not use Dusclops/Dusknoir's Cursed Blast** for what it is printed to do — 5 or
+  13 damage counters is irrelevant to a metric that ends on turn 2. **But it is not a
+  non-goal**, and the draft was wrong to list it as one.
+
+### The Cursed Blast escape — an out for sub-goal C
+
+Kevin, 2026-08-29: *"if Dusclops is stuck in the active, it might be correct to evolve
+to Dusknoir and activate its ability just to get a Bronzor on my bench into the
+active."*
+
+The mechanism is the self-Knock Out, not the damage. Cursed Blast reads *"If you use
+this Ability, this Pokémon is Knocked Out"*, and after a Knock Out **the player whose
+Pokémon was Knocked Out chooses which of their Benched Pokémon is promoted**
+(`docs/01_rules_standard.md` §7). So Cursed Blast is a switching effect that costs no
+Switch, no Supporter slot, no retreat, and no Energy — it costs the Pokémon.
+
+It is the **last** door in the §4.3 ladder, taken only when every other rung is
+unavailable. Two routes:
+
+- **Dusclops or Dusknoir already Active** — use its own Ability directly. No card
+  spent at all.
+- **Duskull Active** — **Rare Candy** → Dusknoir, then Cursed Blast. Rare Candy is why
+  this route exists: Dusknoir evolves from Dusclops, and Rare Candy is the only way to
+  reach it from the Basic in one turn. Costs the Rare Candy and the Dusknoir.
+
+Why the Active gets stuck in the first place: **Skyliner zeroes the retreat cost of
+Basics only**. A Duskull Active retreats free under Latias ex, so this route is for
+when Latias ex is absent; a **Dusclops** Active is a Stage 1 and retreats for 2 even
+with Latias ex in play, which is the case Kevin named.
+
+Two things that look like traps and are not:
+
+- **Our own Prize count is untouched.** The opponent takes a Prize, from *their* pile.
+  Ours still reads 6, so **Lillie's Determination still draws 8** on the same turn.
+- **The Bench must not be empty.** With no Pokémon to promote we simply lose, which is
+  also why §3's bench-nothing-at-setup rule does not extend past this window.
 - **Do not play Boss's Orders.** It only moves the opponent's Pokémon and cannot
   advance any sub-goal.
 - **Do not play Special Red Card.** It is unplayable above 3 opposing Prizes.
@@ -275,6 +370,22 @@ Kevin's; one corrected a factual error in this document.
 | 3 | §6 Ciphermaniac's on turn 1 | Only as the going-second player on our own first turn — we cannot evolve Bronzor that turn anyway — and even then it depends heavily on field and hand. | **Settled to one cell** (`P2T1`); the within-cell choice is logged, not asserted. See §6. |
 | 4 | §4.2 declining Run Around | Only when there is really nothing else to do, since it also sacrifices an Energy. | **Settled.** It corrected this file: Run Around costs `[C]`, i.e. the turn's attachment, and strands it on the Bench. See §4.2. |
 | 5 | Recording past turn 2 | No — stop at turn 2, but be thorough at the *end* of turn 2 so the board state can be assessed later. | **Settled.** No turn 3 anywhere; the end-of-turn-2 snapshot is widened instead. See §7. |
+
+### Corrections from Kevin on this document, 2026-08-29 (second round)
+
+Five corrections to the text above, from reading it. Four are local; the first
+contradicted the same instruction repeated in three sections.
+
+| # | What the draft said | Correction | Where |
+|---|---|---|---|
+| 1 | "Bench everything else that is a Basic", and "bench every Basic in hand" ×2 | **Bench space is a scarce resource** — 5 slots, one realistically reserved for Latias ex. Bench **nothing** at setup; during a turn bench only Latias ex, Meowth ex for a named absent Supporter, a Bronzor for A, and everything else *only* ahead of Lillie's Determination. | §2, §3, §4.4 |
+| 2 | Items before Salvatore, "since Salvatore shuffles" | The order **does not matter** — a shuffle costs nothing between searches. Only a pending Ciphermaniac's stack and Lillie's genuinely constrain ordering. | §4.1 |
+| 3 | "use Switch… do not use Surfer" | Context-dependent. **Free retreat under Latias ex comes before Switch** — do not spend a card on what the retreat does free. And on a nearly empty hand **Surfer can beat Switch**, since it also refills. | §4.3, §6 |
+| 4 | "Do not evolve Dusknoir"; "do not use Cursed Blast" | Both too absolute. Cursed Blast's **self-Knock Out is a promotion out for sub-goal C** when the Active is stuck — the case Kevin named is a Dusclops, which Skyliner cannot help because it is a Stage 1. | §8 |
+| 5 | — | Follow-ups: bench **nothing** at setup (not "one"), and **build** the Knock Out / promotion / Cursed Blast / Rare Candy machinery in the engine now rather than deferring it. | §3, `R/` |
+
+Correction 4 also ends Rare Candy's status as an inert card: it is the only route from
+a Duskull Active to a Dusknoir, so `R/card_effects_claude.R` implements it.
 
 ### Now empirical questions for part 6, not questions for Kevin
 

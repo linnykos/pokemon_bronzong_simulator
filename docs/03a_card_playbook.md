@@ -89,8 +89,12 @@ only until the next shuffle.
 ## Draw cards
 
 **Lillie's Determination** (Supporter) — shuffle hand into deck, draw 6; **draw 8 while
-holding exactly 6 Prizes**, which is always true on turns 1–2. Because it discards the
-current hand into the deck, the policy must make every other play it intends **first**.
+holding exactly 6 Prizes**, which is always true on turns 1–2 (and stays true even
+after a Cursed Blast self-Knock Out, which costs the *opponent's* Prize pile, not
+ours). Because it puts the current hand into the deck, the policy must make every other
+play it intends **first** — and that includes **benching the Pokémon it wants to
+keep**, which is the one situation where filling the Bench is right
+(`docs/03_decision_tree.md` §4.4).
 
 **Mega Kangaskhan ex — Run Errand** (Ability) — draw 2, once per turn, **only while
 Active**. Free and repeatable across turns; take it whenever Kangaskhan is Active and
@@ -103,26 +107,37 @@ on turn 1 (when the `[P]` source can wait) and usually wrong on turn 2.
 **Meowth ex — Last-Ditch Catch** (Ability) — on being **played from hand onto the
 Bench**, search the deck for a **Supporter**. Does **not** trigger from a setup
 placement or from being placed as the Active. Target: Hilda by default, Salvatore if
-the turn-1 kill is live and Salvatore is not already in hand. Shuffles.
+the turn-1 kill is live and Salvatore is not already in hand. Shuffles. **Bench it only
+when the Supporter we want is absent from hand** — with Hilda already held it spends a
+Bench slot to fetch nothing worth having.
 
 ## Positioning cards
 
 **Switch** (Item) — swap Active with a Benched Pokémon, free, no retreat used, no
-Supporter slot. **The preferred answer to sub-goal C**, precisely because it costs
-neither the Supporter slot nor the retreat.
+Supporter slot. **The preferred answer to sub-goal C when the retreat is not already
+free** — but it is still a card, so do not spend it while Latias ex is in play and the
+Active is a Basic, where the retreat does the same job for nothing. Second rung of the
+ladder in `docs/03_decision_tree.md` §4.3.
 
 **Surfer** (Supporter) — switch, then **draw until the hand holds 5**. The draw is
 `max(0, 5 - hand_size)` computed **after** the switch and after Surfer has left the
 hand; with a full hand it draws nothing. Costs the Supporter slot, so it loses to
-Switch whenever both are available and a Supporter is wanted for anything else.
-**No decklist runs it** — it is a candidate only, so Switch is the operative answer to
-sub-goal C in every list that exists today.
+Switch whenever both are available and a Supporter is wanted for anything else —
+**except on a nearly empty hand**, where the refill is large enough that it can be the
+better card outright (Kevin, 2026-08-29). **No decklist runs it** — it is a candidate
+only, so Switch is the operative answer to sub-goal C in every list that exists today.
 
 **Latias ex — Skyliner** (Ability) — passive, works from the Bench, live the moment
 Latias ex is in play: **your Basic Pokémon have no Retreat Cost**. Makes the retreat
 into Bronzor free whenever the Active is a Basic, which on turn 1 it almost always is.
-Note it does **not** help once Bronzong (a Stage 1) is Active — which is fine, since
-we want it to stay.
+**The first rung of the §4.3 ladder, ahead of Switch**: the retreat is free and
+otherwise unspent, so using a Switch instead throws a card away. **Bench Latias ex at
+the first opportunity** — it is the only Basic whose presence alone advances a
+sub-goal.
+
+Note it does **not** cover Stage 1s. That is fine for a Bronzong we want to keep
+Active, and it is exactly why a **Dusclops** Active gets stuck with a retreat cost of
+2 — the case the Cursed Blast escape exists for.
 
 **Buneary — Run Around** (attack, `[C]`) — switch Buneary with a Benched Pokémon.
 **Going second only**, and it is not free positioning: besides ending the turn, the
@@ -154,8 +169,10 @@ to the evolved Bronzong does fire it. Shuffles.
 source recoverable with Night Stretcher.
 
 **Rare Candy** (Item) — Basic → Stage 2, i.e. **Dusknoir only** (Mega Lopunny ex is a
-Stage 1). Carries the ordinary timing restrictions. Off-plan for the metric (§8 of the
-decision tree); model it as playable but never chosen.
+Stage 1). Carries the ordinary timing restrictions: not on our first turn, and not onto
+a Basic put into play this turn. **No longer inert** (Kevin, 2026-08-29): it is the
+only route from a **Duskull** Active to a Dusknoir, and therefore the enabler of the
+Cursed Blast escape below. Still never played in preference to evolving Bronzong.
 
 ## Inert for turns 1–2
 
@@ -169,7 +186,12 @@ Modelled as playable, with no effect on any sub-goal:
   Occupy the once-per-turn Stadium slot; none advances a sub-goal. Mystery Garden would
   cost a `[P]` source to draw, which is counterproductive.
 - **Flutter Mane** — Midnight Fluttering needs the Active spot, which Bronzor wants.
-- **Dusclops / Dusknoir** — Cursed Blast Knocks Out the user; off-plan.
+- **Dusclops / Dusknoir** — as a *damage* plan, off-plan: 5 or 13 damage counters mean
+  nothing to a metric that ends on turn 2. But **Cursed Blast is not inert.** Its
+  self-Knock Out lets us choose a new Active from the Bench, which is a switching
+  effect costing no Switch, no Supporter slot, no retreat and no Energy — the last rung
+  of the §4.3 ladder, for an Active that is stuck. See `docs/03_decision_tree.md` §8;
+  the Ability also works from the Bench, where it does nothing for us.
 - **Mega Lopunny ex** — competes for the turn-2 evolution; off-plan for this metric.
 
 ## Opponent cards (scenario `item_lock` only)

@@ -141,7 +141,13 @@ unused_outs <- function(state, subgoal_vec){
     A = c("TEF-068", "PRE-066", "SSP-126", "POR-081", "MEG-131", "TEF-144",
           "JTG-146", "POR-088"),
     B = c("TEF-069", "TEF-160", "WHT-084", "JTG-146", "POR-081", "MEG-131"),
-    C = c("MEG-130", "SSP-187", "SSP-076"),
+    # MEG-125 (Rare Candy) is an out for C only through the Cursed Blast escape
+    # -- Duskull Active, Rare Candy to Dusknoir, self-Knock Out, promote a
+    # benched Bronzor (docs/03_decision_tree.md section 8). Every condition of
+    # that line is checked in .out_can_serve(); without the entry the escape is
+    # invisible to the traces, and without the conditions it would be the
+    # loosest false accusation in the file.
+    C = c("MEG-130", "SSP-187", "SSP-076", "MEG-125"),
     D = c("SVE-005", "POR-088", "WHT-084"))
 
   candidate_vec <- unique(unlist(out_list[subgoal_vec]))
@@ -168,6 +174,11 @@ unused_outs <- function(state, subgoal_vec){
 #' @param card_id the candidate out, known to be in hand and playable.
 #' @param served_vec the unmet sub-goals this card is listed under.
 #'
+#' Reads `deck_vec` -- ground truth -- as the Buddy-Buddy Poffin check already
+#' does. That is legitimate here and nowhere else: this is analysis output
+#' computed after the window has closed, not an input the policy may consult
+#' (ADR 0003).
+#'
 #' @returns A single logical; TRUE unless a card/sub-goal pair has a known
 #'   extra condition.
 #' @noRd
@@ -187,6 +198,36 @@ unused_outs <- function(state, subgoal_vec){
     })
 
     return(any(!is.na(ptype_vec) & ptype_vec == "psychic"))
+  }
+
+  # Rare Candy reaches sub-goal C only through the Cursed Blast escape, which
+  # needs the whole line to be there at once: a Duskull Active that Rare Candy
+  # may legally evolve, a Dusknoir left in the deck, and a Bronzor or Bronzong
+  # on the Bench to promote. Any one missing and the card could not have
+  # advanced C, so flagging it would accuse the decision tree of declining a
+  # play that did not exist.
+  if(card_id == "MEG-125" && "C" %in% served_vec){
+    if(is.null(state$active)) return(FALSE)
+    if(top_card(state$active) != "PRE-035") return(FALSE)
+    # can_rare_candy() now covers the Dusknoir being IN HAND, which is where
+    # Rare Candy takes it from. This branch previously asked for it in the DECK
+    # and so was inverted: it flagged the escape only when it was impossible.
+    if(!can_rare_candy(state, state$active, "PRE-037")) return(FALSE)
+
+    # And C is `bronzong_active`, not `bronzor_active`. Promoting a bare Bronzor
+    # does not meet it, so the promotion target must either be a Bronzong
+    # already, or a Bronzor that can legally evolve this turn with a Bronzong in
+    # hand to do it. Accepting any Bronzor was the same false accusation this
+    # file has now made three times.
+    bool_serves_vec <- sapply(state$bench_list, function(one){
+      if(top_card(one) == "TEF-069") return(TRUE)
+
+      lookup_card(state$card_df, top_card(one))$name == "Bronzor" &&
+        "TEF-069" %in% state$hand_vec &&
+        can_evolve(state, one, "TEF-069")
+    })
+
+    return(any(unlist(bool_serves_vec)))
   }
 
   TRUE
@@ -584,6 +625,36 @@ format_trace <- function(pair, result){
 # ---------------------------------------------------------------------------
 # Trace sampling
 # ---------------------------------------------------------------------------
+
+#' One turn's decisions, in readable form
+#'
+#' The event log stores card ids because they are unambiguous; anything a person
+#' reads wants names. \code{format_trace()} does this substitution internally for
+#' trace file, and the demo needs the same for a single turn, so it is
+#' exposed here rather than copied.
+#'
+#' Level-2 entries (zone moves, shuffles, draws) are dropped: they triple the
+#' length and bury the decisions, which are the point.
+#'
+#' @param state a `"bronzong_state"`.
+#' @param turn_number which of this player's turns to show; `NA` for all.
+#'
+#' @returns A character vector of log lines, without the turn prefix.
+#' @export
+readable_log <- function(state, turn_number = NA_integer_){
+  stopifnot(inherits(state, "bronzong_state"))
+
+  keep_vec <- state$event_level_vec == 1L
+  if(!is.na(turn_number)){
+    keep_vec <- keep_vec & state$event_turn_vec == turn_number
+  }
+  if(!any(keep_vec)) return(character(0))
+
+  message_vec <- sub("^T[0-9-]+: ", "", state$event_log[keep_vec])
+  message_vec <- .substitute_card_names(state$card_df, message_vec)
+
+  message_vec[!grepl("^begin turn", message_vec)]
+}
 
 #' Create a trace sampler
 #'

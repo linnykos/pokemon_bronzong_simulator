@@ -838,3 +838,113 @@ test_that("a Stage 2 line evolves through its Stage 1", {
   expect_equal(pair$state$active$stack_vec,
                c("PRE-035", "PRE-036", "PRE-037"))
 })
+
+# ---------------------------------------------------------------------------
+# Rare Candy, Cursed Blast, and Knock Outs
+# ---------------------------------------------------------------------------
+
+test_that("Rare Candy takes Duskull straight to Dusknoir, conserving cards", {
+  ## Two cards leave the hand -- the Rare Candy to the discard, the Dusknoir
+  ## onto the stack -- and each takes a different route out. A conservation
+  ## check is the only thing that catches the second one being counted twice.
+  pair <- .make_pair(active_id = "PRE-035", turn_number = 2L,
+                     hand_id_vec = c("MEG-125", "PRE-037"))
+  before_vec <- .card_multiset(pair$state)
+
+  pair <- play_rare_candy(pair, "PRE-037", target_is_active = TRUE)
+
+  expect_equal(sort(.card_multiset(pair$state)), sort(before_vec))
+  expect_equal(pair$state$active$stack_vec, c("PRE-035", "PRE-037"))
+  expect_equal(pair$state$active$turn_evolved, 2L)
+  expect_true("MEG-125" %in% pair$state$discard_vec)
+})
+
+test_that("a Knock Out discards the stack AND everything attached", {
+  ## The silent card leak this whole file's conservation habit exists for: the
+  ## energy_vec is a separate field and is easy to drop on the floor, which
+  ## keeps the board looking right while the census quietly falls to 59.
+  pair <- .make_pair(active_id = "PRE-037", bench_id_vec = "TEF-068",
+                     turn_number = 2L)
+  pair$state$active$energy_vec <- c("SVE-005", "POR-088")
+  before_vec <- .card_multiset(pair$state)
+
+  pair <- knock_out(pair, promote_idx = 1L)
+
+  expect_equal(sort(.card_multiset(pair$state)), sort(before_vec))
+  expect_true(all(c("SVE-005", "POR-088", "PRE-037") %in%
+                    pair$state$discard_vec))
+})
+
+test_that("the player whose Pokemon was Knocked Out picks the replacement", {
+  ## This is the entire reason Cursed Blast is a switching effect rather than
+  ## just a cost (docs/03_decision_tree.md section 8). A promotion that took
+  ## bench slot 1 regardless would look correct in most fixtures and be useless
+  ## for the one line the escape exists to enable.
+  pair <- .make_pair(active_id = "PRE-037",
+                     bench_id_vec = c("MEG-104", "TEF-068"), turn_number = 2L)
+
+  pair <- knock_out(pair, promote_idx = 2L)
+
+  expect_equal(top_card(pair$state$active), "TEF-068")
+  expect_equal(length(pair$state$bench_list), 1)
+  expect_equal(top_card(pair$state$bench_list[[1]]), "MEG-104")
+})
+
+test_that("a self-inflicted Knock Out costs us no Prize", {
+  ## Looks exactly like a missing rule and is not. The Prize goes to the
+  ## OPPONENT, from the opponent's own pile, and this simulator models one
+  ## player -- so our prize_vec must not move. It matters downstream: Lillie's
+  ## Determination draws 8 only while we hold exactly 6 Prizes.
+  pair <- .make_pair(active_id = "PRE-037", bench_id_vec = "TEF-068",
+                     turn_number = 2L)
+  pair$state <- set_prizes(pair$state, num_prizes = 6L)
+  before_vec <- pair$state$prize_vec
+
+  pair <- use_cursed_blast(pair, promote_idx = 1L)
+
+  expect_equal(pair$state$prize_vec, before_vec)
+  expect_length(pair$state$prize_vec, 6)
+})
+
+test_that("Cursed Blast promotes a benched Bronzor, resolving sub-goal C", {
+  ## The end-to-end line Kevin described: a Dusclops stuck Active -- Skyliner
+  ## does not cover a Stage 1 -- using its own Ability to put Bronzor Active.
+  pair <- .make_pair(active_id = "PRE-036", bench_id_vec = "TEF-068",
+                     turn_number = 2L)
+  pair$state$bench_list[[1]]$stack_vec <- c("TEF-068", "TEF-069")
+
+  expect_true("C" %in% unmet_subgoals(pair$state))
+
+  pair <- use_cursed_blast(pair, promote_idx = 1L)
+
+  expect_equal(top_card(pair$state$active), "TEF-069")
+  expect_false("C" %in% unmet_subgoals(pair$state))
+})
+
+test_that("Cursed Blast is refused on the Active with an empty Bench", {
+  ## A policy guard, not a rule: the rules permit it and then lose the game on
+  ## the spot. knock_out() stays faithful to the rule so the loss is modelled,
+  ## and the effect layer is where nothing is allowed to ask for it.
+  pair <- .make_pair(active_id = "PRE-037", turn_number = 2L)
+
+  expect_error(use_cursed_blast(pair), regexp = "loses the game")
+
+  ## The rules layer does model it, and records the loss rather than erroring.
+  pair <- knock_out(pair)
+  expect_true(pair$state$bool_no_pokemon)
+  expect_true(is.null(pair$state$active))
+  expect_false(can_act(pair$state))
+})
+
+test_that("Cursed Blast needs a Dusclops or Dusknoir", {
+  pair <- .make_pair(active_id = "TEF-068", bench_id_vec = "PRE-035",
+                     turn_number = 2L)
+
+  expect_error(use_cursed_blast(pair, promote_idx = 1L), regexp = "Dusclops")
+  ## And it works from the Bench, where it is legal and useless.
+  bench_pair <- .make_pair(active_id = "TEF-068", bench_id_vec = "PRE-037",
+                           turn_number = 2L)
+  bench_pair <- use_cursed_blast(bench_pair, bench_idx = 1L)
+  expect_length(bench_pair$state$bench_list, 0)
+  expect_equal(top_card(bench_pair$state$active), "TEF-068")
+})

@@ -185,6 +185,67 @@ can_evolve <- function(state,
   TRUE
 }
 
+#' May Rare Candy put this Stage 2 onto this Pokemon?
+#'
+#' Rules section 5, "Rare Candy". A separate predicate from
+#' \code{can_evolve()} rather than a flag on it, because the two differ in what
+#' they match: \code{can_evolve()} requires the Evolution to name the card it
+#' sits on, which is exactly what Rare Candy overrides. Dusknoir evolves from
+#' Dusclops, so \code{can_evolve()} correctly refuses Duskull -> Dusknoir and
+#' this function correctly allows it.
+#'
+#' The intermediate stage is resolved from `card_df` rather than hard-coded, so
+#' the rule holds for any Basic/Stage 1/Stage 2 line the database describes.
+#'
+#' Every timing restriction still applies -- Rare Candy's own text repeats two
+#' of them ("You can't use this card during your first turn or on a Basic
+#' Pokemon that was put into play this turn") and the general
+#' evolved-this-turn rule covers the third.
+#'
+#' @param state a `"bronzong_state"`.
+#' @param in_play the in-play record being evolved. Must be a **Basic**;
+#'   Rare Candy cannot be played onto a Stage 1.
+#' @param stage2_card_id the Stage 2 in hand.
+#'
+#' @returns A single logical.
+#' @export
+can_rare_candy <- function(state, in_play, stage2_card_id){
+  stopifnot(inherits(state, "bronzong_state"), is.list(in_play))
+
+  # "If you have a Stage 2 card in your HAND that evolves from that Pokemon."
+  # Rare Candy does not search, so a Dusknoir in the deck is no use whatever.
+  # can_evolve() can omit the equivalent check because its only callers are
+  # holding the card; this one is also asked speculatively by the trace's
+  # unused-out diagnosis, which was reading the deck and so had the condition
+  # exactly inverted -- flagging the play precisely when it was impossible.
+  if(!canonical_card_id(stage2_card_id) %in% state$hand_vec) return(FALSE)
+
+  stage2_df <- lookup_card(state$card_df, stage2_card_id)
+  base_df <- lookup_card(state$card_df, top_card(in_play))
+
+  if(is.na(stage2_df$stage) || stage2_df$stage != "stage2") return(FALSE)
+  if(is.na(base_df$stage) || base_df$stage != "basic") return(FALSE)
+
+  # Walk the line back one link: the Stage 1 the Stage 2 evolves from must
+  # itself evolve from this Basic's NAME -- names, not ids, for the same reason
+  # can_evolve() uses them, so any Bronzor printing would behave alike.
+  if(is.na(stage2_df$evolves_from)) return(FALSE)
+  stage1_df <- state$card_df[state$card_df$name == stage2_df$evolves_from, ]
+  if(nrow(stage1_df) == 0) return(FALSE)
+  if(!any(!is.na(stage1_df$evolves_from) &
+          stage1_df$evolves_from == base_df$name)){
+    return(FALSE)
+  }
+
+  if(!is.na(in_play$turn_evolved) && in_play$turn_evolved == state$turn_number){
+    return(FALSE)
+  }
+  if(state$turn_number <= 1L) return(FALSE)
+  if(in_play$turn_played == state$turn_number) return(FALSE)
+
+  TRUE
+}
+
 #' Is this card a legal Salvatore target?
 #'
 #' Salvatore fetches "a card that has no Abilities and evolves from 1 of your
