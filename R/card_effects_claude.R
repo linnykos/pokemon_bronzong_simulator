@@ -761,6 +761,16 @@ attack_evolution_jammer <- function(pair){
   }
   pair$state <- move_cards(pair$state, card_id, from = "hand", to = "discard")
   pair$state$turn_flag_list$bool_supporter_played <- TRUE
+  # A canonical, greppable record that THIS turn spent its Supporter. The
+  # turn flag is reset by begin_turn(), so at the end of the window only the
+  # last turn's is readable; the trace's `supporter_slot_unused` motif needs the
+  # answer per turn. Logged here because this is the single choke point every
+  # Supporter passes through -- the motif used to grep the event log for card
+  # names, which the effects do not log (they log labels like "Hilda
+  # (evolution)" and "Codebreaking stacked"), and which would have silently
+  # missed any Supporter added later.
+  pair$state <- .log_event(pair$state, paste0("supporter played ", card_id),
+                           level = 2L)
 
   pair
 }

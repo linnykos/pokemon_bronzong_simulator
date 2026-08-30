@@ -149,8 +149,47 @@ unused_outs <- function(state, subgoal_vec){
   if(length(in_hand_vec) == 0) return(character(0))
 
   in_hand_vec[sapply(in_hand_vec, function(one_id){
-    .out_is_playable(state, one_id)
+    served_vec <- subgoal_vec[sapply(subgoal_vec, function(one_goal){
+      one_id %in% out_list[[one_goal]]
+    })]
+
+    .out_is_playable(state, one_id) && .out_can_serve(state, one_id, served_vec)
   })]
+}
+
+#' Could this out advance one of the sub-goals it was nominated for?
+#'
+#' Separate from \code{.out_is_playable()}, which asks only whether the card
+#' could legally be played at all. A card can be perfectly playable and still be
+#' useless for the particular sub-goal that is blocked, and flagging it charges
+#' the decision tree for a play that would not have helped.
+#'
+#' @param state a `"bronzong_state"`.
+#' @param card_id the candidate out, known to be in hand and playable.
+#' @param served_vec the unmet sub-goals this card is listed under.
+#'
+#' @returns A single logical; TRUE unless a card/sub-goal pair has a known
+#'   extra condition.
+#' @noRd
+.out_can_serve <- function(state, card_id, served_vec){
+  # Telepathic Psychic Energy reaches sub-goal A only through its search, and
+  # that search fires solely when the RECIPIENT is [P] -- see
+  # .telepathic_psychic_trigger(). On an all-Colorless board the attachment is
+  # legal and the search is dead, so calling it an unused out for A charges the
+  # tree for exactly the play the `telepathic_on_colorless` motif warns against.
+  #
+  # It remains an unconditional out for D, where it is wanted as a [P] SOURCE:
+  # attaching it to a Metal Bronzor searches nothing and still carries a [P]
+  # through evolution.
+  if(card_id == "POR-088" && identical(served_vec, "A")){
+    ptype_vec <- sapply(all_in_play(state), function(one){
+      lookup_card(state$card_df, top_card(one))$ptype
+    })
+
+    return(any(!is.na(ptype_vec) & ptype_vec == "psychic"))
+  }
+
+  TRUE
 }
 
 #' Could this out actually have been played?
@@ -200,10 +239,14 @@ unused_outs <- function(state, subgoal_vec){
     return(length(state$hand_vec) >= 3)
   }
   if(card_id == "TEF-144"){
-    hp_vec <- lookup_card(state$card_df, state$deck_vec)$hp
-    stage_vec <- lookup_card(state$card_df, state$deck_vec)$stage
-    bool_target <- any(!is.na(hp_vec) & hp_vec <= 70 & !is.na(stage_vec) &
-                         stage_vec == "basic")
+    # A <=70 HP BRONZOR, not merely a <=70 HP Basic. Poffin is only ever listed
+    # as an out for sub-goal A, and Duskull (60), Buneary (70) and Budew (30)
+    # all pass a bare HP test while doing nothing for A -- so against a list
+    # running only the 80 HP TEF-068 the flag accused the decision tree of not
+    # playing a card that could not possibly have helped.
+    deck_df <- lookup_card(state$card_df, state$deck_vec)
+    bool_target <- any(deck_df$name == "Bronzor" & !is.na(deck_df$hp) &
+                         deck_df$hp <= 70)
     return(bool_target && has_bench_space(state))
   }
   if(card_id == "MEG-130") return(length(state$bench_list) > 0)
@@ -257,18 +300,73 @@ detect_motifs <- function(state, unmet_vec){
   }
   # A is met but C is not: the piece was on the board and never promoted. This
   # is the motif that the old first-unmet-only reporting hid completely.
-  if(!"A" %in% unmet_vec && "C" %in% unmet_vec){
+  #
+  # The Active must ALSO not already be part of the line. "A met, C unmet" is
+  # equally true of a Bronzor that led at setup and was simply never evolved --
+  # a sub-goal B failure, with nothing to promote and no positioning mistake in
+  # it. Counting those under a label that reads "never made Active" inflated the
+  # tally by every such replicate (demo seed 13 was one), under a heading that
+  # tells the reader these are the counts worth acting on.
+  if(!"A" %in% unmet_vec && "C" %in% unmet_vec &&
+     !.active_is_bronzong_line(state)){
     motif_vec <- c(motif_vec, "never_promoted")
   }
   if(length(unmet_vec) == 0 && is.na(state$jammer_turn)){
     motif_vec <- c(motif_vec, "attack_never_declared")
   }
-  if(!grepl("play Supporter|Hilda|Salvatore|Lillie|Brock|Codebreaking|Surfer",
-            log_str)){
+  if(length(.turns_with_supporter_unspent(state)) > 0){
     motif_vec <- c(motif_vec, "supporter_slot_unused")
   }
 
   motif_vec
+}
+
+#' Is the Active already part of the Bronzor/Bronzong line?
+#'
+#' Distinguishes "the piece is benched and was never promoted" (a positioning
+#' defect) from "the piece is Active and was never evolved" (a B defect).
+#' @noRd
+.active_is_bronzong_line <- function(state){
+  if(is.null(state$active)) return(FALSE)
+
+  lookup_card(state$card_df, top_card(state$active))$name %in%
+    c("Bronzor", "Bronzong")
+}
+
+#' Turns that ended with the Supporter slot unspent
+#'
+#' Asked PER TURN, which is what the motif's own description claims and what the
+#' old check did not do: it grepped the whole event log for any Supporter, so a
+#' replicate that played Hilda on turn 1 and wasted turn 2's slot was never
+#' flagged -- the more interesting of the two cases, and silently invisible.
+#'
+#' Read from the canonical `supporter played` event that
+#' `.play_supporter_from_hand()` writes, not from the card's own log line. The
+#' old check grepped a hard-coded list of names that the effects do not actually
+#' log -- they log labels like "Hilda (evolution)" and "Codebreaking stacked" --
+#' and it omitted Boss's Orders, which decklist2 runs 2 copies of.
+#'
+#' Turn 1 going first is excluded: no Supporter is legal then
+#' (docs/01_rules_standard.md section 6), so an unspent slot is a rule, not a
+#' choice -- the same distinction that stopped `unused_outs()` charging the Item
+#' lock to the decision tree.
+#'
+#' @param state a `"bronzong_state"` at the end of the measured window.
+#'
+#' @returns An integer vector of this player's turn numbers, empty when every
+#'   turn that could spend a Supporter did.
+#' @noRd
+.turns_with_supporter_unspent <- function(state){
+  played_turn_vec <- integer(0)
+  if(length(state$event_log) > 0){
+    bool_played_vec <- grepl("supporter played ", state$event_log, fixed = TRUE)
+    played_turn_vec <- unique(state$event_turn_vec[bool_played_vec])
+  }
+
+  turn_vec <- seq_len(state$turn_number)
+  if(state$bool_going_first) turn_vec <- setdiff(turn_vec, 1L)
+
+  as.integer(setdiff(turn_vec, played_turn_vec))
 }
 
 #' Summarise one finished replicate
@@ -286,6 +384,8 @@ detect_motifs <- function(state, unmet_vec){
 #'   \describe{
 #'     \item{decklist_id, scenario, bool_going_first, seed_number}{the cell.}
 #'     \item{jammer_turn}{integer turn the attack was made, or `NA`.}
+#'     \item{lead_card_id}{the Basic that led at setup, so a run can be grouped
+#'       by it; see \code{summarise_run()}'s `lead_hit_df`.}
 #'     \item{bool_hit}{whether Evolution Jammer was used by the player's own
 #'       turn 2 -- the primary outcome (ADR 0004).}
 #'     \item{num_mulligans}{how many times this player mulliganed. An ORTHOGONAL
@@ -317,6 +417,11 @@ summarise_replicate <- function(pair,
          bool_going_first = state$bool_going_first,
          seed_number = as.integer(seed_number),
          jammer_turn = state$jammer_turn,
+         # Carried on EVERY replicate, not just traced ones: the lead order is
+         # deferred to the logs (docs/03_decision_tree.md section 3), and ADR
+         # 0006 forbids reading a rate off the traces, so it can only come
+         # from an aggregate over all of them.
+         lead_card_id = state$lead_card_id,
          # ADR 0004: the bar is the player's own turn 2, and it is the ATTACK
          # that counts, not the attack merely having been available.
          bool_hit = bool_hit,
@@ -386,19 +491,94 @@ format_trace <- function(pair, result){
     paste0("  !! ", MOTIF_VEC[result$motif_vec])
   } else NULL
 
-  board_str <- paste0("  end  active=",
-                      if(is.null(state$active)) "-" else
-                        paste0(.typed_name(card_df, top_card(state$active)),
-                               .energy_suffix(card_df, state$active)),
-                      "  bench=",
-                      if(length(state$bench_list) == 0) "-" else
-                        paste0(sapply(state$bench_list, function(one){
-                          paste0(.typed_name(card_df, top_card(one)),
-                                 .energy_suffix(card_df, one))
-                        }), collapse = ","),
-                      "  deck=", length(state$deck_vec))
+  c(header_str, unused_str, motif_str, .turn_lines(state), .board_block(state))
+}
 
-  c(header_str, unused_str, motif_str, .turn_lines(state), board_str)
+#' The end-of-window board state, in full
+#'
+#' Kevin, 2026-08-29: do not record past the end of turn 2, but be *thorough* at
+#' the end of turn 2, because what the board looks like by then is a question he
+#' wants to ask later. So this reports every zone rather than the one
+#' Active-and-Bench line it used to, and the policy is expected to keep playing
+#' the turn out properly even once the metric is lost -- see
+#' docs/03_decision_tree.md section 7.
+#'
+#' The prize line is GROUND TRUTH. ADR 0003 forbids the POLICY from reading the
+#' prizes; it does not forbid the analysis from recording them, and "both
+#' Bronzong prized" is the one line that separates a variance miss from a
+#' decision defect. It is labelled in the file itself so that nobody reads the
+#' field's existence as permission to wire it into part 5.
+#'
+#' @param state a `"bronzong_state"` at the end of the measured window.
+#'
+#' @returns A character vector of trace lines.
+#' @noRd
+.board_block <- function(state){
+  card_df <- state$card_df
+
+  bench_str <- if(length(state$bench_list) == 0) "-" else
+    paste0(sapply(state$bench_list, function(one){
+      .in_play_str(card_df, one)
+    }), collapse = " | ")
+
+  # `items=` is asked of items_are_locked() rather than can_play_item(), which
+  # is FALSE once the turn is over -- i.e. in every trace -- and so would report
+  # a lock in the `clear` scenario too.
+  c(paste0("  end of turn ", state$turn_number,
+           " -- board state when the window closed; setup lead=",
+           if(is.na(state$lead_card_id)) "-" else
+             .short_name(card_df, state$lead_card_id)),
+    paste0("    active   ", if(is.null(state$active)) "-" else
+      .in_play_str(card_df, state$active)),
+    paste0("    bench    ", bench_str),
+    paste0("    hand     ", .zone_str(card_df, state$hand_vec)),
+    paste0("    discard  ", .zone_str(card_df, state$discard_vec)),
+    paste0("    zones    deck=", length(state$deck_vec),
+           " prizes=", length(state$prize_vec),
+           " stadium=", if(is.na(state$stadium)) "-" else
+             .short_name(card_df, state$stadium)),
+    paste0("    turn     energy=",
+           if(isTRUE(state$turn_flag_list$bool_energy_attached))
+             "spent" else "unspent",
+           " supporter=",
+           if(isTRUE(state$turn_flag_list$bool_supporter_played))
+             "played" else "unplayed",
+           " items=", if(items_are_locked(state)) "locked" else "open"),
+    paste0("    prized   GROUND TRUTH, never visible to the policy (ADR 0003): ",
+           .zone_str(card_df, state$prize_vec)))
+}
+
+#' One in-play Pokemon, with everything that is true of it
+#'
+#' `played` and `evo` are here because the end state alone cannot say whether a
+#' Bronzong arrived on turn 1 or turn 2, and that is exactly the difference
+#' between a Salvatore line and a conventional one.
+#' @noRd
+.in_play_str <- function(card_df, in_play){
+  # The whole stack, bottom to top. Which Bronzor is UNDER a Bronzong is not
+  # cosmetic: it decides whether Buddy-Buddy Poffin (<=70 HP) or Telepathic
+  # Psychic Energy ([P] only) could have found it, so a board state that names
+  # only the top card cannot be reasoned about after the fact.
+  under_str <- if(length(in_play$stack_vec) == 1) "" else
+    paste0(paste0(.short_name(card_df,
+                              in_play$stack_vec[-length(in_play$stack_vec)]),
+                  collapse = ">"), ">")
+
+  paste0(under_str,
+         .typed_name(card_df, top_card(in_play)),
+         .energy_suffix(card_df, in_play),
+         if(in_play$damage > 0) paste0(" dmg=", in_play$damage) else "",
+         " played=T", in_play$turn_played,
+         if(is.na(in_play$turn_evolved)) "" else
+           paste0(" evo=T", in_play$turn_evolved))
+}
+
+#' A zone's contents as short names, or "-" when empty
+#' @noRd
+.zone_str <- function(card_df, card_id_vec){
+  if(length(card_id_vec) == 0) return("-")
+
+  paste0(.short_name(card_df, card_id_vec), collapse = ", ")
 }
 
 # ---------------------------------------------------------------------------
@@ -523,6 +703,7 @@ write_trace_file <- function(result_list, file_path, summary_list,
            format(round(summary_list$mean_mulligans, 3), nsmall = 3),
            "   (orthogonal -- never counts as a miss, ADR 0005)"),
     "",
+    .lead_block(summary_list$lead_hit_df),
     .decklist_block(decklist),
     "# UNMET SUB-GOALS, counted as a SET so a miss appears in every row it",
     "# belongs to. Rows therefore sum to more than the miss count, by design:",
@@ -558,6 +739,41 @@ write_trace_file <- function(result_list, file_path, summary_list,
   invisible(file_path)
 }
 
+#' Hit rate by setup lead, in the trace file header
+#'
+#' The one table in this file that IS a rate: it is computed over every
+#' replicate by \code{summarise_run()}, not over the stratified sample below it.
+#' It exists because docs/03_decision_tree.md section 3 states the lead order as
+#' a default and Kevin deferred the real answer to the logs.
+#'
+#' @param lead_hit_df the `lead_hit_df` element of a `"bronzong_summary"`, or
+#'   `NULL` for a summary written before that field existed.
+#'
+#' @returns Character vector of header lines.
+#' @noRd
+.lead_block <- function(lead_hit_df){
+  if(is.null(lead_hit_df) || nrow(lead_hit_df) == 0) return(character(0))
+
+  card_df <- build_card_database()
+  # Anything this database does not know is printed as its raw id. "unknown" is
+  # the placeholder for a state that never went through
+  # place_opening_pokemon(), and a run on a restricted card table can produce
+  # others; lookup_card() stops hard on all of them, which would kill the header
+  # write after the whole run had already been simulated.
+  bool_known_vec <- lead_hit_df$lead_card_id %in% card_df$card_id
+  name_vec <- lead_hit_df$lead_card_id
+  name_vec[bool_known_vec] <- .short_name(card_df, name_vec[bool_known_vec])
+
+  c("# HIT RATE BY THE BASIC THAT LED AT SETUP, over EVERY replicate -- this",
+    "# table is a rate and may be read as one. Section 3 of the decision tree",
+    "# states the lead order as an untested default; this is what settles it.",
+    paste0("#   ", format(name_vec, width = 22), " ",
+           format(lead_hit_df$num_hit, width = 5), "/",
+           format(lead_hit_df$num_replicates, width = 5), "  ",
+           .fmt_pct(lead_hit_df$hit_rate)),
+    "")
+}
+
 #' The decklist, spelled out in the trace file header
 #'
 #' Without it the header gave only a content hash, and an agent asked to
@@ -589,7 +805,9 @@ write_trace_file <- function(result_list, file_path, summary_list,
 #' @param result_list list of `"bronzong_result"` objects, traced or not.
 #'
 #' @returns A list of aggregate figures, including the two orthogonal mulligan
-#'   metrics and the blocking-sub-goal tally.
+#'   metrics, the blocking-sub-goal tally, and `lead_hit_df` -- the hit rate
+#'   grouped by the Basic that led at setup, which is what settles the section 3
+#'   lead order.
 #' @export
 summarise_run <- function(result_list){
   stopifnot(is.list(result_list), length(result_list) > 0)
@@ -630,6 +848,31 @@ summarise_run <- function(result_list){
                       late = sum(turn_vec > 2L, na.rm = TRUE),
                       never = sum(is.na(turn_vec)))
 
+  # The lead order in docs/03_decision_tree.md section 3 is an untested default
+  # that Kevin deferred to "the simulation logs" (2026-08-29). This is where the
+  # answer has to come from: the traces are stratified toward misses (ADR 0006)
+  # and no rate may be read off them, so grouping every replicate by its lead is
+  # the only legitimate route.
+  # `isTRUE(is.na(.))`, not `is.na(.)`: a result built before this field existed
+  # drops the element entirely, and `if(logical(0))` is an error -- which would
+  # land after every replicate of a 10,000-replicate run had been simulated.
+  lead_vec <- sapply(result_list, function(x){
+    lead_str <- x$lead_card_id
+    if(length(lead_str) != 1 || is.na(lead_str)) "unknown" else lead_str
+  })
+  lead_id_vec <- sort(unique(lead_vec))
+  num_by_lead_vec <- sapply(lead_id_vec, function(one) sum(lead_vec == one))
+  hit_by_lead_vec <- sapply(lead_id_vec, function(one){
+    sum(hit_vec[lead_vec == one])
+  })
+  rate_by_lead_vec <- hit_by_lead_vec / num_by_lead_vec
+  lead_hit_df <- data.frame(lead_card_id = lead_id_vec,
+                            num_replicates = as.integer(num_by_lead_vec),
+                            num_hit = as.integer(hit_by_lead_vec),
+                            hit_rate = as.numeric(rate_by_lead_vec),
+                            stringsAsFactors = FALSE,
+                            row.names = NULL)
+
   structure(
     list(decklist_id = result_list[[1]]$decklist_id,
          scenario = result_list[[1]]$scenario,
@@ -639,6 +882,7 @@ summarise_run <- function(result_list){
          hit_rate = mean(hit_vec),
          turn_tally_vec = turn_tally_vec,
          turn1_rate = sum(turn_vec == 1L, na.rm = TRUE) / length(result_list),
+         lead_hit_df = lead_hit_df,
          # Orthogonal to the hit rate, never folded into it (ADR 0005).
          mulligan_rate = mean(mull_vec > 0),
          mean_mulligans = mean(mull_vec),

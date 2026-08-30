@@ -160,6 +160,29 @@ test_that("placed Pokemon leave the hand and appear in play exactly once", {
   expect_false("TEF-068" %in% state$hand_vec)
 })
 
+test_that("the setup lead is recorded and survives leaving the Active spot", {
+  ## Kevin deferred the section 3 lead order to the simulation logs
+  ## (2026-08-29), so every replicate has to be groupable by its lead. Reading
+  ## `state$active` at the end of the run would answer a different question: by
+  ## turn 2 the Active is usually a Bronzong that was promoted or evolved, not
+  ## the Basic the decision was actually about.
+  card_df <- .test_card_df()
+  decklist <- .test_decklist()
+  state <- new_game_state(decklist, card_df, bool_going_first = FALSE)
+  state <- move_cards(state, c("MEG-104", "TEF-068"),
+                      from = "deck", to = "hand")
+
+  expect_true(is.na(state$lead_card_id))
+
+  state <- place_opening_pokemon(state, "MEG-104", "TEF-068")
+  expect_equal(state$lead_card_id, "MEG-104")
+
+  ## Promote the Bronzor: the lead does not follow the Active.
+  state$active <- state$bench_list[[1]]
+  state$bench_list <- list()
+  expect_equal(state$lead_card_id, "MEG-104")
+})
+
 test_that("placement works when the discard is already non-empty", {
   ## The trim-the-discard trick is only safe if it removes the cards just added.
   ## Seed the discard first so a naive implementation that clears it, or trims

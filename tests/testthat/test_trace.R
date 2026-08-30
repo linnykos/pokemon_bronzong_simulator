@@ -336,6 +336,134 @@ test_that("the unmet tally counts a miss in every row it belongs to", {
   expect_equal(summary_list$num_miss, 2L)
 })
 
+test_that("never_promoted excludes a Bronzor that was Active all along", {
+  ## Found by review. The condition was "A met, C unmet", which is equally true
+  ## of a Bronzor that led at setup and was simply never evolved -- a sub-goal B
+  ## failure with nothing to promote and no positioning mistake in it. It was
+  ## being counted under a label reading "never made Active", in a tally headed
+  ## "the counts worth acting on". Demo seed 13 was one such replicate.
+  active_pair <- .make_pair(active_id = "TEF-068", turn_number = 2L)
+  benched_pair <- .make_pair(active_id = "PRE-035", bench_id_vec = "TEF-068",
+                             turn_number = 2L)
+
+  expect_false("never_promoted" %in%
+                 detect_motifs(active_pair$state,
+                               unmet_subgoals(active_pair$state)))
+  ## The genuine case still fires: the Bronzor is on the Bench.
+  expect_true("never_promoted" %in%
+                detect_motifs(benched_pair$state,
+                              unmet_subgoals(benched_pair$state)))
+})
+
+test_that("supporter_slot_unused is per turn, not per game", {
+  ## Found by review. The check grepped the whole event log for a hard-coded
+  ## list of Supporter names, so a replicate that played Hilda on turn 1 and
+  ## wasted turn 2's slot was never flagged -- the more interesting of the two
+  ## cases. It also could not see a Supporter the effects log under a label
+  ## rather than its name ("Codebreaking stacked"), nor one not on the list at
+  ## all (Boss's Orders, 2 copies in decklist2).
+  pair <- .make_pair(active_id = "TEF-068", hand_id_vec = "WHT-084",
+                     turn_number = 1L)
+  pair <- play_hilda(pair, evolution_id = NULL, energy_id = NULL)
+  pair$state <- begin_turn(pair$state)
+
+  expect_equal(pair$state$turn_number, 2L)
+  expect_true("supporter_slot_unused" %in%
+                detect_motifs(pair$state, unmet_subgoals(pair$state)))
+
+  ## Turn 1 going first cannot spend a Supporter at all, so an unspent slot
+  ## there is a rule, not a choice -- the same distinction that stopped the Item
+  ## lock being charged to the decision tree.
+  first_pair <- .make_pair(active_id = "TEF-068", turn_number = 1L,
+                           bool_going_first = TRUE)
+  expect_false("supporter_slot_unused" %in%
+                 detect_motifs(first_pair$state,
+                               unmet_subgoals(first_pair$state)))
+})
+
+test_that("Buddy-Buddy Poffin is an out for A only with a <=70 HP Bronzor", {
+  ## Found by review. The playability test accepted any <=70 HP Basic in the
+  ## deck -- Duskull (60), Buneary (70), Budew (30) all pass -- so against a
+  ## list running only the 80 HP TEF-068 the flag accused the decision tree of
+  ## not playing a card that cannot fix A at all.
+  pair <- .make_pair(active_id = "PRE-035", hand_id_vec = "TEF-144",
+                     turn_number = 2L)
+
+  expect_true("A" %in% unmet_subgoals(pair$state))
+  expect_false("TEF-144" %in% unused_outs(pair$state, "A"))
+
+  ## With a 70 HP Bronzor in the deck it is a real out again.
+  pair$state$deck_vec <- c("PRE-066", pair$state$deck_vec)
+  expect_true("TEF-144" %in% unused_outs(pair$state, "A"))
+})
+
+test_that("Telepathic is an out for A only when a [P] body can receive it", {
+  ## Found by review. Its route to sub-goal A is the search, which fires only on
+  ## a [P] recipient; on an all-Colorless board the attach is legal and the
+  ## search is dead. Flagging it charges the tree for the very play the
+  ## telepathic_on_colorless motif warns against.
+  colorless_pair <- .make_pair(active_id = "MEG-104", hand_id_vec = "POR-088",
+                               turn_number = 2L)
+  expect_false("POR-088" %in% unused_outs(colorless_pair$state, "A"))
+
+  ## But it stays an unconditional out for D, where it is wanted as a [P]
+  ## SOURCE: on a Metal Bronzor it searches nothing and still carries a [P]
+  ## through evolution.
+  metal_pair <- .make_pair(active_id = "PRE-066", hand_id_vec = "POR-088",
+                           turn_number = 2L)
+  expect_true("POR-088" %in% unused_outs(metal_pair$state, "D"))
+})
+
+test_that("the run is grouped by the Basic that led at setup", {
+  ## Kevin deferred the section 3 lead order to "the simulation logs"
+  ## (2026-08-29). ADR 0006 forbids reading a rate off the traces, which are
+  ## stratified toward misses, so this aggregate over EVERY replicate is the
+  ## only place the answer can legitimately come from -- and it is worth a test
+  ## because a per-lead rate that silently pools leads answers the question
+  ## wrongly rather than not at all.
+  hit_pair <- .finished_pair(bool_evolved = TRUE, energy_vec = "SVE-005")
+  hit_pair$state$lead_card_id <- "TEF-068"
+  hit_pair <- attack_evolution_jammer(hit_pair)
+  miss_pair <- .finished_pair(active_id = "MEG-104")
+  miss_pair$state$lead_card_id <- "MEG-104"
+
+  result_list <- c(lapply(1:3, function(i){
+    summarise_replicate(hit_pair, "dl_test", i)
+  }), lapply(4:5, function(i){
+    summarise_replicate(miss_pair, "dl_test", i)
+  }))
+  lead_hit_df <- summarise_run(result_list)$lead_hit_df
+
+  expect_equal(sort(lead_hit_df$lead_card_id), c("MEG-104", "TEF-068"))
+  bool_bronzor_vec <- lead_hit_df$lead_card_id == "TEF-068"
+  expect_equal(lead_hit_df$num_replicates[bool_bronzor_vec], 3L)
+  expect_equal(lead_hit_df$hit_rate[bool_bronzor_vec], 1)
+  expect_equal(lead_hit_df$hit_rate[!bool_bronzor_vec], 0)
+
+  ## And it reaches the file as a rate the reader is told they MAY use, beside
+  ## the sample they may not.
+  tmp_file <- tempfile(fileext = ".txt")
+  write_trace_file(list(), tmp_file, summarise_run(result_list))
+  line_vec <- readLines(tmp_file)
+
+  expect_true(any(grepl("HIT RATE BY THE BASIC THAT LED", line_vec)))
+  expect_true(any(grepl("Bronzor\\(TEF\\)", line_vec)))
+})
+
+test_that("a state that never had a setup lead is grouped as unknown", {
+  ## lookup_card() rejects "unknown", so the header block has to route around
+  ## it; a fixture-built state is exactly this case.
+  result <- summarise_replicate(.make_pair(turn_number = 2L), "dl_test", 1L)
+  summary_list <- summarise_run(list(result))
+
+  expect_true(is.na(result$lead_card_id))
+  expect_equal(summary_list$lead_hit_df$lead_card_id, "unknown")
+
+  tmp_file <- tempfile(fileext = ".txt")
+  write_trace_file(list(), tmp_file, summary_list)
+  expect_true(any(grepl("unknown", readLines(tmp_file))))
+})
+
 test_that("summarise_run refuses to pool across cells", {
   ## ADR 0002 forbids it, and the function used to label the run from the first
   ## element and average the rest with no warning.
@@ -427,17 +555,111 @@ test_that("a playable unused out is flagged prominently", {
   expect_true(any(grepl("Switch", result$trace_vec)))
 })
 
-test_that("the end line marks Pokemon type and names attached energy", {
+test_that("the end block marks Pokemon type and names attached energy", {
   ## "+PP" was ambiguous between two [P] cards and one card giving [P][P], and
   ## hid WHICH cards were spent. Type marks decide whether Telepathic's search
   ## can fire at all.
+  ##
+  ## Asserted over the whole block rather than the last line: the snapshot grew
+  ## from one line to nine (Kevin, 2026-08-29, "be thorough at the end of turn
+  ## 2"), and indexing the last line pinned it to the prize row.
   pair <- .finished_pair(active_id = "MEG-104", energy_vec = "POR-088")
   result <- summarise_replicate(pair, "dl_test", 1L, bool_keep_trace = TRUE)
-  end_str <- result$trace_vec[length(result$trace_vec)]
+  block_str <- paste0(result$trace_vec, collapse = "\n")
 
-  expect_true(grepl("MegaKangaskhanex[C]", end_str, fixed = TRUE))
-  expect_true(grepl("TelepathicPsychicEnergy", end_str, fixed = TRUE))
-  expect_true(grepl("deck=", end_str))
+  expect_true(grepl("MegaKangaskhanex[C]", block_str, fixed = TRUE))
+  expect_true(grepl("TelepathicPsychicEnergy", block_str, fixed = TRUE))
+  expect_true(grepl("deck=", block_str))
+})
+
+test_that("the end-of-window snapshot reports every zone", {
+  ## Kevin, 2026-08-29: stop at turn 2, but be thorough THERE, because the board
+  ## reached by the end of turn 2 is a question he wants to ask later. A miss
+  ## whose hand, discard, Stadium and prizes are unrecorded cannot answer it, so
+  ## every zone is asserted here rather than trusting the format by eye.
+  pair <- .finished_pair(active_id = "TEF-068", bench_id_vec = "PRE-035",
+                         hand_id_vec = "MEG-130", energy_vec = "SVE-005")
+  pair$state$discard_vec <- c(pair$state$discard_vec, "MEG-131")
+  pair$state$stadium <- "TWM-149"
+  pair$state$prize_vec <- c("TEF-069", "SVE-005")
+  pair$state$lead_card_id <- "TEF-068"
+  pair$state$turn_flag_list$bool_energy_attached <- TRUE
+  result <- summarise_replicate(pair, "dl_test", 1L, bool_keep_trace = TRUE)
+  block_str <- paste0(result$trace_vec, collapse = "\n")
+
+  ## Per-line, not over the pasted block: R's default regex engine lets `.`
+  ## match a newline, so a block-wide pattern would happily match a card named
+  ## on some other zone's line.
+  hand_str <- grep("^    hand ", result$trace_vec, value = TRUE)
+  discard_str <- grep("^    discard ", result$trace_vec, value = TRUE)
+
+  expect_true(grepl("end of turn 2", block_str, fixed = TRUE))
+  expect_true(grepl("Switch", hand_str, fixed = TRUE))
+  expect_true(grepl("UltraBall", discard_str, fixed = TRUE))
+  expect_true(grepl("stadium=FestivalGrounds", block_str))
+  expect_true(grepl("prizes=2", block_str, fixed = TRUE))
+  expect_true(grepl("energy=spent", block_str, fixed = TRUE))
+  expect_true(grepl("supporter=unplayed", block_str, fixed = TRUE))
+  expect_true(grepl("setup lead=Bronzor\\(TEF\\)", block_str))
+  expect_true(grepl("played=T0", block_str, fixed = TRUE))
+
+  ## The prizes are ground truth. Recording them is what separates "the deck
+  ## never offered it" from "the decision was wrong"; the label is what stops
+  ## the field being wired into the policy, which ADR 0003 forbids.
+  expect_true(grepl("GROUND TRUTH, never visible to the policy", block_str))
+  expect_true(grepl("Bronzong", block_str, fixed = TRUE))
+})
+
+test_that("the snapshot names the whole evolution stack, not just the top", {
+  ## Which Bronzor is under a Bronzong decides whether Poffin (<=70 HP) or
+  ## Telepathic Psychic Energy ([P] only) could have found it, so a board state
+  ## naming only "Bronzong" cannot be reasoned about after the run.
+  pair <- .finished_pair(bool_evolved = TRUE, energy_vec = "SVE-005")
+  result <- summarise_replicate(pair, "dl_test", 1L, bool_keep_trace = TRUE)
+  active_str <- grep("^    active ", result$trace_vec, value = TRUE)
+
+  expect_true(grepl("Bronzor(TEF)>Bronzong", active_str, fixed = TRUE))
+})
+
+test_that("the snapshot renders an empty board without erroring", {
+  ## Every zone is empty in a decked-out or never-placed replicate, and the
+  ## block is built by paste0() over vectors that are then length 0 -- which
+  ## silently yields character(0) and drops the line rather than failing loudly.
+  pair <- .make_pair(active_id = NULL, turn_number = 2L)
+  pair$state$hand_vec <- character(0)
+  pair$state$discard_vec <- character(0)
+  result <- summarise_replicate(pair, "dl_test", 1L, bool_keep_trace = TRUE)
+  block_str <- paste0(result$trace_vec, collapse = "\n")
+
+  expect_true(grepl("active   -", block_str, fixed = TRUE))
+  expect_true(grepl("bench    -", block_str, fixed = TRUE))
+  expect_true(grepl("hand     -", block_str, fixed = TRUE))
+  expect_true(grepl("stadium=-", block_str, fixed = TRUE))
+  expect_true(grepl("setup lead=-", block_str, fixed = TRUE))
+  expect_true(all(!is.na(result$trace_vec)))
+})
+
+test_that("the snapshot reports the Item lock only when it is actually on", {
+  ## items_are_locked(), not can_play_item(): the latter is FALSE once the turn
+  ## is over, which is true of EVERY trace, so it reported a lock in the `clear`
+  ## scenario too -- the same class of bug as charging the lock to the decision
+  ## tree in unused_outs().
+  locked <- .make_pair(active_id = "TEF-068", turn_number = 2L,
+                       bool_going_first = TRUE, scenario = "item_lock")
+  locked$state$turn_flag_list$bool_turn_over <- TRUE
+  open <- .make_pair(active_id = "TEF-068", turn_number = 2L)
+  open$state$turn_flag_list$bool_turn_over <- TRUE
+
+  locked_str <- paste0(summarise_replicate(locked, "dl_test", 1L,
+                                           bool_keep_trace = TRUE)$trace_vec,
+                       collapse = "\n")
+  open_str <- paste0(summarise_replicate(open, "dl_test", 1L,
+                                         bool_keep_trace = TRUE)$trace_vec,
+                     collapse = "\n")
+
+  expect_true(grepl("items=locked", locked_str, fixed = TRUE))
+  expect_true(grepl("items=open", open_str, fixed = TRUE))
+  expect_false(can_play_item(open$state))
 })
 
 test_that("a promotion names the mechanism that paid for it", {
@@ -463,6 +685,13 @@ test_that("traces show card names, not ids, and hide level-2 primitives", {
 })
 
 test_that("the trace stays compact enough to read many of at once", {
+  ## The cap was 12 lines and is now 18. That is a deliberate re-pricing, not a
+  ## drift: Kevin asked (2026-08-29) for a thorough record of the board at the
+  ## end of turn 2, which turned the one-line `end` summary into an eight-line
+  ## block naming every zone. The cap still exists, and still has to fail, if
+  ## the per-turn lines start sprawling -- that is the growth ADR 0006 was
+  ## worried about, since it scales with how much the policy does, whereas the
+  ## snapshot is a fixed cost per trace.
   card_df <- .test_card_df()
   decklist <- .test_decklist()
 
@@ -476,7 +705,7 @@ test_that("the trace stays compact enough to read many of at once", {
     result <- summarise_replicate(pair, "dl_test", one_seed,
                                   bool_keep_trace = TRUE)
 
-    expect_true(length(result$trace_vec) <= 12,
+    expect_true(length(result$trace_vec) <= 18,
                 info = paste0("seed ", one_seed, ": ",
                               length(result$trace_vec), " lines"))
   }

@@ -103,6 +103,10 @@ place_opening_pokemon <- function(state,
   state$bench_list <- lapply(bench_card_id_vec, function(one_id){
     new_in_play(one_id, turn_played = 0L)
   })
+  # Recorded separately from `active` because the Active changes: by the end of
+  # turn 2 it is usually a different Pokemon, and the lead is the thing an
+  # aggregate over the run has to group by.
+  state$lead_card_id <- canonical_card_id(active_card_id)
 
   .log_event(state, paste0("lead ", active_card_id,
                            if(length(bench_card_id_vec) == 0) "" else

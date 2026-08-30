@@ -94,7 +94,7 @@ Refer to these locations by name in prose, code comments, and session notes. To 
 
 ## Shared vocabulary and decisions
 - **`CONTEXT.md`** (project root) is the glossary — what this project's words mean. Read it before using a term like *turn*, *Bronzor*, *`[P]` source*, or *cell*; several of them are ambiguous in ordinary Pokémon TCG usage. Update it via `/domain-modeling` when a term settles.
-- **`docs/adr/`** holds numbered decision records — the choices that were expensive to make and would be surprising without context. Three exist; read them before revisiting the metric, the Salvatore ruling, or the information-hiding rule.
+- **`docs/adr/`** holds numbered decision records — the choices that were expensive to make and would be surprising without context. Seven exist; read them before revisiting the metric, the Salvatore ruling, the information-hiding rule, or the length of the measured window.
 
 ## Ground rules for this project
 - **Never invent card text.** Every card in `docs/cards/` is transcribed from a primary source (limitlesstcg.com, Bulbapedia, pokemon.com) with the set code, number, and regulation mark recorded, and the verification date noted. If a card cannot be verified it is marked `[UNVERIFIED]` rather than guessed. The transcription source has twice mis-rendered an **attack** as an **Ability** — re-query with a pointed question for any card whose details drive the decision tree.

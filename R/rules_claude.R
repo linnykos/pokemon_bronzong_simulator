@@ -104,11 +104,29 @@ can_play_item <- function(state){
   stopifnot(inherits(state, "bronzong_state"))
 
   if(!can_act(state)) return(FALSE)
-  if(state$scenario != "item_lock") return(TRUE)
+
+  !items_are_locked(state)
+}
+
+#' Is an opposing Itchy Pollen locking our Items this turn?
+#'
+#' Split out of \code{can_play_item()} so the end-of-window snapshot can report
+#' the lock without asking that question: `can_play_item()` is also FALSE once
+#' the turn is over, which is every trace, so it would report a lock in the
+#' `clear` scenario too.
+#'
+#' @param state a `"bronzong_state"`.
+#'
+#' @returns A single logical.
+#' @export
+items_are_locked <- function(state){
+  stopifnot(inherits(state, "bronzong_state"))
+
+  if(state$scenario != "item_lock") return(FALSE)
 
   # Itchy Pollen is an attack, so the opponent can only have used it if they
   # went second -- i.e. if we went first. It then lands on our turn 2.
-  !(state$bool_going_first && state$turn_number == 2L)
+  state$bool_going_first && state$turn_number == 2L
 }
 
 #' May there be room on the bench?

@@ -79,7 +79,10 @@ where a Supporter cannot otherwise be played but can be *found* for next turn.
 
 **Ciphermaniac's Codebreaking** (Supporter) — searches 2 cards and puts them **on top
 of the deck**, in a chosen order. Turn 2 draws exactly **one** of them. Stack the more
-urgent card on top. **Sets a `pending_stack` flag on the belief state**, and every
+urgent card on top. **Playable in exactly one cell: `P2T1`** — going second, on our
+own first turn. Going first no Supporter is legal on turn 1, and on turn 2 the draw
+step has already passed, so the stack is never reached inside the window
+(`docs/03_decision_tree.md` §6). **Sets a `pending_stack` flag on the belief state**, and every
 shuffling card must check it. Shuffles the deck *before* placing, so the stack survives
 only until the next shuffle.
 
@@ -112,6 +115,8 @@ neither the Supporter slot nor the retreat.
 `max(0, 5 - hand_size)` computed **after** the switch and after Surfer has left the
 hand; with a full hand it draws nothing. Costs the Supporter slot, so it loses to
 Switch whenever both are available and a Supporter is wanted for anything else.
+**No decklist runs it** — it is a candidate only, so Switch is the operative answer to
+sub-goal C in every list that exists today.
 
 **Latias ex — Skyliner** (Ability) — passive, works from the Bench, live the moment
 Latias ex is in play: **your Basic Pokémon have no Retreat Cost**. Makes the retreat
@@ -120,8 +125,12 @@ Note it does **not** help once Bronzong (a Stage 1) is Active — which is fine,
 we want it to stay.
 
 **Buneary — Run Around** (attack, `[C]`) — switch Buneary with a Benched Pokémon.
-Free positioning that costs the *turn* rather than a card, since attacking ends the
-turn. **Going second only.** Take it last, and only when nothing else remains.
+**Going second only**, and it is not free positioning: besides ending the turn, the
+`[C]` cost spends **the turn's one Energy attachment**, and the Energy then leaves
+with Buneary for the Bench, where it can never pay for Evolution Jammer. Pay it with
+**Enriching Energy** when possible; decline the attack outright when the only Energy
+in hand is a `[P]` source and no second one is held. Take it last, and only when
+sub-goal C has no other out (`docs/03_decision_tree.md` §4.2).
 
 **Retreat** — costs the retreat cost of the Pokémon **leaving** the Active spot, not
 the one being promoted. Once per turn. Free for Basics while Latias ex is in play.

@@ -28,6 +28,11 @@
 #'     \item{bench_list}{list of in-play records, at most 5.}
 #'     \item{stadium}{card id of the Stadium in play, or `NA`.}
 #'     \item{turn_number}{integer, this player's own turn count; 0 before play.}
+#'     \item{lead_card_id}{card id of the Basic placed as the Active during
+#'       setup, or `NA` before placement. Kept even after that Pokemon leaves
+#'       the Active spot: docs/03_decision_tree.md section 3 records the lead
+#'       order as an untested default, and settling it means grouping outcomes
+#'       by the lead across a whole run.}
 #'     \item{bool_going_first}{logical.}
 #'     \item{scenario}{character.}
 #'     \item{turn_flag_list}{per-turn limits; see \code{.new_turn_flags()}.}
@@ -57,6 +62,7 @@ new_game_state <- function(decklist,
                  bench_list = list(),
                  stadium = NA_character_,
                  turn_number = 0L,
+                 lead_card_id = NA_character_,
                  bool_going_first = bool_going_first,
                  scenario = scenario,
                  turn_flag_list = .new_turn_flags(),

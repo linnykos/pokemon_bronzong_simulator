@@ -110,6 +110,14 @@ _Avoid_: fail, brick
 
 ## Simulation
 
+**Measured window**:
+Setup through the end of the player's **own turn 2**. Nothing after it is played,
+decided, or recorded (ADR 0007) — there is no turn 3 in the simulator. Used
+throughout this file and already load-bearing before it was defined. Distinct
+from the **on time** bar, which is when the target event must happen: the bar
+could have been turn 2 while the engine played on, and deliberately is not.
+_Avoid_: horizon, simulation length
+
 **Replicate**:
 One simulated game: shuffle, prizes, mulligans, setup, and play through the
 measured window. The unit the outcome is counted over. Kevin's original phrase
@@ -163,8 +171,11 @@ _Avoid_: log, sample (bare)
 **Blocking sub-goal**:
 Which of the four sub-goals in `docs/03_decision_tree.md` §1 — A Bronzor in
 play, B Bronzong on it, C Bronzong Active, D a `[P]` source attached — was still
-unmet when the window closed. Reported as the **first** unmet one, since that is
-what actually stopped the line.
+unmet when the window closed. Reported as the **set** of unmet sub-goals, never
+as one: because the letters run A–D, reporting only the first meant C could
+appear only when A and B both held, which hid the very hypothesis the project
+exists to test. `first_unmet` is kept as a sortable rollup and is named so that
+nobody reads it as the cause.
 _Avoid_: failure reason, cause
 
 **Unused out**:
