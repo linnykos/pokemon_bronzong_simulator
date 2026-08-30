@@ -450,3 +450,91 @@ priors this document asserts and the traces are supposed to adjudicate.
 Note `docs/03a_card_playbook.md` still carries **four** unanswered questions of its
 own — Ultra Ball discard priority, the Telepathic Psychic Energy target, whether
 Mystery Garden is worth modelling, and Rare Candy → Dusknoir on a lost turn 2.
+
+---
+
+## 10. Open questions — the register
+
+Every rule this document states as a **default** rather than a ruling, numbered so
+an answer can name what it settles and a scenario can name what it probes.
+`docs/03b_scenarios.md` poses many of these as concrete positions instead of
+prose; the `S-nn` references point there.
+
+Answer in place — a sentence is enough, and "leave it" is an answer.
+
+### The goal and the resources (§1–§2)
+
+- **DT-01.** §1 asserts **C is the sub-goal that actually fails**. Over 1,000
+  replicates going second the unmet tally is A 82 / B 271 / C 328 / **D 445**, and
+  D is the largest. D can only be met once B and C are, so the ordering is not
+  clean evidence — but is the claim still the right one to build around, or is the
+  real constraint *the turn's single Energy attachment*?
+- **DT-02.** §2 makes Bench space a scarce resource and §4.2 step 6 has Telepathic
+  fetch two Basics to thin the deck. **These pull against each other.** Which wins
+  when the Bench has one slot left: hold it for Latias ex, or spend it thinning?
+  *(See S-11.)*
+
+### Setup (§3)
+
+- **DT-03.** Rank the non-Bronzor leads. The current order is a guess, and the
+  measured rates on decklist2 going second are Latias ex 65.6%, Kangaskhan 55.8%,
+  Budew 53.7%, Duskull 49.4%, Meowth ex 46.2%, Buneary 40.2%, Flutter Mane 35.7%.
+- **DT-04.** Is there a hand where you would lead **Mega Kangaskhan ex over a
+  Bronzor** — taking the Run Errand draw and benching the Bronzor instead? *(See
+  S-02.)*
+- **DT-05.** "Bench nothing at setup" is stated absolutely. Does it survive an
+  opening hand of Bronzor plus Latias ex plus three other Basics, where the Bench
+  will certainly be wanted?
+- **DT-06.** Buneary's rank going second. Its case is Run Around, which §4.2 then
+  makes a last resort — is the lead worth anything once the attack usually is not
+  taken? *(See S-08.)*
+- **DT-07.** §3's Budew entry is conditioned on a case this project cannot
+  produce. Delete the condition, change the scenario list, or leave Budew ranked
+  where it is by default?
+
+### Positioning (§4.3) and benching (§4.4)
+
+- **DT-08.** Free retreat before Switch, always? *(See S-01.)*
+- **DT-09.** When the retreat is free **and** a Switch is in hand, is the Switch
+  worth keeping for a turn-2 repositioning that may never be needed?
+- **DT-10.** Bench Latias ex "always, at the first opportunity" — even when the
+  slot is the last one and a Telepathic fetch wants it? *(See S-11.)*
+- **DT-11.** Run Errand is taken unconditionally (§4.5). Is there a state where
+  two more cards are unwanted — drawing past a Ciphermaniac's stack, say?
+- **DT-12.** Going first with no Bronzor in play, the policy attaches Telepathic
+  to whatever `[P]` body it has, purely to fire the search, and strands the Energy
+  there. Right, or is the attachment worth saving? *(See S-09, S-12.)*
+
+### The Supporter (§6)
+
+- **DT-13.** **Salvatore on turn 2.** Priority 1 reads "never otherwise on turn
+  1", which taken literally means never on turn 2 either — but there it still
+  fetches Bronzong *and* evolves in one card. Rank it against Hilda. *(See S-06,
+  which arises in 23% of games.)*
+- **DT-14.** Hilda is skipped when she can fetch *nothing*. What if she can fetch
+  only **one** of her two targets — still the best use of the slot? *(See S-04.)*
+- **DT-15.** "Hand is weak" for Lillie's is four cards or fewer. Is four right,
+  and should the *contents* matter rather than the count? *(See S-03.)*
+- **DT-16.** Surfer beats Switch "on a nearly empty hand". How empty? No decklist
+  runs Surfer, so this only binds if one does.
+- **DT-17.** Ciphermaniac's is confined to `P2T1`. Within that cell, which boards
+  make stacking better than Hilda or Lillie's? *(See S-05.)*
+- **DT-18.** Is there a Supporter you would play that this table never reaches?
+
+### Turn 2 and the non-goals (§7–§8)
+
+- **DT-19.** Does the going-first branch want a different lead order from §3, or
+  the same one? Going first cannot attack on turn 1, which changes what a lead is
+  for. *(See S-09.)*
+- **DT-20.** Under `item_lock` on turn 2 the Items in hand are dead. Does anything
+  else about the turn change — the Supporter choice, the attachment target, what
+  was held back on turn 1? *(See S-10, which is 47% of that cell.)*
+- **DT-21.** The **pending-stack guard** (§7 step 1) costs nothing and saves
+  nothing measurable. Keep it as correct-by-construction, or drop it as a rule
+  that only ever forfeits a search?
+- **DT-22.** Is the **Cursed Blast escape** worth the policy building toward — a
+  Duskull Active kept deliberately so Rare Candy → Dusknoir can promote a benched
+  Bronzor — or is it a line to take only when it falls in your lap?
+- **DT-23.** §8 forbids Rare Candy → Dusknoir on turn 2. On a turn where Bronzong
+  is provably unreachable, the replicate is already a miss — does the board state
+  it leaves behind matter enough to take the evolution anyway?

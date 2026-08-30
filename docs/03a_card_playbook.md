@@ -231,13 +231,57 @@ us it lands on **our turn 2**, disabling Switch, Rare Candy, Ultra Ball, Poké P
 Buddy-Buddy Poffin, and Pokégear 3.0 — which is why the turn-1 build order tries to
 finish sub-goals A, C, and D on turn 1 rather than deferring them.
 
-## Open questions for Kevin
 
-1. **Ultra Ball discard order** — is that priority list right? In particular, is
-   discarding a second Bronzong ever correct, given there are only 2?
-2. **Telepathic Psychic Energy** — when both a Metal Bronzor and a `[P]` Bronzor are
-   options for the attachment, should the policy prefer the `[P]` one purely to fire
-   the search?
-3. **Mystery Garden** — worth modelling at all, or leave it fully inert?
-4. Should **Rare Candy → Dusknoir** ever be taken on turn 2 when Bronzong is
-   unreachable, on the grounds that the replicate is already a miss?
+
+---
+
+## Open questions — the register
+
+Numbered so an answer names what it settles. `docs/03b_scenarios.md` poses several
+of these as concrete positions; the `S-nn` references point there. The `DT-nn`
+questions live in `docs/03_decision_tree.md` §10.
+
+### The want-list
+
+- **PB-01.** Should each search card have its **own stopping point** on the list?
+  Poké Pad is free and can afford to reach item 8; Ultra Ball costs two discards
+  and probably should not reach item 6. Where does each card stop?
+- **PB-02.** **Meowth ex is item 7, and Poffin and Telepathic put it on the Bench**,
+  where Last-Ditch Catch never triggers. Should the bench-placing searches skip it
+  outright, or is a body worth the slot anyway?
+- **PB-03.** Item 6, "a second Bronzor as insurance" — insurance against a Knock
+  Out that cannot happen inside this window. Worth a search, or an item that only
+  makes sense in a longer game? *(See S-11.)*
+- **PB-04.** Item 5 is Switch, which only **Ciphermaniac's** can actually fetch, since
+  nothing else in the deck searches Trainers. Should Ciphermaniac's stack a Switch
+  when sub-goal C is the blocker? *(See S-05.)*
+
+### Individual cards
+
+- **PB-05.** The **Ultra Ball discard order** — is it right? Is discarding a
+  surplus Bronzong ever correct when there are only 2 in the deck? *(See S-07.)*
+- **PB-06.** The **never-discard list** protects the only Switch "when Bronzor is
+  benched". It is worth 5 points as it stands. Should it also protect the only
+  Poké Pad, or Lillie's on a hand that is about to need it?
+- **PB-07.** **Poké Pad** ends up being the card that finds Bronzong, because it
+  cannot fetch Latias ex. Is that the right division of labour, or should Poké Pad
+  chase the Bronzor and Ultra Ball the Bronzong?
+- **PB-08.** **Telepathic Psychic Energy** — with both a Metal Bronzor and a `[P]`
+  Bronzor available as recipients, prefer the `[P]` one purely to fire the search?
+  No decklist runs a Metal Bronzor today, so this binds only if one is added.
+- **PB-09.** **Enriching Energy** draws 4 but provides `[C]`. It is currently never
+  attached at all. Is there a turn-1 hand where the draw is worth the attachment?
+- **PB-10.** **Night Stretcher** is modelled as inert. It recovers a Pokémon or a
+  Basic Energy from the discard — is there a line where recovering a discarded
+  Bronzor or Psychic Energy matters inside two turns?
+- **PB-11.** **Which Stadium** to play when holding two, and whether Jamming Tower
+  or Nighttime Mine ever works against us.
+- **PB-12.** **Mystery Garden** — worth modelling, or leave it inert? Its text is a
+  live turn-1/2 draw effect, so "inert" is currently a known simplification. It is
+  in no decklist, so this binds only if it is added.
+- **PB-13.** **Rare Candy → Dusknoir** on a turn where Bronzong is unreachable —
+  the replicate is already a miss, so does the board it leaves behind justify the
+  evolution? *(Also DT-23.)*
+- **PB-14.** **Boss's Orders** and **Special Red Card** have no effect functions at
+  all. Both are genuinely inert for this metric — but Boss's Orders occupies 2
+  slots in decklist2. Is it earning them?

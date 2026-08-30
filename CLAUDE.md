@@ -53,7 +53,9 @@ Paths here are relative to the project root and are the same for everyone.
 | `docs/01_rules_standard.md` | Standard-format rules reference (part 1) |
 | `docs/02_cards.md` | Card index + cross-decklist count matrix |
 | `docs/cards/` | Verbatim card text, one file per card (part 2) |
-| `docs/03_decision_tree.md` | English decision tree for turns 1–2 (part 3) — *not yet written* |
+| `docs/03_decision_tree.md` | English decision tree for turns 1–2 (part 3). §10 is the open-question register (`DT-nn`) |
+| `docs/03a_card_playbook.md` | Per-card rules, and the `PB-nn` question register |
+| `docs/03b_scenarios.md` | Board positions for Kevin to answer, with the tree's own answer held back to appendix A |
 | `docs/adr/` | Numbered decision records — the evolution of the project's ideas |
 | `CONTEXT.md` | Shared glossary: what this project's words mean |
 | `R/` | Simulator source (parts 4–5) — *not yet written* |
@@ -118,6 +120,10 @@ What that means in practice:
 - **Run `/align-decision-tree`** after any edit to either document. It audits both
   directions, fixes the code, adds the tests, and drafts the document wording for
   anything the code does that the documents do not yet say.
+- **Run `/generate-scenarios`** when a rule is a default rather than a ruling. It
+  turns the `DT-nn` and `PB-nn` questions into real board positions in
+  `docs/03b_scenarios.md`, each with the frequency it arises at, so Kevin answers
+  the ones that matter first.
 
 ## Ground rules for this project
 - **Never invent card text.** Every card in `docs/cards/` is transcribed from a primary source (limitlesstcg.com, Bulbapedia, pokemon.com) with the set code, number, and regulation mark recorded, and the verification date noted. If a card cannot be verified it is marked `[UNVERIFIED]` rather than guessed. The transcription source has twice mis-rendered an **attack** as an **Ability** — re-query with a pointed question for any card whose details drive the decision tree.
