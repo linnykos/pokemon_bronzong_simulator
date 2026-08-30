@@ -97,6 +97,28 @@ Refer to these locations by name in prose, code comments, and session notes. To 
 - **`CONTEXT.md`** (project root) is the glossary — what this project's words mean. Read it before using a term like *turn*, *Bronzor*, *`[P]` source*, or *cell*; several of them are ambiguous in ordinary Pokémon TCG usage. Update it via `/domain-modeling` when a term settles.
 - **`docs/adr/`** holds numbered decision records — the choices that were expensive to make and would be surprising without context. Seven exist; read them before revisiting the metric, the Salvatore ruling, the information-hiding rule, or the length of the measured window.
 
+## The decision documents are the specification
+
+**Kevin edits `docs/03_decision_tree.md` and `docs/03a_card_playbook.md`. He does not
+edit the R.** Those two files are the specification; `R/decision_claude.R` is a
+translation of them, and after any edit the **code is brought back into line with the
+documents**, never the reverse.
+
+What that means in practice:
+
+- **A disagreement between the two is a code defect by default.** Fix the policy, and
+  add a test citing the section it came from, so a later edit to that section fails
+  loudly instead of drifting.
+- **The exception is a behaviour the documents do not describe at all.** Do not
+  silently delete it and do not silently keep it — propose the wording and let Kevin
+  decide, because the documents are his.
+- **`R/decision_claude.R` opens with a section → function table.** Keep it current; it
+  is what makes "§4.3 changed, so `.policy_position()` changes" a lookup rather than a
+  search.
+- **Run `/align-decision-tree`** after any edit to either document. It audits both
+  directions, fixes the code, adds the tests, and drafts the document wording for
+  anything the code does that the documents do not yet say.
+
 ## Ground rules for this project
 - **Never invent card text.** Every card in `docs/cards/` is transcribed from a primary source (limitlesstcg.com, Bulbapedia, pokemon.com) with the set code, number, and regulation mark recorded, and the verification date noted. If a card cannot be verified it is marked `[UNVERIFIED]` rather than guessed. The transcription source has twice mis-rendered an **attack** as an **Ability** — re-query with a pointed question for any card whose details drive the decision tree.
 - **Never let the decision logic peek at hidden information.** Prizes and deck order are hidden from the player. The simulator's policy code may only read what a real player would know at that moment. A search that fails because the card is prized is *information the player earns*, not something the policy may assume. This is the easiest way to produce a silently wrong consistency number.

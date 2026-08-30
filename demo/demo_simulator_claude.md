@@ -154,7 +154,7 @@ writeLines(readable_log(pair$state, turn_number = 2L))
 ```
 promote Bronzor(TEF) via retreat(free)
 attach TelepathicPsychicEnergy to Bronzor(TEF)
-Telepathic Psychic Energy -> Duskull
+Telepathic Psychic Energy -> Bronzor(TEF), Duskull
 ```
 
 ## What the window closed on
@@ -175,13 +175,13 @@ writeLines(result$trace_vec)
   !! a turn ended with the Supporter slot unspent
   setup hand[RareCandy+RareCandy+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Dusknoir+FlutterMane+Salvatore] | lead FlutterMane
   T1    attach TelepathicPsychicEnergy to FlutterMane | Telepathic Psychic Energy -> Bronzor(TEF), Latiasex
-  T2    promote Bronzor(TEF) via retreat(free) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Duskull
+  T2    promote Bronzor(TEF) via retreat(free) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Bronzor(TEF), Duskull
   end of turn 2 -- board state when the window closed; setup lead=FlutterMane
     active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
-    bench    FlutterMane[P]{TelepathicPsychicEnergy} played=T0 | Latiasex[P] played=T1 | Duskull[P] played=T2
+    bench    FlutterMane[P]{TelepathicPsychicEnergy} played=T0 | Latiasex[P] played=T1 | Bronzor(TEF)[P] played=T2 | Duskull[P] played=T2
     hand     Salvatore, RareCandy, RareCandy, Dusknoir, BosssOrders, Dusknoir
     discard  -
-    zones    deck=42 prizes=6 stadium=-
+    zones    deck=41 prizes=6 stadium=-
     turn     energy=spent supporter=unplayed items=open
     prized   GROUND TRUTH, never visible to the policy (ADR 0003): Duskull, Budew, PokePad, Bronzong, NightStretcher, TelepathicPsychicEnergy
 ```
@@ -227,8 +227,8 @@ data.frame(cell = c("going second", "going first"),
 
 ```
           cell hit_rate turn1 turn2 never
-1 going second    0.508    12   496   492
-2  going first    0.499     0   499   501
+1 going second    0.526    12   514   474
+2  going first    0.534     0   534   466
 ```
 
 Going second hits on turn 1 sometimes and going first never does — that is
@@ -269,10 +269,10 @@ data.frame(subgoal = names(SUBGOAL_VEC),
 
 ```
   subgoal          meaning going_second going_first
-1       A  bronzor_in_play          115         111
-2       B   bronzong_on_it          284         288
-3       C  bronzong_active          347         401
-4       D psychic_attached          467         415
+1       A  bronzor_in_play           82          72
+2       B   bronzong_on_it          271         268
+3       C  bronzong_active          328         356
+4       D psychic_attached          445         397
 ```
 
 §1 of the decision tree claims **C is the sub-goal that actually fails** —
@@ -294,14 +294,14 @@ lead_df[order(-lead_df$hit_rate), c("lead", "num_replicates", "num_hit",
 
 ```
                 lead num_replicates num_hit  hit_rate
-7            Bronzor            251     171 0.6812749
-6          Latias ex             32      20 0.6250000
-1              Budew             41      22 0.5365854
-5            Duskull            243     119 0.4897119
-3            Buneary            164      68 0.4146341
-2 Mega Kangaskhan ex            215      88 0.4093023
+7            Bronzor            251     164 0.6533865
+6          Latias ex             32      19 0.5937500
+2 Mega Kangaskhan ex            215     120 0.5581395
+1              Budew             41      21 0.5121951
+5            Duskull            243     115 0.4732510
+3            Buneary            164      66 0.4024390
+8       Flutter Mane             28      11 0.3928571
 4          Meowth ex             26      10 0.3846154
-8       Flutter Mane             28      10 0.3571429
 ```
 
 ``` r
@@ -322,13 +322,18 @@ than any other lead, which is what §3 assumes.
 policy before they are worth acting on:
 
 
-- **Mega Kangaskhan ex is §3's recommended non-Bronzor lead and comes out near
-  the bottom** (40.9%, n = 215).
-  That is partly real and partly an artefact: the policy never uses Run Errand,
-  so leading Kangaskhan currently draws nothing and the lead is being judged
-  with its whole upside switched off.
+- **§3's choice of Mega Kangaskhan ex looks right, but only once Run Errand is
+  actually used** (55.8%, n = 215).
+  In the first draft of this policy it came out near the bottom at 40.9%, purely
+  because the policy never used the Ability. Implementing a two-card draw moved
+  one lead by 15 points — worth remembering before reading any of these numbers
+  as facts about the *deck* rather than about the *policy*.
+- **Buneary is §3's second choice and comes out second from last**
+  (40.2%, n = 164). Its whole case is Run
+  Around, which §4.2 then makes a last resort because it spends the turn's
+  Energy attachment. That may be the tree disagreeing with itself.
 - **Latias ex is the best non-Bronzor lead here**
-  (62.5%, n = 32), and §3 says to lead it
+  (59.4%, n = 32), and §3 says to lead it
   only when nothing else is available. Skyliner works from the Bench, so the
   tree's reasoning is sound — but leading it does get the free retreat online on
   turn 1 with no card spent. The sample is small; treat it as a question, not a
@@ -353,15 +358,15 @@ data.frame(motif = as.character(MOTIF_VEC),
 ```
                                                   motif going_second
 1 Telepathic attached to a Colorless body (search dead)            0
-2                a search resolved with no target named           71
-3        Bronzor/Bronzong in play but never made Active           94
-4          a turn ended with the Supporter slot unspent          473
+2                a search resolved with no target named           64
+3        Bronzor/Bronzong in play but never made Active           89
+4          a turn ended with the Supporter slot unspent          440
 5   combo assembled but Evolution Jammer never declared            0
   going_first
 1           0
-2          80
-3         165
-4         307
+2          66
+3         141
+4         292
 5           0
 ```
 
@@ -404,20 +409,17 @@ writeLines(line_vec[start_idx[1]:(start_idx[3] - 1)])
 ```
 
 ```
-#1/10 seed=1  MISS unmet=A,B,C,D first=A
-  !! PLAYABLE OUT unused: TelepathicPsychicEnergy
-  !! a search resolved with no target named
-  !! a turn ended with the Supporter slot unspent
+#1/10 seed=1  HIT t2
   setup hand[Budew+MegaKangaskhanex+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Hilda] | lead MegaKangaskhanex
-  T1    hand[Budew+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Dusknoir+Hilda] | Hilda (evolution) -> Bronzong | Hilda (energy) -> DECLINED (no target named)
-  T2    hand[Budew+LilliesDetermination+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Dusknoir+Bronzong]
+  T1    hand[Budew+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Dusknoir+Hilda] | Run Errand | bench Latiasex | Hilda (evolution) -> Bronzong | Hilda (energy) -> DECLINED (no target named) | attach TelepathicPsychicEnergy to Latiasex | Telepathic Psychic Energy -> Bronzor(TEF)
+  T2    hand[Budew+LilliesDetermination+Buneary+PokePad+Duskull+Dusknoir+Dusknoir+Bronzong] | Run Errand | Poke Pad -> Duskull | promote Bronzor(TEF) via retreat(free) | Hilda (evolution) -> DECLINED (no target named) | Hilda (energy) -> TelepathicPsychicEnergy | evolve into Bronzong | attach TelepathicPsychicEnergy to Bronzong | Telepathic Psychic Energy -> Duskull, FlutterMane | EVOLUTION JAMMER
   end of turn 2 -- board state when the window closed; setup lead=MegaKangaskhanex
-    active   MegaKangaskhanex[C] played=T0
-    bench    -
-    hand     Duskull, Budew, TelepathicPsychicEnergy, Buneary, Dusknoir, Dusknoir, Bronzong, LilliesDetermination
-    discard  Hilda
-    zones    deck=44 prizes=6 stadium=-
-    turn     energy=unspent supporter=unplayed items=open
+    active   Bronzor(TEF)>Bronzong[P]{TelepathicPsychicEnergy} played=T1 evo=T2
+    bench    Latiasex[P]{TelepathicPsychicEnergy} played=T1 | MegaKangaskhanex[C] played=T0 | Duskull[P] played=T2 | FlutterMane[P] played=T2
+    hand     Duskull, Budew, Buneary, Dusknoir, Dusknoir, LilliesDetermination, Duskull, Duskull
+    discard  Hilda, PokePad, Hilda
+    zones    deck=35 prizes=6 stadium=-
+    turn     energy=spent supporter=played items=open
     prized   GROUND TRUTH, never visible to the policy (ADR 0003): RareCandy, Switch, Bronzong, TelepathicPsychicEnergy, UltraBall, Bronzor(TEF)
 
 #2/10 seed=2 mull=1  MISS unmet=C,D first=C
@@ -425,12 +427,12 @@ writeLines(line_vec[start_idx[1]:(start_idx[3] - 1)])
   !! a turn ended with the Supporter slot unspent
   setup hand[Budew+UltraBall+Meowthex+Duskull+Duskull+Bronzong+FlutterMane] | lead Duskull
   T1    hand[Budew+MegaKangaskhanex+UltraBall+Meowthex+Duskull+Bronzong+FlutterMane] | bench Meowthex | Last-Ditch Catch -> Salvatore | Ultra Ball -> Bronzor(TEF) | bench Bronzor(TEF)
-  T2    hand[MegaKangaskhanex+RareCandy+Duskull+Bronzong+Salvatore] | evolve into Bronzong
+  T2    hand[Budew+MegaKangaskhanex+RareCandy+Bronzong+Salvatore] | evolve into Bronzong
   end of turn 2 -- board state when the window closed; setup lead=Duskull
     active   Duskull[P] played=T0
     bench    Meowthex[C] played=T1 | Bronzor(TEF)>Bronzong[P] played=T1 evo=T2
-    hand     Duskull, MegaKangaskhanex, Salvatore, RareCandy
-    discard  UltraBall, FlutterMane, Budew
+    hand     Budew, MegaKangaskhanex, Salvatore, RareCandy
+    discard  UltraBall, Duskull, FlutterMane
     zones    deck=43 prizes=6 stadium=-
     turn     energy=unspent supporter=unplayed items=open
     prized   GROUND TRUTH, never visible to the policy (ADR 0003): Hilda, Switch, Hilda, TelepathicPsychicEnergy, Dusknoir, LilliesDetermination
@@ -463,18 +465,19 @@ been worth having, since it reveals the prize.
 Stated plainly so your feedback lands on decisions rather than on known gaps.
 
 - **It leaves the Supporter slot unspent far too often** — the single biggest
-  motif count above. It plays Hilda when Hilda is in hand and mostly nothing
-  otherwise; Brock's Scouting, Lillie's and Ciphermaniac's are all implemented
-  but rarely chosen.
+  motif count above. Every Supporter in the deck is implemented, but the policy
+  reaches for Hilda first and often finds nothing else it judges worth playing.
+  Note this count went *up* when the policy got better: a Hilda played to fetch
+  nothing used to count as the slot being spent.
 - **It never plays Pokégear 3.0**, which is the only Item that digs for a
   Supporter and is exactly what the going-first branch lacks.
 - **It never takes the Cursed Blast escape** (§8). The machinery exists —
   `play_rare_candy()`, `use_cursed_blast()`, `knock_out()` — but the policy
   never sets up the Duskull-Active line that reaches it.
-- **It does not use Mega Kangaskhan ex's Run Errand**, so leading Kangaskhan
-  currently draws no cards, which makes the lead table above unfair to it.
 - **Retreat is only taken when free.** A paid retreat is never considered, even
   when the Energy spent would have been wasted anyway.
+- **Boss's Orders is the one Supporter with no implementation**, deliberately:
+  it moves the *opponent's* Pokémon, and no opponent is modelled.
 - **The `item_lock` scenario is not shown here** — only `clear`. It is
   implemented and runs; it just is not in this document.
 

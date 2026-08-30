@@ -24,9 +24,33 @@ highest-priority item the card is legally able to fetch.
 7. **Meowth ex** — if a Supporter is still wanted and Meowth ex is unplayed
 8. **Duskull** — filler, and a legal Poffin/Telepathic target
 
+**Item 4 moves to the front when sub-goal C is blocked** — the line is in play, on
+the Bench, and neither a free retreat nor a Switch can move it. Latias ex stops
+being a nice-to-have and becomes the missing piece, and only Ultra Ball and Brock's
+Scouting can fetch it. That is also why Poké Pad ends up being the card that finds
+Bronzong: it cannot fetch a Rule Box.
+
 The rule for every search card is: *walk this list, skip anything this card cannot
 legally fetch, take the first hit*. A search that finds nothing is a **whiff**, and the
 whiff updates the belief state (ADR 0003) — the searched cards are now known.
+
+> **One list, cards with very different costs — and it shows.** Walking the same
+> list to the same depth is wrong in two measured ways, and this is the open
+> question the list most needs answering.
+>
+> **A floor, per card.** Poké Pad is free, so reaching item 6 costs nothing. Ultra
+> Ball costs **two discarded cards**, so paying that for "a second Bronzor as
+> insurance" is a bad trade. Adding items 6 and 7 to this list cost **1.4
+> percentage points** (53.9% → 52.6%, 1,000 replicates going second on decklist2)
+> almost entirely through the hand-fetching cards spending themselves on insurance
+> once the useful targets had whiffed. Each card probably needs its own stopping
+> point, not just its own legality filter.
+>
+> **Where the fetch lands.** Poffin and Telepathic put Basics **on the Bench**, not
+> in hand. So item 7 is actively wrong for them: **Meowth ex fetched onto the Bench
+> never triggers Last-Ditch Catch**, because the Ability fires only when it is
+> played from hand. A search that "finds" Meowth ex this way spends a Bench slot
+> and gets nothing.
 
 ---
 
@@ -46,6 +70,11 @@ surplus Rare Candy → a Stadium → Flutter Mane → surplus Bronzong beyond 1.
 only Switch when Bronzor is benched, or Salvatore on a live turn-1 kill.
 If fewer than 2 discardable cards remain by that rule, Ultra Ball is unplayable.
 Shuffles. **It is the only Item that finds Latias ex.**
+
+**The never-discard list is worth 5 percentage points** — 47.6% without it against
+52.6% with, 1,000 replicates going second on decklist2. Whatever happens to the
+*order* above, that protection is doing real work and should not be relaxed
+casually.
 
 **Buddy-Buddy Poffin** (Item) — free, puts up to **2 Basic Pokémon with 70 HP or less**
 directly onto the **Bench**. Eligible in these lists: Bronzor PRE 66 (70), Bronzor SSP

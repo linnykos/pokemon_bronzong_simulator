@@ -243,11 +243,16 @@ rate_of <- function(name_str){
 n_of <- function(name_str) lead_df$num_replicates[lead_df$lead == name_str]
 ```
 
-- **Mega Kangaskhan ex is §3's recommended non-Bronzor lead and comes out near
-  the bottom** (`r rate_of("Mega Kangaskhan ex")`, n = `r n_of("Mega Kangaskhan ex")`).
-  That is partly real and partly an artefact: the policy never uses Run Errand,
-  so leading Kangaskhan currently draws nothing and the lead is being judged
-  with its whole upside switched off.
+- **§3's choice of Mega Kangaskhan ex looks right, but only once Run Errand is
+  actually used** (`r rate_of("Mega Kangaskhan ex")`, n = `r n_of("Mega Kangaskhan ex")`).
+  In the first draft of this policy it came out near the bottom at 40.9%, purely
+  because the policy never used the Ability. Implementing a two-card draw moved
+  one lead by 15 points — worth remembering before reading any of these numbers
+  as facts about the *deck* rather than about the *policy*.
+- **Buneary is §3's second choice and comes out second from last**
+  (`r rate_of("Buneary")`, n = `r n_of("Buneary")`). Its whole case is Run
+  Around, which §4.2 then makes a last resort because it spends the turn's
+  Energy attachment. That may be the tree disagreeing with itself.
 - **Latias ex is the best non-Bronzor lead here**
   (`r rate_of("Latias ex")`, n = `r n_of("Latias ex")`), and §3 says to lead it
   only when nothing else is available. Skyliner works from the Bench, so the
@@ -335,18 +340,19 @@ been worth having, since it reveals the prize.
 Stated plainly so your feedback lands on decisions rather than on known gaps.
 
 - **It leaves the Supporter slot unspent far too often** — the single biggest
-  motif count above. It plays Hilda when Hilda is in hand and mostly nothing
-  otherwise; Brock's Scouting, Lillie's and Ciphermaniac's are all implemented
-  but rarely chosen.
+  motif count above. Every Supporter in the deck is implemented, but the policy
+  reaches for Hilda first and often finds nothing else it judges worth playing.
+  Note this count went *up* when the policy got better: a Hilda played to fetch
+  nothing used to count as the slot being spent.
 - **It never plays Pokégear 3.0**, which is the only Item that digs for a
   Supporter and is exactly what the going-first branch lacks.
 - **It never takes the Cursed Blast escape** (§8). The machinery exists —
   `play_rare_candy()`, `use_cursed_blast()`, `knock_out()` — but the policy
   never sets up the Duskull-Active line that reaches it.
-- **It does not use Mega Kangaskhan ex's Run Errand**, so leading Kangaskhan
-  currently draws no cards, which makes the lead table above unfair to it.
 - **Retreat is only taken when free.** A paid retreat is never considered, even
   when the Energy spent would have been wasted anyway.
+- **Boss's Orders is the one Supporter with no implementation**, deliberately:
+  it moves the *opponent's* Pokémon, and no opponent is modelled.
 - **The `item_lock` scenario is not shown here** — only `clear`. It is
   implemented and runs; it just is not in this document.
 
