@@ -4,11 +4,14 @@
 Kevin edits here; the code is realigned afterwards, never the other way round
 (`CLAUDE.md` → *The decision documents are the specification*). As of 2026-08-30
 the two agree, so any divergence from here is a deliberate edit rather than drift.
-§9 records the answers and corrections so far. Two of them were *"decide it from
-the simulation logs"*, so §3's lead order and §6's use of Ciphermaniac's are
-written as defaults the traces are expected to overturn or confirm.
 
-Where a rule below is **specified and not implemented**, it says so in place.
+**This file states the tree as it stands, in the present tense, and nothing else.**
+A rule written as a **default** rather than a ruling says so in place and carries a
+`DT-nn` entry in §9; §3's lead order is the largest of them. Where a rule is
+**specified and not implemented**, it says that in place too.
+
+How a rule came to read the way it does is not here — that is `HISTORY_kevin.md`,
+or an ADR this file cites by number.
 
 Companion file: `docs/03a_card_playbook.md` gives the per-card rules — when each card
 is played, what it searches for, what it discards. This file gives the *shape* of the
@@ -61,11 +64,9 @@ wants it to use Run Errand (draw 2). Flutter Mane wants it for Midnight Flutteri
 Budew wants it to attack Itchy Pollen. These are mutually exclusive on turn 1 unless a
 free switch exists.
 
-**Bench space (five slots, and one of them is spoken for).** Kevin, 2026-08-29: *"be
-sure to not overfill bench spaces… One of them (realistically) has to be saved for
-Latias."* This is the conflict that constrains the other three, and the draft of this
-document ignored it — three separate sections said to bench every Basic in hand, as
-though a body on the Bench were free. It is not:
+**Bench space (five slots, and one of them is spoken for).** Do not overfill the
+Bench; one slot, realistically, is saved for Latias ex. This is the conflict that
+constrains the other three, and a body on the Bench is not free:
 
 - **A benched Basic cannot be un-benched.** Playing it converts a card that still had
   options — an Ultra Ball discard, a Lillie's redraw — into a body that does nothing
@@ -85,10 +86,9 @@ is free or expensive.
 Supporter slot, no Energy — and it satisfies C outright. Every alternative to leading
 Bronzor costs a card that could have gone to A, B, or D instead.
 
-**The no-Bronzor order below is a default, not a ruling** (Kevin, 2026-08-29: *"I'm
-not entirely sure, but this is one of the things that we'll have to optimize based on
-the simulation logs."*). It has the same evidentiary status as the §1 claim that C is
-the sub-goal that actually fails: a prior to be tested, not a fact. Two consequences
+**The no-Bronzor order below is a default, not a ruling** — it is to be optimized from
+the simulation logs (DT-03). It has the same evidentiary status as the §1 claim that C
+is the sub-goal that actually fails: a prior to be tested, not a fact. Two consequences
 for parts 5 and 6 —
 
 - the lead order is a **policy parameter** that part 6 varies across runs, not a
@@ -118,7 +118,7 @@ none of the rest:
 6. **Flutter Mane / Latias ex** — lead only if nothing else is available. Latias ex is
    far more valuable benched, where Skyliner still works and it is not exposed.
 
-**Bench nothing at setup** (Kevin, 2026-08-29). Place the Active and stop; every other
+**Bench nothing at setup.** Place the Active and stop; every other
 Basic stays in hand, where benching it later is a *decision* taken with information
 rather than a placement made blind. Latias ex included — Skyliner does nothing before
 our first turn anyway, and benching it on turn 1 costs the same nothing. Meowth ex in
@@ -142,16 +142,17 @@ Bronzor is Active (or can be made Active for free), **Salvatore** is in hand, a
 
 1. Play the free Items — Poké Pad, Buddy-Buddy Poffin, Ultra Ball — to find the `[P]`
    source or a Bronzor if either is missing. **The order against Salvatore does not
-   matter** (Kevin, 2026-08-29); the draft claimed it did, on the grounds that
-   Salvatore shuffles. A shuffle costs nothing when every play involved is a *search*.
-   Only two orderings actually bind anywhere in this document, and neither is this
-   one: a pending **Ciphermaniac's** stack versus any shuffling card (§5, §7), and
+   matter**: a shuffle costs nothing when every play involved is a *search*. Only two
+   orderings actually bind anywhere in this document, and neither is this one: a
+   pending **Ciphermaniac's** stack versus any shuffling card (§5, §7), and
    **Lillie's Determination**, which shuffles the hand into the deck and so must come
    after everything you meant to play (§6).
 2. If Bronzor is benched rather than Active, move it — see **§4.3** for the ladder.
    Within *this* line the Supporter slot is Salvatore's, so Surfer is unavailable
    whatever the hand looks like: playing it does not lose the switch, it loses the
-   turn-1 kill.
+   turn-1 kill. **Switch beats Surfer here on the simpler ground too — no decklist
+   runs Surfer at all**, so Switch is the operative second rung in every list that
+   exists today.
 3. Play **Salvatore** → fetch Bronzong, evolve the Bronzor.
 4. Attach the `[P]` source to Bronzong.
 5. Attack Evolution Jammer. **Turn ends immediately.**
@@ -166,7 +167,7 @@ forfeits every remaining play. The two exceptions worth taking, and they are **n
 symmetric:
 
 - **Buneary's Run Around**, when Bronzor is benched and no Switch is available: it
-  puts Bronzor Active for turn 2. **It is a last resort** (Kevin, 2026-08-29), because
+  puts Bronzor Active for turn 2. **It is a last resort**, because
   it costs more than the turn. Run Around costs `[C]`
   (`docs/cards/PFL-083-buneary.md`), so it consumes **the turn's one Energy
   attachment** — the same resource sub-goal D needs — and the attached Energy then
@@ -195,12 +196,21 @@ Otherwise the turn-1 build order is:
    then **Ultra Ball** only if its two-card discard is affordable.
 4. Get Bronzor Active if it is not — the ladder in §4.3.
 5. Play the Supporter — see §6 for which.
-6. Attach the `[P]` source to **Bronzor**, so turn 2's attachment is free.
-   Prefer **Telepathic Psychic Energy** here if Bronzor is the `[P]` printing, since
-   the attach also searches two Basics onto the Bench. **Take both targets, even
-   when only one is wanted** — every card pulled out of the deck also *thins* it,
-   and a thinner deck is a better chance the next draw is the Bronzong the turn is
-   missing. Bench space is the only cap (§4.4).
+6. Attach the `[P]` source to **Bronzor**, so turn 2's attachment is free — but
+   **only while sub-goal D is unmet**. Once the Bronzor that will attack already
+   carries a `[P]` source, the attachment is spent and a second Energy buys
+   nothing: D is paid, and Evolution Jammer costs one `[P]` and no more. A second
+   Telepathic in hand is **not** a reason to attach for the search's sake, because
+   the fetch fills Bench slots §4.4 is holding for Latias ex.
+
+   Prefer **Telepathic Psychic Energy** for the attachment that *does* pay D, if
+   Bronzor is the `[P]` printing, since the attach also searches two Basics onto
+   the Bench. That preference is a tie-break and never a reason to decline: on a
+   Metal Bronzor the Telepathic still pays D and simply fires nothing, which is
+   still worth doing. **Take both targets, even when only one is wanted** — every
+   card pulled out of the deck also *thins* it, and a thinner deck is a better
+   chance the next draw is the Bronzong the turn is missing. Bench space is the
+   only cap (§4.4).
 7. Play a Stadium if holding one and it is not disruptive to us. None of the four
    advances a sub-goal, so this is for the end-of-turn-2 board record (§7) rather
    than for the metric; **Mystery Garden is excluded**, since its text would cost
@@ -212,17 +222,32 @@ ladder. Take the first that is available:
 1. **Free retreat under Latias ex.** Skyliner zeroes the retreat of every *Basic* we
    control, and on turns 1–2 the Active is almost always a Basic. The retreat is the
    turn's, it is otherwise unused, and it costs no card — so **do not spend a Switch
-   while Skyliner covers the Active** (Kevin, 2026-08-29). Unavailable if something
-   locks the retreat, and — the case that matters later — Skyliner does **not** cover
-   a Stage 1, which is exactly how a Dusclops gets stuck (§8).
+   while Skyliner covers the Active**, and **keep the Switch in hand** rather than
+   holding the retreat back for a second reposition the turn will not need.
+   Unavailable if something locks the retreat, and — the case that matters later —
+   Skyliner does **not** cover a Stage 1, which is exactly how a Dusclops gets
+   stuck (§8).
 2. **Switch.** An Item, so it costs no Supporter slot; the right answer whenever the
-   retreat is not free.
+   retreat is not free — including the turn on which the retreat has already been
+   spent.
 3. **Surfer.** Costs the Supporter slot, so it loses to Switch by default — **except
    on a nearly empty hand**, where "draw until you hold 5" makes it a switch *and* a
-   refill and it can be the better card outright (Kevin, 2026-08-29). Never in the
-   §4.1 kill line, where the slot is Salvatore's.
+   refill and it can be the better card outright. Never in the §4.1 kill line, where
+   the slot is Salvatore's.
 4. **Buneary's Run Around** — last resort only, and read §4.2 first: it spends the
    turn's Energy attachment and strands it on the Bench.
+5. **The Cursed Blast escape** — the last door, spelled out in §8. A Dusclops or
+   Dusknoir Active uses its own Ability and Knocks itself Out, and we choose the
+   Bronzor from the Bench as the replacement Active; from a **Duskull** Active,
+   Rare Candy reaches a Dusknoir first. It costs the Pokémon and a Prize from our
+   opponent's pile, and it is right anyway when the alternative is a turn that
+   cannot attack at all.
+
+**The ladder is walked after the searches, not before them.** Find out what the
+deck will give you first — a Poké Pad that turns up the Bronzong changes which rung
+is worth taking — then move. Where the retreat and a Switch are both available the
+retreat goes first regardless, so the ordering question is only ever about
+*information*, never about which mover to spend.
 
 **4.4 What to bench, and when.** The Bench is a scarce resource (§2), so benching is a
 play to be justified, not a reflex. Bench:
@@ -237,7 +262,7 @@ play to be justified, not a reflex. Bench:
 - **Everything else only when Lillie's Determination is this turn's Supporter**, and
   then *before* playing it. Lillie's shuffles the **hand into the deck**, so any
   Pokémon still in hand is buried; putting them on the Bench first keeps them
-  (Kevin, 2026-08-29). This is the one case where filling the Bench is correct.
+  This is the one case where filling the Bench is correct.
 
 **4.5 Free Abilities, taken before anything else.** §2 notes that Mega Kangaskhan
 ex wants the Active spot for Run Errand; this is the step that actually uses it.
@@ -249,10 +274,10 @@ ex wants the Active spot for Run Errand; this is the step that actually uses it.
 - **Last-Ditch Catch** is not here because it fires on *benching* Meowth ex, which
   is a §4.4 decision rather than a free action.
 
-Skipping Run Errand is not a small thing. The first policy draft did, and
-Kangaskhan came out near the bottom of the lead table at 40.9% — implementing a
-two-card draw moved that same lead to 55.8%. A lead order measured with a card's
-Ability switched off is measuring the policy, not the deck.
+Skipping Run Errand is not a small thing. A Kangaskhan lead measured without the
+two-card draw comes out near the bottom of the lead table at 40.9%; with it, the
+same lead reaches 55.8%. A lead order measured with a card's Ability switched off
+is measuring the policy, not the deck.
 
 ## 5. Turn 1 — going first
 
@@ -279,20 +304,63 @@ and the whole turn exists to set up turn 2.
 
 ## 6. Choosing the Supporter
 
-Applies on turn 1 going second, and on turn 2 on both branches. Evaluate in order and
-play the first that applies:
+Applies on turn 1 going second, and on turn 2 on both branches.
+
+**Rank by what each Supporter can actually solve, not by how many sub-goals are
+open.** Every card below closes a specific, known set of the four, and the slot goes
+to whichever closes the most of what is *currently* missing. Counting open sub-goals
+and thresholding on the count is the wrong instrument: two hands with three sub-goals
+open can want different Supporters, because the Supporters differ in which three they
+can reach.
+
+| Solves | Card |
+|---|---|
+| **B**, bypassing evolution timing | Salvatore |
+| **B and D** together | Hilda |
+| **A**, and **C** via Latias ex | Brock's Scouting, Basics mode |
+| **B** | Brock's Scouting, Evolution mode |
+| **C**, plus a refill | Surfer |
+| any *one* of B, C, D — and only into turn 2's draw | Ciphermaniac's Codebreaking |
+| nothing directly; replaces the hand | Lillie's Determination |
+
+Evaluate in order and play the first that applies:
 
 | Priority | Play | When |
 |---|---|---|
-| 1 | **Salvatore** | Turn 1 going second, and the kill is live (§4.1). Never otherwise on turn 1 — its exemption is wasted on turn 2. |
-| 2 | **Hilda** | Bronzong or the `[P]` source is missing, **and she can actually fetch what is missing**. Fetches both in one card; the single most efficient Supporter for sub-goals B and D. With Bronzong *and* a `[P]` source already in hand both of her searches resolve to nothing, and playing her then spends the slot for nothing — so she is skipped and the next priority is tried. |
-| 3 | **Brock's Scouting** | **Basics mode** when a Bronzor is missing **or sub-goal C is blocked** — Basics mode is the only free way to find Latias ex, and with the line stuck on the Bench that is the missing piece. **Evolution mode** for Bronzong when B is unmet and **Hilda is gone** — neither in hand nor believed to be in the deck — since while Hilda is reachable the slot is worth more to her, who fetches the Bronzong *and* an Energy. |
-| 4 | **Lillie's Determination** | Hand is weak — **four cards or fewer**, a policy default rather than a ruling, like the §3 lead order — and nothing above applies. Draws **8** while *we* still hold 6 Prizes. **Play everything else first** — it shuffles the hand into the deck — and **bench the Pokémon you want to keep before playing it** (§4.4), or they are buried with the rest of the hand. |
-| 5 | **Surfer** | Bronzor is benched and the §4.3 ladder has got that far — no free retreat, no Switch, no Salvatore line this turn. Solves C and refills. Play last in the turn so the refill is large; on a nearly empty hand it can be the better card even against a Switch. |
-| 6 | **Ciphermaniac's Codebreaking** | **`P2T1` only** — going second, on our first turn — and only when nothing above applies. It stacks two cards on top, of which turn 2 draws exactly **one**. Never followed by any shuffling card. |
+| 1 | **Salvatore** | Turn 1 going second, and the kill is live (§4.1). |
+| 2 | **Salvatore, on turn 2** | B is unmet and a `[P]` source is already secured — in hand or attached — so Hilda's second search would add nothing. Salvatore fetches Bronzong **and puts it on the Bronzor**, which also beats Hilda outright when the only Bronzor reached play *this* turn and so cannot be evolved from hand (ADR 0001). |
+| 3 | **Hilda** | Bronzong or the `[P]` source is missing, **and she can actually fetch what is missing**. Fetches both in one card; the single most efficient Supporter for sub-goals B and D. Once she is chosen she takes **both** searches whatever the hand holds — see `docs/03a_card_playbook.md`. |
+| 4 | **Brock's Scouting** | **Basics mode** when a Bronzor is missing **or sub-goal C is blocked** — Basics mode is the only free way to find Latias ex, and with the line stuck on the Bench that is the missing piece. **Evolution mode** for Bronzong when B is unmet and **Hilda is gone** — neither in hand nor believed to be in the deck — since while Hilda is reachable the slot is worth more to her, who fetches the Bronzong *and* an Energy. |
+| 5 | **Lillie's Determination** | Hand is weak — **four cards or fewer**, a policy default rather than a ruling, like the §3 lead order — and nothing above applies. Draws **8** while *we* still hold 6 Prizes. **Play everything else first** — it shuffles the hand into the deck — and **bench the Pokémon you want to keep before playing it** (§4.4), or they are buried with the rest of the hand. |
+| 6 | **Surfer** | Bronzor is benched and the §4.3 ladder has got that far — no free retreat, no Switch, no Salvatore line this turn. Solves C and refills. Play last in the turn so the refill is large; on a nearly empty hand it can be the better card even against a Switch. |
+| 7 | **Ciphermaniac's Codebreaking** | **`P2T1` only** — going second, on our first turn — and only when **exactly one** of B, C and D is missing, since it delivers exactly one card into turn 2's draw. Two missing pieces are one more than it can fix. |
+| 8 | **The fallback: never end a turn with the slot unspent.** | Nothing above fired, and a Supporter in hand is legal and would change the board or the hand at all. Play it. Order: Lillie's, then a Hilda who can still fetch *one* of her two targets, then Brock's, then Salvatore, then Ciphermaniac's. |
 
-**Why Ciphermaniac's is confined to `P2T1`** (Kevin, 2026-08-29). Three facts fence it
-into exactly one cell of the design:
+**Priority 8 is the rule that makes the rest of the table safe.** One Supporter may
+be played per turn and an unplayed one carries no credit into the next; a slot left
+idle is a resource destroyed, not saved. So the thresholds above — Hilda's "can fetch
+something", Lillie's four-card hand, Ciphermaniac's single missing piece — are about
+*which* Supporter to prefer, never about whether to play one. If a Supporter would
+improve the position even slightly, it is played.
+
+Two guards, and only two. The fallback fires **after** every other play of the turn
+has resolved, so Lillie's never shuffles away a card the turn still meant to use; and
+it never plays a card that cannot legally resolve at all.
+
+**And then the turn is assembled again, over whatever it drew.** Bench, evolve,
+position, attach — the four steps of §7 run a **second time** after the fallback
+Supporter, because a Supporter played at the end of a turn whose cards are never
+played increases nothing, and the window closes at the end of turn 2 with no later
+turn to spend them on. This is the difference between the fallback being worth 10
+points and worth 15: without the second pass it does nothing at all on turn 2.
+
+The second pass changes no rule, only when the rules are read. Everything it does is
+a play the turn was always allowed to make — one evolution, one attachment, one
+retreat — and each is still capped at once per turn by the rules rather than by the
+number of passes.
+
+**Why Ciphermaniac's is confined to `P2T1`.** Three facts fence it into exactly one
+cell of the design:
 
 - **Going first, turn 1**: no Supporter may be played at all
   (`docs/01_rules_standard.md` §6), so the card cannot be played.
@@ -304,10 +372,12 @@ into exactly one cell of the design:
   better *immediate* conversion — which is exactly what makes spending it on next
   turn's draw defensible here and nowhere else.
 
-Kevin's caveat stands: even within `P2T1` this "should depend heavily on the context
-on my field and hand." So, like the §3 lead order, treat the choice as a **logged
-decision** — the policy records that it fired and what it stacked, and part 6 decides
-from traces whether it should have.
+Within `P2T1` the choice still depends on the board and the hand, which is what the
+single-missing-piece gate encodes. **Stack the missing piece first.** Where the one
+gap is C, that means stacking a **Switch** — Ciphermaniac's is the only card in the
+deck that can fetch a Trainer, so it is the only route from a want-list entry for
+Switch to the card itself. The policy records that Ciphermaniac's fired and what it
+stacked, so part 6 can judge the within-cell choice from traces.
 
 ## 7. Turn 2 — both branches
 
@@ -332,19 +402,27 @@ By now sub-goals A and D should be done. Turn 2 resolves B and C and attacks.
 3. Resolve **B**: evolve Bronzor → Bronzong from hand, or fetch it with Hilda /
    Salvatore / Brock's Scouting.
 4. Resolve **D** if still open: attach a `[P]` source. Remember Enriching Energy is
-   **not** one.
-5. **Attack Evolution Jammer.**
+   **not** one. **If D is already met, attach nothing** — the Bronzong needs one
+   `[P]` and the second Energy pays for a search whose fetches fill Bench slots for
+   a game the window is about to end (§4.2 step 6).
+5. **Play the Supporter if the slot is still unspent** — §6 priority 8. A turn that
+   is about to miss is exactly the turn where the slot is otherwise wasted, and a
+   turn that is about to hit loses nothing by spending it after every other play.
+6. **Run steps 2 to 4 again** on what step 5 drew or fetched. This is the pass that
+   makes step 5 worth playing: the eight cards Lillie's draws on turn 2 have no
+   later turn to be spent on, so a turn that does not read them has spent the
+   Supporter for nothing.
+7. **Attack Evolution Jammer.**
 
 **The window closes at the end of turn 2, and nothing past it is recorded** (Kevin,
 2026-08-29; ADR 0007). There is no turn 3 in the simulator: no turn-3 play, no turn-3
 distribution, no "how many misses would have hit next turn".
 
 If the target event is unreachable this turn, the replicate is a **miss** — but the
-policy must still play the turn out properly, for a different reason than the one
-previously given here: the **end-of-turn-2 board state is recorded in full** and will
-be analysed later, so a turn played sloppily once the metric is lost corrupts that
-record. The snapshot (`R/trace_claude.R` → `format_trace()`) captures, as ground truth
-at the moment the window closes:
+policy must still play the turn out properly, because the **end-of-turn-2 board state
+is recorded in full** and will be analysed later, so a turn played sloppily once the
+metric is lost corrupts that record. The snapshot (`R/trace_claude.R` →
+`format_trace()`) captures, as ground truth at the moment the window closes:
 
 | Group | Fields |
 |---|---|
@@ -362,14 +440,18 @@ Recorded so the policy is not written to chase them:
   Dusknoir is the deck's damage plan, not its lock plan, and the metric measures only
   the lock. **One exception, below.**
 - **Do not use Dusclops/Dusknoir's Cursed Blast** for what it is printed to do — 5 or
-  13 damage counters is irrelevant to a metric that ends on turn 2. **But it is not a
-  non-goal**, and the draft was wrong to list it as one.
+  13 damage counters is irrelevant to a metric that ends on turn 2. **The self-Knock
+  Out is a different matter entirely** — it is an out for sub-goal C, and the escape
+  below is where it belongs.
 
 ### The Cursed Blast escape — an out for sub-goal C
 
-Kevin, 2026-08-29: *"if Dusclops is stuck in the active, it might be correct to evolve
-to Dusknoir and activate its ability just to get a Bronzor on my bench into the
-active."*
+**Take it whenever the ladder reaches it, on either branch.** A Prize to the opponent
+and a Dusclops are a real price, and they are worth paying: the alternative is a turn
+that cannot attack at all, and the metric prices a turn-2 miss the same whichever way
+the board looked when it happened. It is not reserved for going second, and it is not
+a line to take only when it falls in your lap — where the position exists, the escape
+is the play.
 
 The mechanism is the self-Knock Out, not the damage. Cursed Blast reads *"If you use
 this Ability, this Pokémon is Knocked Out"*, and after a Knock Out **the player whose
@@ -377,12 +459,8 @@ Pokémon was Knocked Out chooses which of their Benched Pokémon is promoted**
 (`docs/01_rules_standard.md` §7). So Cursed Blast is a switching effect that costs no
 Switch, no Supporter slot, no retreat, and no Energy — it costs the Pokémon.
 
-It is the **last** door in the §4.3 ladder, taken only when every other rung is
-unavailable. **Specified and not implemented**: the engine has the whole
-mechanism — `play_rare_candy()`, `use_cursed_blast()`, `knock_out()` with a
-caller-chosen promotion — but no line in the policy builds the Duskull-Active
-position that reaches it, so the escape has never actually been taken in a run.
-Two routes:
+It is the **last** door in the §4.3 ladder, rung 5, taken only when every other rung
+is unavailable. Two routes:
 
 - **Dusclops or Dusknoir already Active** — use its own Ability directly. No card
   spent at all.
@@ -393,7 +471,7 @@ Two routes:
 Why the Active gets stuck in the first place: **Skyliner zeroes the retreat cost of
 Basics only**. A Duskull Active retreats free under Latias ex, so this route is for
 when Latias ex is absent; a **Dusclops** Active is a Stage 1 and retreats for 2 even
-with Latias ex in play, which is the case Kevin named.
+with Latias ex in play, which is the case this escape exists for.
 
 Two things that look like traps and are not:
 
@@ -407,60 +485,16 @@ Two things that look like traps and are not:
 - **Do not attack with anything other than Evolution Jammer**, except the two cases in
   §4.2, because attacking ends the turn.
 
-## 9. Answers from Kevin, 2026-08-29
-
-All five questions this file previously asked are answered. Two are *settled*; two are
-deliberately **deferred to the simulation logs**, which makes them part 6's job, not
-Kevin's; one corrected a factual error in this document.
-
-| # | Question | Answer | Status |
-|---|---|---|---|
-| 1 | §3 lead order | Not sure — optimize it from the simulation logs. | **Deferred to logs.** Lead order is a policy parameter; the trace records the lead. See §3. |
-| 2 | §4.1 Switch vs Surfer | Switch, on the gut-feeling grounds that no list currently runs Surfer. | **Settled for now**, re-checkable from logs if a Surfer list is ever added. See §4.1. |
-| 3 | §6 Ciphermaniac's on turn 1 | Only as the going-second player on our own first turn — we cannot evolve Bronzor that turn anyway — and even then it depends heavily on field and hand. | **Settled to one cell** (`P2T1`); the within-cell choice is logged, not asserted. See §6. |
-| 4 | §4.2 declining Run Around | Only when there is really nothing else to do, since it also sacrifices an Energy. | **Settled.** It corrected this file: Run Around costs `[C]`, i.e. the turn's attachment, and strands it on the Bench. See §4.2. |
-| 5 | Recording past turn 2 | No — stop at turn 2, but be thorough at the *end* of turn 2 so the board state can be assessed later. | **Settled.** No turn 3 anywhere; the end-of-turn-2 snapshot is widened instead. See §7. |
-
-### Corrections from Kevin on this document, 2026-08-29 (second round)
-
-Five corrections to the text above, from reading it. Four are local; the first
-contradicted the same instruction repeated in three sections.
-
-| # | What the draft said | Correction | Where |
-|---|---|---|---|
-| 1 | "Bench everything else that is a Basic", and "bench every Basic in hand" ×2 | **Bench space is a scarce resource** — 5 slots, one realistically reserved for Latias ex. Bench **nothing** at setup; during a turn bench only Latias ex, Meowth ex for a named absent Supporter, a Bronzor for A, and everything else *only* ahead of Lillie's Determination. | §2, §3, §4.4 |
-| 2 | Items before Salvatore, "since Salvatore shuffles" | The order **does not matter** — a shuffle costs nothing between searches. Only a pending Ciphermaniac's stack and Lillie's genuinely constrain ordering. | §4.1 |
-| 3 | "use Switch… do not use Surfer" | Context-dependent. **Free retreat under Latias ex comes before Switch** — do not spend a card on what the retreat does free. And on a nearly empty hand **Surfer can beat Switch**, since it also refills. | §4.3, §6 |
-| 4 | "Do not evolve Dusknoir"; "do not use Cursed Blast" | Both too absolute. Cursed Blast's **self-Knock Out is a promotion out for sub-goal C** when the Active is stuck — the case Kevin named is a Dusclops, which Skyliner cannot help because it is a Stage 1. | §8 |
-| 5 | — | Follow-ups: bench **nothing** at setup (not "one"), and **build** the Knock Out / promotion / Cursed Blast / Rare Candy machinery in the engine now rather than deferring it. | §3, `R/` |
-
-Correction 4 also ends Rare Candy's status as an inert card: it is the only route from
-a Duskull Active to a Dusknoir, so `R/card_effects_claude.R` implements it.
-
-### Now empirical questions for part 6, not questions for Kevin
-
-- **The §3 lead order** — which non-Bronzor lead maximises the hit rate, per cell.
-  Kangaskhan-first is only the current default.
-- **Ciphermaniac's within `P2T1`** — which board and hand states make stacking better
-  than Hilda, Lillie's, or Brock's Scouting.
-
-Both belong with the §1 claim that **C is the sub-goal that actually fails**: three
-priors this document asserts and the traces are supposed to adjudicate.
-
-Note `docs/03a_card_playbook.md` still carries **four** unanswered questions of its
-own — Ultra Ball discard priority, the Telepathic Psychic Energy target, whether
-Mystery Garden is worth modelling, and Rare Candy → Dusknoir on a lost turn 2.
-
----
-
-## 10. Open questions — the register
+## 9. Open questions — the register
 
 Every rule this document states as a **default** rather than a ruling, numbered so
 an answer can name what it settles and a scenario can name what it probes.
 `docs/03b_scenarios.md` poses many of these as concrete positions instead of
 prose; the `S-nn` references point there.
 
-Answer in place — a sentence is enough, and "leave it" is an answer.
+Answer in place — a sentence is enough, and "leave it" is an answer. An entry that
+gets answered is **folded into the section it governs and struck from this list**,
+so the register always reads as what is still open.
 
 ### The goal and the resources (§1–§2)
 
@@ -469,72 +503,36 @@ Answer in place — a sentence is enough, and "leave it" is an answer.
   D is the largest. D can only be met once B and C are, so the ordering is not
   clean evidence — but is the claim still the right one to build around, or is the
   real constraint *the turn's single Energy attachment*?
-- **DT-02.** §2 makes Bench space a scarce resource and §4.2 step 6 has Telepathic
-  fetch two Basics to thin the deck. **These pull against each other.** Which wins
-  when the Bench has one slot left: hold it for Latias ex, or spend it thinning?
-  *(See S-11.)*
 
 ### Setup (§3)
 
 - **DT-03.** Rank the non-Bronzor leads. The current order is a guess, and the
   measured rates on decklist2 going second are Latias ex 65.6%, Kangaskhan 55.8%,
   Budew 53.7%, Duskull 49.4%, Meowth ex 46.2%, Buneary 40.2%, Flutter Mane 35.7%.
-- **DT-04.** Is there a hand where you would lead **Mega Kangaskhan ex over a
-  Bronzor** — taking the Run Errand draw and benching the Bronzor instead? *(See
-  S-02.)*
-- **DT-05.** "Bench nothing at setup" is stated absolutely. Does it survive an
-  opening hand of Bronzor plus Latias ex plus three other Basics, where the Bench
-  will certainly be wanted?
-- **DT-06.** Buneary's rank going second. Its case is Run Around, which §4.2 then
-  makes a last resort — is the lead worth anything once the attack usually is not
-  taken? *(See S-08.)*
 - **DT-07.** §3's Budew entry is conditioned on a case this project cannot
   produce. Delete the condition, change the scenario list, or leave Budew ranked
   where it is by default?
 
-### Positioning (§4.3) and benching (§4.4)
-
-- **DT-08.** Free retreat before Switch, always? *(See S-01.)*
-- **DT-09.** When the retreat is free **and** a Switch is in hand, is the Switch
-  worth keeping for a turn-2 repositioning that may never be needed?
-- **DT-10.** Bench Latias ex "always, at the first opportunity" — even when the
-  slot is the last one and a Telepathic fetch wants it? *(See S-11.)*
-- **DT-11.** Run Errand is taken unconditionally (§4.5). Is there a state where
-  two more cards are unwanted — drawing past a Ciphermaniac's stack, say?
-- **DT-12.** Going first with no Bronzor in play, the policy attaches Telepathic
-  to whatever `[P]` body it has, purely to fire the search, and strands the Energy
-  there. Right, or is the attachment worth saving? *(See S-09, S-12.)*
-
 ### The Supporter (§6)
 
-- **DT-13.** **Salvatore on turn 2.** Priority 1 reads "never otherwise on turn
-  1", which taken literally means never on turn 2 either — but there it still
-  fetches Bronzong *and* evolves in one card. Rank it against Hilda. *(See S-06,
-  which arises in 23% of games.)*
-- **DT-14.** Hilda is skipped when she can fetch *nothing*. What if she can fetch
-  only **one** of her two targets — still the best use of the slot? *(See S-04.)*
-- **DT-15.** "Hand is weak" for Lillie's is four cards or fewer. Is four right,
-  and should the *contents* matter rather than the count? *(See S-03.)*
 - **DT-16.** Surfer beats Switch "on a nearly empty hand". How empty? No decklist
   runs Surfer, so this only binds if one does.
-- **DT-17.** Ciphermaniac's is confined to `P2T1`. Within that cell, which boards
-  make stacking better than Hilda or Lillie's? *(See S-05.)*
 - **DT-18.** Is there a Supporter you would play that this table never reaches?
+- **DT-24.** The §6 priority 8 fallback plays a Supporter on every turn one is
+  legal. Is there a hand where holding one back is right after all — a Lillie's
+  on a turn 1 whose hand you would rather keep for turn 2's draw?
+- **DT-25.** Priority 2 puts Salvatore ahead of Hilda on turn 2 when a `[P]`
+  source is already secured. Is that the right discriminator, or should it be the
+  evolution-timing case alone — the only thing Hilda genuinely cannot do?
 
 ### Turn 2 and the non-goals (§7–§8)
 
-- **DT-19.** Does the going-first branch want a different lead order from §3, or
-  the same one? Going first cannot attack on turn 1, which changes what a lead is
-  for. *(See S-09.)*
-- **DT-20.** Under `item_lock` on turn 2 the Items in hand are dead. Does anything
-  else about the turn change — the Supporter choice, the attachment target, what
-  was held back on turn 1? *(See S-10, which is 47% of that cell.)*
 - **DT-21.** The **pending-stack guard** (§7 step 1) costs nothing and saves
   nothing measurable. Keep it as correct-by-construction, or drop it as a rule
   that only ever forfeits a search?
-- **DT-22.** Is the **Cursed Blast escape** worth the policy building toward — a
-  Duskull Active kept deliberately so Rare Candy → Dusknoir can promote a benched
-  Bronzor — or is it a line to take only when it falls in your lap?
-- **DT-23.** §8 forbids Rare Candy → Dusknoir on turn 2. On a turn where Bronzong
-  is provably unreachable, the replicate is already a miss — does the board state
-  it leaves behind matter enough to take the evolution anyway?
+- **DT-23.** §8 forbids Rare Candy → Dusknoir on turn 2 *in preference to*
+  Bronzong. On a turn where Bronzong is provably unreachable, the replicate is
+  already a miss — does the board state it leaves behind matter enough to take the
+  evolution anyway? Note the Cursed Blast escape (§4.3 rung 5) now takes exactly
+  that line when it buys sub-goal C, so this is the residual case where it buys
+  nothing.

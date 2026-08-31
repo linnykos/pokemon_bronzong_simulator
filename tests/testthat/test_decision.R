@@ -431,13 +431,206 @@ test_that("a Stadium is played, but never Mystery Garden", {
   expect_equal(.policy_stadium(once)$state$stadium, "TWM-153")
 })
 
-test_that("the want-list carries a second Bronzor and Meowth ex", {
-  ## Items 6 and 7 of the playbook's one list, both of which were missing.
+test_that("the want-list chases Meowth ex but never a second Bronzor", {
+  ## docs/03a_card_playbook.md -> Search priority: "Two things the list does not
+  ## chase". A second Bronzor is insurance against a Knock Out this window cannot
+  ## produce, and it cost 1.4 points where it used to sit; Meowth ex stays, but
+  ## only for a search that puts cards in HAND.
   pair <- .make_pair(active_id = "TEF-068", turn_number = 2L)
   want_vec <- .want_vec(pair)
 
-  expect_true("TEF-068" %in% want_vec)
+  expect_false("TEF-068" %in% want_vec)
   expect_true("POR-062" %in% want_vec)
   ## Duskull is filler and stays last.
   expect_equal(want_vec[length(want_vec)], "PRE-035")
+
+  ## bool_to_hand = FALSE is what Poffin and Telepathic pass: a Meowth ex
+  ## fetched onto the Bench never triggers Last-Ditch Catch, so it is not a
+  ## target for them at all.
+  expect_false("POR-062" %in% .want_vec(pair, bool_to_hand = FALSE))
+  expect_false("POR-062" %in% .telepathic_search_targets(pair))
+})
+
+test_that("the attachment is declined once sub-goal D is already paid", {
+  ## docs/03_decision_tree.md section 4.2 step 6, from S-11: a second Telepathic
+  ## onto a line that already carries a [P] source buys a search whose fetches
+  ## fill the Bench slots section 4.4 is holding. The Energy stays in hand.
+  pair <- .make_pair(active_id = "TEF-068", hand_id_vec = "POR-088",
+                     turn_number = 2L)
+  pair$state$active$energy_vec <- "POR-088"
+
+  after <- .policy_energy(pair)
+
+  expect_length(after$state$active$energy_vec, 1)
+  expect_true("POR-088" %in% after$state$hand_vec)
+
+  ## The negative case, with the card still in hand: with D unpaid it DOES
+  ## attach. Without this half the test passes against a policy that has simply
+  ## stopped attaching anything.
+  unpaid <- .make_pair(active_id = "TEF-068", hand_id_vec = "POR-088",
+                       turn_number = 2L)
+  expect_length(.policy_energy(unpaid)$state$active$energy_vec, 1)
+})
+
+test_that("sub-goal C counts as blocked while the Bronzor is still in hand", {
+  ## docs/03a_card_playbook.md -> "*blocked* is prospective". From S-06: by the
+  ## time the Bronzor has been benched the searches that could have found the
+  ## mover are spent, so Latias ex has to rise BEFORE it is played.
+  pair <- .make_pair(active_id = "PRE-035", hand_id_vec = "TEF-068",
+                     turn_number = 1L)
+
+  expect_true(.c_is_blocked(pair))
+  expect_equal(.want_vec(pair)[1], "SSP-076")
+
+  ## Still false when a mover is available, Bronzor in hand or not.
+  with_switch <- .make_pair(active_id = "PRE-035",
+                            hand_id_vec = c("TEF-068", "MEG-130"),
+                            turn_number = 1L)
+  expect_false(.c_is_blocked(with_switch))
+})
+
+test_that("Hilda takes both searches once she is played", {
+  ## docs/03a_card_playbook.md -> Hilda: "the two searches are independent and
+  ## declining one gains nothing". Kevin's S-02 answer -- make sure Hilda always
+  ## grabs an Energy -- is the Energy half of this.
+  pair <- .make_pair(active_id = "TEF-068",
+                     hand_id_vec = c("WHT-084", "TEF-069", "POR-088"),
+                     turn_number = 2L)
+  target_list <- .hilda_targets(pair)
+
+  expect_false(is.null(target_list$evo_id))
+  expect_false(is.null(target_list$energy_id))
+
+  ## Whether she is worth PLAYING is section 6's question and is unchanged: a
+  ## redundant fetch does not by itself make her the right Supporter.
+  expect_false(target_list$bool_worth_slot)
+})
+
+test_that("Meowth ex fetches Salvatore only when it can actually be cashed", {
+  ## docs/03a_card_playbook.md -> Meowth ex, from S-06. Salvatore fixes sub-goal
+  ## B alone, so fetching it without the Energy and the positioning already in
+  ## place buys a card the turn cannot use. Hilda fixes B and D.
+  bare <- .make_pair(active_id = "PRE-035", hand_id_vec = "POR-062",
+                     turn_number = 1L)
+  bare <- .policy_bench_meowth(bare)
+  expect_true("WHT-084" %in% bare$state$hand_vec)
+  expect_false("TEF-160" %in% bare$state$hand_vec)
+
+  ## The negative case, with Meowth ex still in hand: C solved by the Active
+  ## Bronzor and a [P] source held, so Salvatore IS the fetch.
+  ready <- .make_pair(active_id = "TEF-068",
+                      hand_id_vec = c("POR-062", "POR-088"),
+                      turn_number = 1L)
+  ready <- .policy_bench_meowth(ready)
+  expect_true("TEF-160" %in% ready$state$hand_vec)
+})
+
+test_that("the Supporter slot is never left unspent while one is playable", {
+  ## docs/03_decision_tree.md section 6 priority 8, from S-04: "it's important to
+  ## play at least one Supporter a turn whenever possible". An eight-card hand
+  ## put Lillie's below its four-card gate and Hilda had nothing to fetch, so the
+  ## slot was dropped entirely.
+  pair <- .make_pair(active_id = "TEF-068",
+                     hand_id_vec = c("MEG-119", "TEF-069", "POR-088",
+                                     "PRE-037", "PRE-037", "CRI-082",
+                                     "MEG-114", "TWM-153"),
+                     turn_number = 2L)
+
+  expect_equal(.choose_supporter(pair), "MEG-119")
+})
+
+test_that("the fallback Supporter's cards are used on the turn it is played", {
+  ## docs/03_decision_tree.md section 6 priority 8 and section 7 step 5. Kevin's
+  ## S-04 answer is "play at least one Supporter a turn whenever possible if it
+  ## even increases my chances to get set up" -- and a Lillie's played at the end
+  ## of a turn whose eight cards are never played increases nothing. The window
+  ## closes at the end of turn 2, so there is no later turn to spend them on.
+  ##
+  ## The deck is stacked to exactly what Lillie's will draw, because the shuffle
+  ## is real: with 8 cards in the deck and hand, the draw-8 takes all of them and
+  ## the assertion does not depend on the RNG.
+  pair <- .make_pair(active_id = "TEF-068", hand_id_vec = "MEG-119",
+                     turn_number = 2L)
+  pair$state$deck_vec <- c("TEF-069", "POR-088", rep("PRE-035", 6))
+
+  after <- .policy_build_turn(pair)
+
+  expect_equal(top_card(after$state$active), "TEF-069")
+  expect_true("MEG-119" %in% after$state$discard_vec)
+  expect_true(after$state$turn_flag_list$bool_attacked)
+})
+
+test_that("Ciphermaniac's waits for a hand it can actually finish", {
+  ## docs/03_decision_tree.md section 6 priority 7, from S-05. It delivers one
+  ## card into turn 2's draw, so it is worth the slot only when exactly one of
+  ## B, C and D is missing. Missing three, Lillie's replaces the whole hand.
+  many <- .make_pair(active_id = "PRE-035",
+                     hand_id_vec = c("TEF-145", "MEG-119", "PRE-037"),
+                     turn_number = 1L)
+  expect_equal(.choose_supporter(many), "MEG-119")
+
+  ## The negative case, with Ciphermaniac's still in hand: Bronzor Active and a
+  ## [P] source attached, so B alone is missing and the stack finishes the job.
+  one <- .make_pair(active_id = "TEF-068",
+                    hand_id_vec = c("TEF-145", "MEG-119", "PRE-037"),
+                    turn_number = 1L)
+  one$state$active$energy_vec <- "POR-088"
+  expect_equal(.choose_supporter(one), "TEF-145")
+})
+
+test_that("Salvatore is ranked against Hilda on turn 2", {
+  ## docs/03_decision_tree.md section 6 priority 2 (DT-13, which arises in 23% of
+  ## games). With the [P] source already secured Hilda's second search adds
+  ## nothing, and Salvatore both fetches Bronzong and puts it on the Bronzor.
+  secured <- .make_pair(active_id = "TEF-068",
+                        hand_id_vec = c("TEF-160", "WHT-084"),
+                        turn_number = 2L)
+  secured$state$active$energy_vec <- "POR-088"
+  expect_equal(.choose_supporter(secured), "TEF-160")
+
+  ## The negative case, with Salvatore still in hand: no [P] source anywhere, so
+  ## Hilda's two searches beat Salvatore's one.
+  open <- .make_pair(active_id = "TEF-068",
+                     hand_id_vec = c("TEF-160", "WHT-084"),
+                     turn_number = 2L)
+  expect_equal(.choose_supporter(open), "WHT-084")
+})
+
+test_that("the Cursed Blast escape promotes a benched Bronzor", {
+  ## docs/03_decision_tree.md section 4.3 rung 5 and section 8, from S-13. A
+  ## Dusclops Active is a Stage 1, so Skyliner cannot free its retreat and Rare
+  ## Candy cannot reach past it; its own Ability is the only door left.
+  pair <- .make_pair(active_id = "PRE-036", bench_id_vec = "TEF-068",
+                     turn_number = 2L)
+  pair$state$bench_list[[1]]$energy_vec <- "SVE-005"
+
+  after <- .policy_position(pair)
+
+  expect_equal(top_card(after$state$active), "TEF-068")
+  expect_true("PRE-036" %in% after$state$discard_vec)
+
+  ## The negative case, with the Dusclops still Active: a free retreat under
+  ## Latias ex does not exist for a Stage 1, but a Switch does, and rung 2 must
+  ## win so the escape is never taken while a cheaper rung is open.
+  cheap <- .make_pair(active_id = "PRE-036", bench_id_vec = "TEF-068",
+                      hand_id_vec = "MEG-130", turn_number = 2L)
+  cheap <- .policy_position(cheap)
+  expect_equal(top_card(cheap$state$active), "TEF-068")
+  expect_false("PRE-036" %in% cheap$state$discard_vec)
+})
+
+test_that("Ultra Ball never discards the Supporter chosen for this turn", {
+  ## docs/03a_card_playbook.md -> Ultra Ball never-discard list, from S-05. The
+  ## Salvatore clause generalised: a Supporter about to be played is not spare,
+  ## and discarding it trades the whole slot for one search.
+  ## Nothing else in this hand is on the discard ORDER at all, so every
+  ## candidate ties and the first two in hand order go -- which without the
+  ## protection is Hilda herself.
+  pair <- .make_pair(active_id = "TEF-068",
+                     hand_id_vec = c("MEG-131", "WHT-084", "MEG-119",
+                                     "MEG-119"),
+                     turn_number = 2L)
+
+  expect_equal(.choose_supporter(pair), "WHT-084")
+  expect_false("WHT-084" %in% .ultra_ball_discards(pair))
 })

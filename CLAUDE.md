@@ -53,12 +53,12 @@ Paths here are relative to the project root and are the same for everyone.
 | `docs/01_rules_standard.md` | Standard-format rules reference (part 1) |
 | `docs/02_cards.md` | Card index + cross-decklist count matrix |
 | `docs/cards/` | Verbatim card text, one file per card (part 2) |
-| `docs/03_decision_tree.md` | English decision tree for turns 1–2 (part 3). §10 is the open-question register (`DT-nn`) |
+| `docs/03_decision_tree.md` | English decision tree for turns 1–2 (part 3). §9 is the open-question register (`DT-nn`) |
 | `docs/03a_card_playbook.md` | Per-card rules, and the `PB-nn` question register |
 | `docs/03b_scenarios.md` | Board positions for Kevin to answer, with the tree's own answer held back to appendix A |
 | `docs/adr/` | Numbered decision records — the evolution of the project's ideas |
 | `CONTEXT.md` | Shared glossary: what this project's words mean |
-| `R/` | Simulator source (parts 4–5) — *not yet written* |
+| `R/` | Simulator source (parts 4–5) |
 | `decklists/` | Candidate 60-card lists, one `.txt` each, PTCG-Live export format |
 | `results/` | Per-decklist simulation results and the run registry (part 6) |
 | `scripts/` | Entry points |
@@ -124,6 +124,27 @@ What that means in practice:
   turns the `DT-nn` and `PB-nn` questions into real board positions in
   `docs/03b_scenarios.md`, each with the frequency it arises at, so Kevin answers
   the ones that matter first.
+
+### They record the current tree, not how it got there
+
+**Both documents state the rules as they stand today, in the present tense, and nothing
+else.** A reader should be able to play turns 1–2 from them without ever learning what
+an earlier draft said.
+
+- **No changelogs, no "answers from Kevin, <date>" sections, no "what the draft said →
+  correction" tables, no `(Kevin, <date>)` stamps on individual rules.** When a ruling
+  arrives, edit the affected rule in place until it simply reads as the rule.
+- **No "previously", "no longer", "corrected from", "used to say".** A sentence that
+  only parses for someone who read the old version is a defect; rewrite it so it stands
+  alone.
+- **The history goes to `HISTORY_kevin.md`** via `/project-state` — what was believed,
+  what changed it, when, and why the change was not obvious. A choice expensive enough
+  to want re-reading in a year also gets an ADR in `docs/adr/`, and the document then
+  **cites the ADR number instead of retelling the story** (`ADR 0007`, not a paragraph
+  about how the window came to close at turn 2).
+- **Open questions are not history.** The `DT-nn` / `PB-nn` registers, and any rule
+  flagged as a default rather than a ruling, describe the tree's *current* uncertainty
+  and stay put.
 
 ## Ground rules for this project
 - **Never invent card text.** Every card in `docs/cards/` is transcribed from a primary source (limitlesstcg.com, Bulbapedia, pokemon.com) with the set code, number, and regulation mark recorded, and the verification date noted. If a card cannot be verified it is marked `[UNVERIFIED]` rather than guessed. The transcription source has twice mis-rendered an **attack** as an **Ability** — re-query with a pointed question for any card whose details drive the decision tree.

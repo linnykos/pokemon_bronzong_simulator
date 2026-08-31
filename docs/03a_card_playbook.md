@@ -20,37 +20,41 @@ highest-priority item the card is legally able to fetch.
 3. **Bronzong** — if none in hand and none in play (sub-goal B)
 4. **Latias ex** — if not in play and Bronzor is not Active (sub-goal C)
 5. **Switch** — if Bronzor is not Active and Latias ex is not in play (sub-goal C)
-6. **A second Bronzor** — insurance against the first being Knocked Out
-7. **Meowth ex** — if a Supporter is still wanted and Meowth ex is unplayed
-8. **Duskull** — filler, and a legal Poffin/Telepathic target
+6. **Meowth ex** — if a Supporter is still wanted and Meowth ex is unplayed, and
+   **only for a search that puts cards in hand**
+7. **Duskull** — filler, and a legal Poffin/Telepathic target
 
-**Item 4 moves to the front when sub-goal C is blocked** — the line is in play, on
-the Bench, and neither a free retreat nor a Switch can move it. Latias ex stops
-being a nice-to-have and becomes the missing piece, and only Ultra Ball and Brock's
-Scouting can fetch it. That is also why Poké Pad ends up being the card that finds
-Bronzong: it cannot fetch a Rule Box.
+**Item 4 moves to the front when sub-goal C is blocked**, and *blocked* is
+prospective: the line is in play **or in hand**, it will sit on the Bench, and
+neither a free retreat nor a Switch can move it. Reading it as "already benched"
+is a turn too late — by the time the Bronzor has been played the searches that
+could have found the mover are spent, and the position is unsalvageable. Latias ex
+stops being a nice-to-have and becomes the missing piece, and only Ultra Ball and
+Brock's Scouting can fetch it. That is also why Poké Pad ends up being the card
+that finds Bronzong: it cannot fetch a Rule Box.
 
 The rule for every search card is: *walk this list, skip anything this card cannot
 legally fetch, take the first hit*. A search that finds nothing is a **whiff**, and the
 whiff updates the belief state (ADR 0003) — the searched cards are now known.
 
-> **One list, cards with very different costs — and it shows.** Walking the same
-> list to the same depth is wrong in two measured ways, and this is the open
-> question the list most needs answering.
->
-> **A floor, per card.** Poké Pad is free, so reaching item 6 costs nothing. Ultra
-> Ball costs **two discarded cards**, so paying that for "a second Bronzor as
-> insurance" is a bad trade. Adding items 6 and 7 to this list cost **1.4
-> percentage points** (53.9% → 52.6%, 1,000 replicates going second on decklist2)
-> almost entirely through the hand-fetching cards spending themselves on insurance
-> once the useful targets had whiffed. Each card probably needs its own stopping
-> point, not just its own legality filter.
->
-> **Where the fetch lands.** Poffin and Telepathic put Basics **on the Bench**, not
-> in hand. So item 7 is actively wrong for them: **Meowth ex fetched onto the Bench
-> never triggers Last-Ditch Catch**, because the Ability fires only when it is
-> played from hand. A search that "finds" Meowth ex this way spends a Bench slot
-> and gets nothing.
+**Two things the list does not chase, and why.**
+
+- **A second Bronzor as insurance.** Insurance against a Knock Out that cannot
+  happen inside this window — nothing either scenario does deals enough damage.
+  It cost **1.4 percentage points** where it sat on the list (53.9% → 52.6%,
+  1,000 replicates going second on decklist2), almost entirely through the
+  hand-fetching cards spending themselves on it once the useful targets had
+  whiffed, and it wastes the one attachment and the last Bench slot on the turns
+  where it fires.
+- **Meowth ex, for a search that benches.** Poffin and Telepathic put Basics **on
+  the Bench**, not in hand, and **Meowth ex fetched onto the Bench never triggers
+  Last-Ditch Catch** — the Ability fires only when it is played from hand. A
+  search that "finds" Meowth ex that way spends a Bench slot and gets nothing, so
+  item 6 applies only to Poké Pad, Ultra Ball and Brock's Scouting.
+
+Each card may still want its own **stopping point** rather than only its own
+legality filter — Poké Pad is free and can afford to reach item 7, Ultra Ball
+costs two discarded cards. That is PB-01, still open.
 
 ---
 
@@ -64,10 +68,21 @@ Kangaskhan ex. Play early and freely; it has no cost. Shuffles.
 **Ultra Ball** (Item) — finds **any** Pokémon; requires discarding 2 other cards from
 hand first. Play it only when the discard is affordable. **Discard priority** (first
 listed goes first):
-Special Red Card → Boss's Orders → surplus Duskull beyond 1 → Dusclops → Dusknoir →
-surplus Rare Candy → a Stadium → Flutter Mane → surplus Bronzong beyond 1.
+Special Red Card → Boss's Orders → **Night Stretcher** → **Ciphermaniac's
+Codebreaking, when it is not this turn's Supporter** → surplus Duskull beyond 1 →
+Dusclops → Dusknoir → surplus Rare Candy → a Stadium → Flutter Mane → surplus
+Bronzong beyond 1.
+
+Night Stretcher and a Ciphermaniac's that will not be played rank above Rare Candy,
+a Stadium and Dusknoir because they are the cards this window most reliably cannot
+convert: Night Stretcher recovers from a discard that has barely started, and
+Ciphermaniac's is legal in exactly one cell (`P2T1`) and dead everywhere else.
+
 **Never discard:** the only `[P]` source, the only Bronzor, the only Bronzong, the
-only Switch when Bronzor is benched, or Salvatore on a live turn-1 kill.
+only Switch when Bronzor is benched, Salvatore on a live turn-1 kill, or **the
+Supporter §6 has chosen for this turn**. That last one is the general form of the
+Salvatore clause: a Supporter about to be played is not spare, and discarding it
+trades the whole Supporter slot for one search.
 If fewer than 2 discardable cards remain by that rule, Ultra Ball is unplayable.
 Shuffles. **It is the only Item that finds Latias ex.**
 
@@ -92,13 +107,30 @@ way to find Latias ex. Shuffles.
 hand. Targets: Bronzong + a `[P]` source. Solves sub-goals B and D with one card,
 which makes it the default turn-2 Supporter. Shuffles.
 
+**Once she is played, she takes both searches, whatever the hand already holds.**
+The two searches are independent and declining one gains nothing — no card is
+saved, no shuffle avoided, and the slot is spent either way. So a second Bronzong
+and a second Energy are taken when the first are already in hand, and **the Energy
+search takes *any* Energy card** when no `[P]` source is findable, since her text
+is not restricted to `[P]`. A whiff on the Energy search therefore means something
+sharp: every Energy in the list is prized or discarded. Whether she is worth
+*playing* is §6's question and unchanged by this — what a played Hilda fetches is
+this file's.
+
 **Salvatore** (Supporter) — searches for a card with **no Abilities** that evolves from
 one of our Pokémon and **puts it onto that Pokémon**, bypassing both evolution timing
 restrictions (ADR 0001). Legal targets here: **Bronzong** and **Mega Lopunny ex** only
 — Dusclops and Dusknoir have Cursed Blast and are excluded. Requires a legal target to
 exist in the deck; if all Bronzong are prized or discarded it is **unplayable**, and
-that fact is information. Shuffles. **Only ever played on turn 1 going second** — its
-exemption is worthless on turn 2.
+that fact is information. Shuffles.
+
+**Its turn-1 exemption is not the only thing it is for.** On turn 1 going second it
+is the whole kill line (`docs/03_decision_tree.md` §4.1). On **turn 2** it is still
+one card that fetches Bronzong *and* puts it on the Bronzor, and it beats Hilda in
+two positions: when a `[P]` source is already secured, so Hilda's second search
+would add nothing; and when **the only Bronzor reached play this turn**, where a
+Bronzong in hand cannot legally be used and Salvatore's bypass is the only route to
+B at all. Behind Hilda otherwise, since she solves D as well.
 
 **Pokégear 3.0** (Item) — looks at the **top 7**, may take one Supporter, shuffles the
 rest back. Not a tutor: it can whiff, and the hit probability depends on how many
@@ -111,7 +143,14 @@ of the deck**, in a chosen order. Turn 2 draws exactly **one** of them. Stack th
 urgent card on top. **Playable in exactly one cell: `P2T1`** — going second, on our
 own first turn. Going first no Supporter is legal on turn 1, and on turn 2 the draw
 step has already passed, so the stack is never reached inside the window
-(`docs/03_decision_tree.md` §6). **Sets a `pending_stack` flag on the belief state**, and every
+(`docs/03_decision_tree.md` §6).
+
+**Because turn 2 draws one card, it is worth the slot only when one card finishes
+the job** — exactly one of B, C and D missing. It is not the answer to a hand
+missing three things; there Lillie's, which replaces the whole hand, is. Where the
+one gap is **C**, stack a **Switch**: Ciphermaniac's searches Trainers, which
+nothing else in the deck does, so it is the only card that can turn want-list item
+5 into the card itself. **Sets a `pending_stack` flag on the belief state**, and every
 shuffling card must check it. Shuffles the deck *before* placing, so the stack survives
 only until the next shuffle.
 
@@ -135,10 +174,18 @@ on turn 1 (when the `[P]` source can wait) and usually wrong on turn 2.
 
 **Meowth ex — Last-Ditch Catch** (Ability) — on being **played from hand onto the
 Bench**, search the deck for a **Supporter**. Does **not** trigger from a setup
-placement or from being placed as the Active. Target: Hilda by default, Salvatore if
-the turn-1 kill is live and Salvatore is not already in hand. Shuffles. **Bench it only
-when the Supporter we want is absent from hand** — with Hilda already held it spends a
-Bench slot to fetch nothing worth having.
+placement or from being placed as the Active. Shuffles. **Bench it only when the
+Supporter we want is absent from hand** — with Hilda already held it spends a Bench
+slot to fetch nothing worth having.
+
+**Target: Hilda, then Lillie's Determination. Salvatore only under a narrow
+condition** — `P2T1`, sub-goal C already solved or solvable for free, **and** a
+`[P]` source already in hand. Salvatore fetched into any weaker position is a card
+that cannot be cashed: it fixes B alone, and a turn missing the Energy or the
+positioning still misses. Hilda fixes B *and* D, and Lillie's replaces the hand, so
+both convert in far more of the states Meowth ex is benched from. Fetching
+Salvatore on a hand that has neither the Energy nor a mover is the single most
+common way a `P2T1` Meowth ex is wasted.
 
 ## Positioning cards
 
@@ -153,7 +200,7 @@ ladder in `docs/03_decision_tree.md` §4.3.
 hand; with a full hand it draws nothing. Costs the Supporter slot, so it loses to
 Switch whenever both are available and a Supporter is wanted for anything else —
 **except on a nearly empty hand**, where the refill is large enough that it can be the
-better card outright (Kevin, 2026-08-29). **No decklist runs it** — it is a candidate
+better card outright. **No decklist runs it** — it is a candidate
 only, so Switch is the operative answer to sub-goal C in every list that exists today.
 
 **Latias ex — Skyliner** (Ability) — passive, works from the Bench, live the moment
@@ -194,12 +241,23 @@ that is Bronzor TEF 68, Duskull, and Latias ex. The trigger requires the *recipi
 be `[P]`, so attaching to a Metal Bronzor pays the cost but fires no search; attaching
 to the evolved Bronzong does fire it. Shuffles.
 
+**The `[P]` recipient preference is a tie-break, never a reason to decline.** With
+both a Metal and a `[P]` Bronzor available, put it on the `[P]` one so the search
+fires; with only a Metal Bronzor, attach it anyway. Sub-goal D is what the card is
+for and the search is the bonus — a turn that declines the attachment to protect a
+search has traded the attack for a fetch.
+
+**And it is attached only while sub-goal D is unmet** (`docs/03_decision_tree.md`
+§4.2 step 6). A second Telepathic onto a line that already carries a `[P]` source
+buys a search whose two fetches land in the Bench slots §4.4 is holding, on a turn
+the window is about to close.
+
 **Basic Psychic Energy** (SVE 5 / MEE 5) — provides `[P]`, no effect. The only `[P]`
 source recoverable with Night Stretcher.
 
 **Rare Candy** (Item) — Basic → Stage 2, i.e. **Dusknoir only** (Mega Lopunny ex is a
 Stage 1). Carries the ordinary timing restrictions: not on our first turn, and not onto
-a Basic put into play this turn. **No longer inert** (Kevin, 2026-08-29): it is the
+a Basic put into play this turn. **Not an inert card**: it is the
 only route from a **Duskull** Active to a Dusknoir, and therefore the enabler of the
 Cursed Blast escape below. Still never played in preference to evolving Bronzong.
 
@@ -239,49 +297,52 @@ finish sub-goals A, C, and D on turn 1 rather than deferring them.
 
 Numbered so an answer names what it settles. `docs/03b_scenarios.md` poses several
 of these as concrete positions; the `S-nn` references point there. The `DT-nn`
-questions live in `docs/03_decision_tree.md` §10.
+questions live in `docs/03_decision_tree.md` §9.
+
+An entry that gets answered is folded into the card's own paragraph and struck from
+this list, so the register always reads as what is still open.
 
 ### The want-list
 
 - **PB-01.** Should each search card have its **own stopping point** on the list?
-  Poké Pad is free and can afford to reach item 8; Ultra Ball costs two discards
+  Poké Pad is free and can afford to reach item 7; Ultra Ball costs two discards
   and probably should not reach item 6. Where does each card stop?
-- **PB-02.** **Meowth ex is item 7, and Poffin and Telepathic put it on the Bench**,
-  where Last-Ditch Catch never triggers. Should the bench-placing searches skip it
-  outright, or is a body worth the slot anyway?
-- **PB-03.** Item 6, "a second Bronzor as insurance" — insurance against a Knock
-  Out that cannot happen inside this window. Worth a search, or an item that only
-  makes sense in a longer game? *(See S-11.)*
-- **PB-04.** Item 5 is Switch, which only **Ciphermaniac's** can actually fetch, since
-  nothing else in the deck searches Trainers. Should Ciphermaniac's stack a Switch
-  when sub-goal C is the blocker? *(See S-05.)*
+- **PB-15.** The want-list is walked in the same order on turn 1 and turn 2, but
+  what a fetch is *for* differs: a turn-1 fetch has a whole turn to be cashed and
+  a turn-2 fetch has none. Should item 7 (Duskull as filler) be dropped on turn 2
+  outright?
 
 ### Individual cards
 
-- **PB-05.** The **Ultra Ball discard order** — is it right? Is discarding a
-  surplus Bronzong ever correct when there are only 2 in the deck? *(See S-07.)*
-- **PB-06.** The **never-discard list** protects the only Switch "when Bronzor is
-  benched". It is worth 5 points as it stands. Should it also protect the only
-  Poké Pad, or Lillie's on a hand that is about to need it?
 - **PB-07.** **Poké Pad** ends up being the card that finds Bronzong, because it
   cannot fetch Latias ex. Is that the right division of labour, or should Poké Pad
   chase the Bronzor and Ultra Ball the Bronzong?
-- **PB-08.** **Telepathic Psychic Energy** — with both a Metal Bronzor and a `[P]`
-  Bronzor available as recipients, prefer the `[P]` one purely to fire the search?
-  No decklist runs a Metal Bronzor today, so this binds only if one is added.
 - **PB-09.** **Enriching Energy** draws 4 but provides `[C]`. It is currently never
   attached at all. Is there a turn-1 hand where the draw is worth the attachment?
-- **PB-10.** **Night Stretcher** is modelled as inert. It recovers a Pokémon or a
+- **PB-10.** **Night Stretcher** is modelled as inert, and now ranks third on the
+  Ultra Ball discard order on the strength of that. It recovers a Pokémon or a
   Basic Energy from the discard — is there a line where recovering a discarded
-  Bronzor or Psychic Energy matters inside two turns?
+  Bronzor or Psychic Energy matters inside two turns, and if so does its discard
+  rank need to move back down?
 - **PB-11.** **Which Stadium** to play when holding two, and whether Jamming Tower
   or Nighttime Mine ever works against us.
 - **PB-12.** **Mystery Garden** — worth modelling, or leave it inert? Its text is a
   live turn-1/2 draw effect, so "inert" is currently a known simplification. It is
   in no decklist, so this binds only if it is added.
-- **PB-13.** **Rare Candy → Dusknoir** on a turn where Bronzong is unreachable —
-  the replicate is already a miss, so does the board it leaves behind justify the
-  evolution? *(Also DT-23.)*
+- **PB-13.** **Rare Candy → Dusknoir** on a turn where Bronzong is unreachable and
+  the Cursed Blast escape buys nothing — the replicate is already a miss, so does
+  the board it leaves behind justify the evolution? *(Also DT-23.)*
 - **PB-14.** **Boss's Orders** and **Special Red Card** have no effect functions at
   all. Both are genuinely inert for this metric — but Boss's Orders occupies 2
   slots in decklist2. Is it earning them?
+- **PB-16.** Hilda now takes both searches unconditionally once she is played, so
+  she can fetch a second Bronzong and a redundant Energy. Should the *decision to
+  play her* still ignore those redundant fetches, or does a hand where they are
+  all she can take make her worth the slot on its own? *(See S-18.)*
+- **PB-17.** **Dusknoir is not on the want-list, and the Cursed Blast escape needs
+  one.** With a Duskull Active, a Rare Candy in hand and the line stranded on the
+  Bench, the escape is one Dusknoir away — and Dusknoir is an Evolution Pokémon, so
+  **Hilda can fetch it**. Should Dusknoir enter the want-list ahead of everything
+  else exactly when the escape is the only route to sub-goal C, the way Latias ex
+  does when C is blocked? *(See S-20, where the tree misses a position it could
+  have won.)*

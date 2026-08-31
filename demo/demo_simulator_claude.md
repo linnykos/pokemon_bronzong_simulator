@@ -139,6 +139,9 @@ writeLines(readable_log(pair$state, turn_number = 1L))
 ```
 attach TelepathicPsychicEnergy to FlutterMane
 Telepathic Psychic Energy -> Bronzor(TEF), Latiasex
+evolve into Bronzong
+Salvatore -> Bronzong
+promote Bronzong via retreat(free)
 ```
 
 ## Turn 2
@@ -152,9 +155,9 @@ writeLines(readable_log(pair$state, turn_number = 2L))
 ```
 
 ```
-promote Bronzor(TEF) via retreat(free)
-attach TelepathicPsychicEnergy to Bronzor(TEF)
-Telepathic Psychic Energy -> Bronzor(TEF), Duskull
+attach TelepathicPsychicEnergy to Bronzong
+Telepathic Psychic Energy -> Duskull, Bronzor(TEF)
+EVOLUTION JAMMER
 ```
 
 ## What the window closed on
@@ -169,19 +172,17 @@ writeLines(result$trace_vec)
 ```
 
 ```
-[1] "hit: FALSE   turn achieved: NA"
-#8  MISS unmet=B,C,D first=B
-  !! PLAYABLE OUT unused: Salvatore
-  !! a turn ended with the Supporter slot unspent
+[1] "hit: TRUE   turn achieved: 2"
+#8  HIT t2
   setup hand[RareCandy+RareCandy+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Dusknoir+FlutterMane+Salvatore] | lead FlutterMane
-  T1    attach TelepathicPsychicEnergy to FlutterMane | Telepathic Psychic Energy -> Bronzor(TEF), Latiasex
-  T2    promote Bronzor(TEF) via retreat(free) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Bronzor(TEF), Duskull
+  T1    attach TelepathicPsychicEnergy to FlutterMane | Telepathic Psychic Energy -> Bronzor(TEF), Latiasex | evolve into Bronzong | Salvatore -> Bronzong | promote Bronzong via retreat(free)
+  T2    attach TelepathicPsychicEnergy to Bronzong | Telepathic Psychic Energy -> Duskull, Bronzor(TEF) | EVOLUTION JAMMER
   end of turn 2 -- board state when the window closed; setup lead=FlutterMane
-    active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
-    bench    FlutterMane[P]{TelepathicPsychicEnergy} played=T0 | Latiasex[P] played=T1 | Bronzor(TEF)[P] played=T2 | Duskull[P] played=T2
-    hand     Salvatore, RareCandy, RareCandy, Dusknoir, BosssOrders, Dusknoir
-    discard  -
-    zones    deck=41 prizes=6 stadium=-
+    active   Bronzor(TEF)>Bronzong[P]{TelepathicPsychicEnergy} played=T1 evo=T1
+    bench    FlutterMane[P]{TelepathicPsychicEnergy} played=T0 | Latiasex[P] played=T1 | Duskull[P] played=T2 | Bronzor(TEF)[P] played=T2
+    hand     RareCandy, RareCandy, Dusknoir, BosssOrders, Buneary
+    discard  Salvatore
+    zones    deck=40 prizes=6 stadium=-
     turn     energy=spent supporter=unplayed items=open
     prized   GROUND TRUTH, never visible to the policy (ADR 0003): Duskull, Budew, PokePad, Bronzong, NightStretcher, TelepathicPsychicEnergy
 ```
@@ -227,8 +228,8 @@ data.frame(cell = c("going second", "going first"),
 
 ```
           cell hit_rate turn1 turn2 never
-1 going second    0.526    12   514   474
-2  going first    0.534     0   534   466
+1 going second    0.758    30   728   242
+2  going first    0.641     0   641   359
 ```
 
 Going second hits on turn 1 sometimes and going first never does — that is
@@ -269,10 +270,10 @@ data.frame(subgoal = names(SUBGOAL_VEC),
 
 ```
   subgoal          meaning going_second going_first
-1       A  bronzor_in_play           82          72
-2       B   bronzong_on_it          271         268
-3       C  bronzong_active          328         356
-4       D psychic_attached          445         397
+1       A  bronzor_in_play           51          54
+2       B   bronzong_on_it          153         252
+3       C  bronzong_active          177         282
+4       D psychic_attached          221         337
 ```
 
 §1 of the decision tree claims **C is the sub-goal that actually fails** —
@@ -294,14 +295,14 @@ lead_df[order(-lead_df$hit_rate), c("lead", "num_replicates", "num_hit",
 
 ```
                 lead num_replicates num_hit  hit_rate
-7            Bronzor            251     164 0.6533865
-6          Latias ex             32      19 0.5937500
-2 Mega Kangaskhan ex            215     120 0.5581395
-1              Budew             41      21 0.5121951
-5            Duskull            243     115 0.4732510
-3            Buneary            164      66 0.4024390
-8       Flutter Mane             28      11 0.3928571
-4          Meowth ex             26      10 0.3846154
+7            Bronzor            251     226 0.9003984
+2 Mega Kangaskhan ex            215     162 0.7534884
+6          Latias ex             32      24 0.7500000
+5            Duskull            243     180 0.7407407
+1              Budew             41      29 0.7073171
+4          Meowth ex             26      17 0.6538462
+3            Buneary            164     104 0.6341463
+8       Flutter Mane             28      16 0.5714286
 ```
 
 ``` r
@@ -323,17 +324,17 @@ policy before they are worth acting on:
 
 
 - **§3's choice of Mega Kangaskhan ex looks right, but only once Run Errand is
-  actually used** (55.8%, n = 215).
+  actually used** (75.3%, n = 215).
   In the first draft of this policy it came out near the bottom at 40.9%, purely
   because the policy never used the Ability. Implementing a two-card draw moved
   one lead by 15 points — worth remembering before reading any of these numbers
   as facts about the *deck* rather than about the *policy*.
 - **Buneary is §3's second choice and comes out second from last**
-  (40.2%, n = 164). Its whole case is Run
+  (63.4%, n = 164). Its whole case is Run
   Around, which §4.2 then makes a last resort because it spends the turn's
   Energy attachment. That may be the tree disagreeing with itself.
 - **Latias ex is the best non-Bronzor lead here**
-  (59.4%, n = 32), and §3 says to lead it
+  (75.0%, n = 32), and §3 says to lead it
   only when nothing else is available. Skyliner works from the Bench, so the
   tree's reasoning is sound — but leading it does get the free retreat online on
   turn 1 with no card spent. The sample is small; treat it as a question, not a
@@ -358,17 +359,27 @@ data.frame(motif = as.character(MOTIF_VEC),
 ```
                                                   motif going_second
 1 Telepathic attached to a Colorless body (search dead)            0
-2                a search resolved with no target named           64
-3        Bronzor/Bronzong in play but never made Active           89
-4          a turn ended with the Supporter slot unspent          440
+2                a search resolved with no target named           19
+3        Bronzor/Bronzong in play but never made Active           28
+4          a turn ended with the Supporter slot unspent          140
 5   combo assembled but Evolution Jammer never declared            0
   going_first
 1           0
-2          66
-3         141
-4         292
+2          13
+3          44
+4         104
 5           0
 ```
+
+**"A turn ended with the Supporter slot unspent" is still the largest count, and
+it is no longer a defect.** §6 priority 8 now plays a Supporter whenever one can
+do anything, so the remaining count is hands that had none to play. Going second,
+393 replicates in 1,000 end turn 2 with the slot unspent, and only **80** of those
+still hold a Supporter at all — 28 a Salvatore with no Bronzor in play to put a
+Bronzong onto, which is not a legal declaration, and 56 a Ciphermaniac's, whose
+stack the window can never draw. **Hilda and Lillie's are never stranded.** The
+motif is worth keeping because it would catch a regression, but the number to
+watch is 80, not 393.
 
 # The trace file
 
@@ -411,29 +422,27 @@ writeLines(line_vec[start_idx[1]:(start_idx[3] - 1)])
 ```
 #1/10 seed=1  HIT t2
   setup hand[Budew+MegaKangaskhanex+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Hilda] | lead MegaKangaskhanex
-  T1    hand[Budew+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Dusknoir+Hilda] | Run Errand | bench Latiasex | Hilda (evolution) -> Bronzong | Hilda (energy) -> DECLINED (no target named) | attach TelepathicPsychicEnergy to Latiasex | Telepathic Psychic Energy -> Bronzor(TEF)
-  T2    hand[Budew+LilliesDetermination+Buneary+PokePad+Duskull+Dusknoir+Dusknoir+Bronzong] | Run Errand | Poke Pad -> Duskull | promote Bronzor(TEF) via retreat(free) | Hilda (evolution) -> DECLINED (no target named) | Hilda (energy) -> TelepathicPsychicEnergy | evolve into Bronzong | attach TelepathicPsychicEnergy to Bronzong | Telepathic Psychic Energy -> Duskull, FlutterMane | EVOLUTION JAMMER
+  T1    hand[Budew+Buneary+TelepathicPsychicEnergy+Duskull+Dusknoir+Dusknoir+Hilda] | Run Errand | bench Latiasex | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Latiasex | Telepathic Psychic Energy -> Bronzor(TEF), Duskull | promote Bronzor(TEF) via retreat(free)
+  T2    hand[Budew+LilliesDetermination+Buneary+TelepathicPsychicEnergy+Duskull+Dusclops+Dusknoir+Dusknoir+Bronzong] | evolve into Bronzong | attach TelepathicPsychicEnergy to Bronzong | Telepathic Psychic Energy -> Duskull, FlutterMane | Lillie's Determination, drew 8 | EVOLUTION JAMMER
   end of turn 2 -- board state when the window closed; setup lead=MegaKangaskhanex
     active   Bronzor(TEF)>Bronzong[P]{TelepathicPsychicEnergy} played=T1 evo=T2
-    bench    Latiasex[P]{TelepathicPsychicEnergy} played=T1 | MegaKangaskhanex[C] played=T0 | Duskull[P] played=T2 | FlutterMane[P] played=T2
-    hand     Duskull, Budew, Buneary, Dusknoir, Dusknoir, LilliesDetermination, Duskull, Duskull
-    discard  Hilda, PokePad, Hilda
+    bench    Latiasex[P]{TelepathicPsychicEnergy} played=T1 | MegaKangaskhanex[C] played=T0 | Duskull[P] played=T1 | Duskull[P] played=T2 | FlutterMane[P] played=T2
+    hand     Duskull, Duskull, CiphermaniacsCodebreaking, Switch, Hilda, LilliesDetermination, MegaLopunnyex, Dusknoir
+    discard  Hilda, LilliesDetermination
     zones    deck=35 prizes=6 stadium=-
     turn     energy=spent supporter=played items=open
     prized   GROUND TRUTH, never visible to the policy (ADR 0003): RareCandy, Switch, Bronzong, TelepathicPsychicEnergy, UltraBall, Bronzor(TEF)
 
-#2/10 seed=2 mull=1  MISS unmet=C,D first=C
-  !! Bronzor/Bronzong in play but never made Active
-  !! a turn ended with the Supporter slot unspent
+#2/10 seed=2 mull=1  HIT t2
   setup hand[Budew+UltraBall+Meowthex+Duskull+Duskull+Bronzong+FlutterMane] | lead Duskull
-  T1    hand[Budew+MegaKangaskhanex+UltraBall+Meowthex+Duskull+Bronzong+FlutterMane] | bench Meowthex | Last-Ditch Catch -> Salvatore | Ultra Ball -> Bronzor(TEF) | bench Bronzor(TEF)
-  T2    hand[Budew+MegaKangaskhanex+RareCandy+Bronzong+Salvatore] | evolve into Bronzong
+  T1    hand[Budew+MegaKangaskhanex+UltraBall+Meowthex+Duskull+Bronzong+FlutterMane] | bench Meowthex | Last-Ditch Catch -> Hilda | Ultra Ball -> Bronzor(TEF) | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | bench Bronzor(TEF) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Latiasex | promote Bronzor(TEF) via retreat(free)
+  T2    hand[Budew+MegaKangaskhanex+Switch+Bronzong+Bronzong] | evolve into Bronzong | EVOLUTION JAMMER
   end of turn 2 -- board state when the window closed; setup lead=Duskull
-    active   Duskull[P] played=T0
-    bench    Meowthex[C] played=T1 | Bronzor(TEF)>Bronzong[P] played=T1 evo=T2
-    hand     Budew, MegaKangaskhanex, Salvatore, RareCandy
-    discard  UltraBall, Duskull, FlutterMane
-    zones    deck=43 prizes=6 stadium=-
+    active   Bronzor(TEF)>Bronzong[P]{TelepathicPsychicEnergy} played=T1 evo=T2
+    bench    Meowthex[C] played=T1 | Duskull[P] played=T0 | Latiasex[P] played=T1
+    hand     Budew, MegaKangaskhanex, Bronzong, Switch
+    discard  UltraBall, Duskull, FlutterMane, Hilda
+    zones    deck=40 prizes=6 stadium=-
     turn     energy=unspent supporter=unplayed items=open
     prized   GROUND TRUTH, never visible to the policy (ADR 0003): Hilda, Switch, Hilda, TelepathicPsychicEnergy, Dusknoir, LilliesDetermination
 
@@ -445,35 +454,48 @@ Each trace carries two fields that exist to separate a **deck** problem from a
 hand and was not played — that is a bug in `docs/03_decision_tree.md`, not in
 the 60 cards.
 
-# A question the demo raised for the tree
+# Where the rate came from
 
-The narrated game above ends with **Salvatore in hand, unplayed, on turn 2** —
-flagged by the trace as a playable out. That is the policy following §6, whose
-priority 1 reads *"Turn 1 going second, and the kill is live. Never otherwise on
-turn 1 — its exemption is wasted on turn 2."* Read literally, Salvatore is never
-played on turn 2 at all.
+The policy is aligned to the decision documents as of 2026-08-30, after Kevin
+answered all fourteen positions in `docs/03b_scenarios.md`. Going second the rate
+moved **52.6% → 75.8%**, going first **53.4% → 64.1%**, `item_lock` going first
+**49.0% → 60.7%**. That is a lump, and a lump is not useful, so each change was
+neutralised on its own and both cells re-run. In order of what it is worth:
 
-But on turn 2 Salvatore still fetches Bronzong **and** evolves in one card, which
-is a perfectly good turn-2 play when Hilda is not in hand. The wasted part is its
-first-turn exemption, not the card. **Should §6 list Salvatore as a turn-2
-Supporter, ranked against Hilda?** In this game it would have whiffed — Bronzong
-was prized, which the player could not have known — and even the whiff would have
-been worth having, since it reveals the prize.
+| Change | Going second | Going first |
+|---|---|---|
+| §6 priority 8 — never end a turn with the Supporter slot unspent | **15.2** | **3.4** |
+| §7 step 6 — assemble the turn again over what the fallback drew | **5.0** | **6.7** |
+| §6 priority 6 — Ciphermaniac's only when one card finishes the job | **4.4** | 0.0 |
+| Meowth ex fetches Hilda rather than Salvatore | **1.8** | 0.0 |
+| the want-list stops chasing a second Bronzor | **1.0** | **0.8** |
+| Ultra Ball never discards this turn's chosen Supporter | **0.7** | **0.2** |
+| §4.3 rung 5 — the Cursed Blast escape | **0.5** | **0.4** |
+| §6 priority 2 — Salvatore ranked against Hilda on turn 2 | **0.3** | **0.2** |
+| Ultra Ball discard order gains Night Stretcher and Ciphermaniac's | 0.0 | **0.5** |
+| Meowth ex dropped from the bench-placing searches | 0.0 | 0.0 |
+| the attachment is declined once sub-goal D is paid | −0.2 | 0.0 |
+| Hilda takes both searches once she is played | −0.3 | 0.0 |
+| sub-goal C counts as blocked while the Bronzor is still in hand | −0.3 | −0.4 |
+
+**Two changes are almost all of it, and they are the same change twice.** Playing
+a Supporter every turn is worth 15.2 going second; making the turn *use* what that
+Supporter drew is worth another 5.0 going second and 6.7 going first. Without the
+second pass the fallback is worth nothing at all on turn 2 — the window closes
+before the eight cards can be played, which is exactly why it needed measuring
+rather than assuming.
+
+**The four at the bottom cost points and stay anyway.** They came from Kevin's
+answers to S-02, S-06 and S-11 — they are rulings about how the deck should be
+played, not optimisations — and the documents are the specification. Each is worth
+a fraction of a point, which is roughly four replicates in a thousand.
 
 # What the policy does not do yet
 
 Stated plainly so your feedback lands on decisions rather than on known gaps.
 
-- **It leaves the Supporter slot unspent far too often** — the single biggest
-  motif count above. Every Supporter in the deck is implemented, but the policy
-  reaches for Hilda first and often finds nothing else it judges worth playing.
-  Note this count went *up* when the policy got better: a Hilda played to fetch
-  nothing used to count as the slot being spent.
 - **It never plays Pokégear 3.0**, which is the only Item that digs for a
   Supporter and is exactly what the going-first branch lacks.
-- **It never takes the Cursed Blast escape** (§8). The machinery exists —
-  `play_rare_candy()`, `use_cursed_blast()`, `knock_out()` — but the policy
-  never sets up the Duskull-Active line that reaches it.
 - **Retreat is only taken when free.** A paid retreat is never considered, even
   when the Energy spent would have been wasted anyway.
 - **Boss's Orders is the one Supporter with no implementation**, deliberately:
@@ -497,6 +519,6 @@ Stated plainly so your feedback lands on decisions rather than on known gaps.
 
 - `docs/01_rules_standard.md` — the rules this engine implements
 - `docs/03_decision_tree.md` — the tree this policy translates, §9 for the
-  answers and corrections so far
+  questions it still states as defaults rather than rulings
 - `docs/adr/` — the seven decisions that were expensive to make
 - `CONTEXT.md` — what this project's words mean

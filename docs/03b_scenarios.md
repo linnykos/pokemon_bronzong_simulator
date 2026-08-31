@@ -20,230 +20,276 @@ worth your afternoon. Regenerate them with:
 
 which writes fresh positions to `docs/03b_generated_positions.md`.
 
-**Constructed positions are marked as such.** They are legal but the current
-policy never reaches them, which is exactly why they need answering: they are the
-rules the tree specifies and nothing exercises.
-
 Notation: `Bronzor(TEF)[P]{TelepathicPsychicEnergy}` is a Bronzor TEF 68, a `[P]`
 Pokémon, carrying a Telepathic Psychic Energy. `played=T1` is the turn it reached
 play.
 
----
+**Numbering starts at S-15.** S-01 to S-14 are answered; their answers are rules in
+`docs/03_decision_tree.md` and `docs/03a_card_playbook.md` now, and the answers
+themselves are archived in `HISTORY_kevin.md`.
 
-## S-01 — A free retreat and a Switch, for the same job
-
-*Turn 2, going second, `clear`. Seed 20. **3.2%** of games.*
-
-```
-  active   Duskull[P] played=T0
-  bench    Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1 | Latiasex[P] played=T1
-  hand     Dusknoir, NightStretcher, PokePad, LilliesDetermination, Switch
-  discard  PokePad
-  deck     43 cards   prizes 6   stadium JammingTower
-```
-
-Latias ex is on the Bench, so Duskull retreats for free. You also hold a Switch.
-Bronzong is not in hand.
-
-- **a)** Retreat into Bronzor, keep the Switch, then Poké Pad for Bronzong.
-- **b)** Switch into Bronzor, keep the retreat available in case turn 2 needs a
-  second reposition.
-- **c)** Poké Pad first, then decide how to move based on what it finds.
-- **d)** something else: ______
-
-*Probes DT-08, DT-09.*
+**Answer in frequency order.** S-15 (19.8%), S-22 (12.8%), S-25 (11.6%) and S-23
+(9%) are where an answer changes the most games. S-20 arises in 1.6% and can wait —
+but read it anyway, because it is the one that found a line the tree cannot
+currently take.
 
 ---
 
-## S-02 — Kangaskhan Active on turn 2, the line on the Bench
+## S-15 — Lillie's with the turn already won
 
-*Turn 2, going second, `clear`. Seed 1. **8.2%** of games.*
+*Turn 2, going second, `clear`. Seed 1. **19.8%** of games — the most common
+question in this file.*
 
 ```
-  active   MegaKangaskhanex[C] played=T0
-  bench    Latiasex[P]{TelepathicPsychicEnergy} played=T1 | Bronzor(TEF)[P] played=T1
-  hand     Duskull, Budew, Buneary, Dusknoir, Dusknoir, LilliesDetermination, Bronzong, PokePad
+  active   Bronzor(TEF)[P] played=T1
+  bench    Latiasex[P]{TelepathicPsychicEnergy} played=T1 | MegaKangaskhanex[C] played=T0 | Duskull[P] played=T1
+  hand     Duskull, Budew, Buneary, Dusknoir, Dusknoir, LilliesDetermination, Bronzong, TelepathicPsychicEnergy, Dusclops
   discard  Hilda
-  deck     41 cards   prizes 6   stadium -
+  deck     39 cards   prizes 6   stadium -
 ```
 
-Turn 1 used Run Errand, benched Latias ex, and spent Hilda — whose Energy search
-found nothing, so the Telepathic went onto Latias ex rather than onto the Bronzor.
-Bronzong is in hand. The retreat into Bronzor is free.
+The turn is already won: the Bronzor reached play last turn, so it evolves, the
+second Telepathic pays for the attack, and Evolution Jammer fires. Lillie's is the
+only Supporter left in hand and the slot is unspent. **The window closes at the end
+of this turn** (ADR 0007), so nothing drawn now is ever played.
 
-- **a)** Retreat into Bronzor, evolve into Bronzong, attach nothing — there is no
-  `[P]` source in hand, so the attack is off regardless.
-- **b)** Run Errand first for two more cards, then retreat and evolve.
-- **c)** Retreat and evolve, then Lillie's Determination to dig for the Energy.
+- **a)** Evolve, attach, attack — and play Lillie's before attacking anyway, since
+  the slot is destroyed otherwise and eight fresh cards is a better record of where
+  the game stood.
+- **b)** Evolve, attach, attack, and **do not** play Lillie's. On a turn that is
+  already won it buys nothing at all, and the end-of-turn board is more honest
+  without a hand that was shuffled for no reason.
+- **c)** Play Lillie's **first**, before evolving, so the eight cards can still be
+  used this turn — accepting that it buries the Bronzong and the Telepathic
+  currently in hand.
 - **d)** something else: ______
 
-*Probes DT-11, DT-04, DT-12 — note the turn-1 Telepathic went onto Latias ex.*
+*Probes DT-24.*
 
 ---
 
-## S-03 — Lillie's and Hilda in the same hand
+## S-16 — Salvatore, Hilda, and a Poké Pad that does the same job
 
-*Turn 2, going second, `clear`. Seed 10. **9.2%** of games.*
+*Turn 2, going second, `clear`. Seed 41. **4.4%** of games.*
+
+```
+  active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
+  bench    MegaKangaskhanex[C] played=T0 | Latiasex[P] played=T1 | Duskull[P] played=T1 | Meowthex[C] played=T1
+  hand     MegaLopunnyex, PokePad, Hilda, Dusknoir, MegaKangaskhanex, Buneary, RareCandy, Salvatore, MegaLopunnyex
+  discard  PokePad, UltraBall, BosssOrders, CiphermaniacsCodebreaking, Switch, LilliesDetermination
+  deck     33 cards   prizes 6   stadium -
+```
+
+Bronzong is the only missing piece: the Bronzor is Active, it reached play last
+turn so it can be evolved from hand, and the Telepathic is already attached. Three
+cards in hand can find a Bronzong, and they cost different things.
+
+- **a)** Salvatore — it fetches the Bronzong and puts it straight onto the Bronzor,
+  and with the Energy already attached Hilda's second search is dead weight.
+- **b)** Hilda — she fetches the Bronzong *and* a spare Energy for the same slot,
+  and the Bronzor evolves from hand regardless.
+- **c)** Poké Pad — it finds Bronzong for **free**, leaving the Supporter slot for
+  whichever of the two is worth more afterwards.
+- **d)** something else: ______
+
+*Probes DT-25.*
+
+---
+
+## S-17 — Ciphermaniac's on `P2T1` with one piece missing
+
+*Turn 1, going second, `clear`. Seed 99. **2.4%** of games.*
 
 ```
   active   Bronzor(TEF)[P] played=T0
   bench    (empty)
-  hand     Dusknoir, LilliesDetermination, LilliesDetermination, RareCandy, Salvatore, LilliesDetermination, BosssOrders, Hilda
-  discard  -
-  deck     45 cards   prizes 6   stadium -
-```
-
-Eight cards, three of them Lillie's. Bronzor is already Active, so sub-goal C is
-done; B and D are both open.
-
-- **a)** Hilda — fetch Bronzong and a `[P]` source, and attack this turn.
-- **b)** Lillie's — the hand is mostly dead weight, so shuffle it into the deck
-  and draw 8.
-- **c)** Salvatore — fetch Bronzong straight onto the Bronzor, then use the
-  attachment on whatever the draw gave you.
-- **d)** something else: ______
-
-*Probes DT-13, DT-14, DT-15.*
-
----
-
-## S-04 — Hilda with both her targets already in hand
-
-*Turn 2, going second, `clear`. Seed 44. **4.4%** of games.*
-
-```
-  active   MegaKangaskhanex[C] played=T0
-  bench    (empty)
-  hand     Switch, Dusknoir, Bronzong, TelepathicPsychicEnergy, Hilda, Dusknoir, LilliesDetermination, Dusknoir, CiphermaniacsCodebreaking
-  discard  -
-  deck     43 cards   prizes 6   stadium JammingTower
-```
-
-You hold Bronzong **and** a `[P]` source — the two things Hilda fetches — but no
-Bronzor anywhere, and the Bench is empty.
-
-- **a)** Nothing but the Supporter matters: play Lillie's to dig for a Bronzor.
-- **b)** Hilda anyway, aimed at whatever she can still legally take.
-- **c)** Ciphermaniac's — stack a Bronzor on top for next turn's draw.
-- **d)** Spend no Supporter; Run Errand, then attach the Telepathic to Kangaskhan
-  to fire its search for a Basic `[P]`.
-- **e)** something else: ______
-
-*Probes DT-14, DT-17, DT-12.*
-
----
-
-## S-05 — Ciphermaniac's on `P2T1`, with Lillie's also in hand
-
-*Turn 1, going second, `clear`. Seed 6. **13%** of games.*
-
-```
-  active   Duskull[P] played=T0
-  bench    (empty)
-  hand     CiphermaniacsCodebreaking, LilliesDetermination, Dusknoir, RareCandy, JammingTower, NightStretcher, UltraBall
+  hand     TelepathicPsychicEnergy, Dusknoir, UltraBall, CiphermaniacsCodebreaking, CiphermaniacsCodebreaking, TelepathicPsychicEnergy, Duskull
   discard  -
   deck     46 cards   prizes 6   stadium -
 ```
 
-No Bronzor, no Bronzong, no Energy. This is the one turn of the game where
-Ciphermaniac's is legal *and* not obviously wasted — but turn 2 draws only one of
-the two cards it stacks.
+Exactly the hand §6 priority 6 was narrowed to: Bronzor Active, two Telepathics in
+hand, and **Bronzong the single missing piece**. Turn 2 draws one card, so one card
+is all that is needed.
 
-- **a)** Ciphermaniac's, stacking Bronzor then Bronzong.
-- **b)** Ciphermaniac's, stacking Bronzor then a `[P]` source.
-- **c)** Lillie's — draw 8 now rather than arrange one card for later.
-- **d)** Ultra Ball for a Bronzor, then Ciphermaniac's for the rest.
-- **e)** something else: ______
+- **a)** Ciphermaniac's, stacking Bronzong on top — turn 2's draw completes the
+  line and no other card is spent.
+- **b)** Ultra Ball for the Bronzong outright. It costs two discards, but it puts
+  the card in hand now rather than offering it to a draw step.
+- **c)** Ultra Ball for the Bronzong **and then** Ciphermaniac's on top of that, for
+  whatever is still worth stacking once B is closed.
+- **d)** something else: ______
 
 *Probes DT-17, PB-04.*
 
 ---
 
-## S-06 — Salvatore still in hand on turn 2
+## S-18 — Hilda whose two searches are both redundant
 
-*Turn 2, going second, `clear`. Seed 2. **23.4%** of games — the most common
-question in this file.*
+*Turn 2, going second, `clear`. Seed 68. **4.8%** of games.*
 
 ```
-  active   Duskull[P] played=T0
-  bench    Meowthex[C] played=T1 | Bronzor(TEF)[P] played=T1
-  hand     Budew, Bronzong, MegaKangaskhanex, Salvatore, RareCandy
-  discard  UltraBall, Duskull, FlutterMane
-  deck     43 cards   prizes 6   stadium -
+  active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
+  bench    Latiasex[P] played=T1 | MegaKangaskhanex[C] played=T0 | Duskull[P] played=T1 | Bronzor(TEF)[P] played=T1
+  hand     Dusknoir, Bronzong, Hilda, Bronzong, TelepathicPsychicEnergy, Switch
+  discard  UltraBall, BosssOrders, Duskull, Hilda
+  deck     38 cards   prizes 6   stadium -
 ```
 
-Meowth ex fetched Salvatore on turn 1. There is no Latias ex, so Duskull's retreat
-costs 1 Energy and you have none attached; there is no Switch. Bronzong is in hand
-and the Bronzor is on the Bench.
+Both Bronzong are in hand and a third Energy is too. Everything Hilda searches for,
+you already hold. The attack is on regardless.
 
-- **a)** Evolve the benched Bronzor into Bronzong and accept it is stuck there
-  this turn.
-- **b)** Play Salvatore to put Bronzong on the benched Bronzor — same board, but
-  Bronzong stays in hand for later.
-- **c)** Bench Mega Kangaskhan ex, and treat the turn as a rebuild.
+- **a)** Play her anyway — the slot is destroyed if it is not used, and a spare
+  Energy in hand costs nothing.
+- **b)** Do not play her. Two cards you cannot use are not worth a search, and the
+  window ends here.
+- **c)** Play her, and use the second Bronzong on the benched Bronzor as well, so
+  the board that gets recorded carries the whole line twice over.
 - **d)** something else: ______
 
-*Probes DT-13, DT-08.*
+*Probes PB-16.*
 
 ---
 
-## S-07 — Ultra Ball with nothing spare to pay for it
+## S-19 — Rare Candy and Dusknoir on a turn that is already won
 
-*Turn 2, going second, `clear`. Seed 84. **2.2%** of games.*
+*Turn 2, going second, `clear`. Seed 4. **8%** of games.*
 
 ```
   active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T0
-  bench    Latiasex[P] played=T1 | Bronzor(TEF)[P] played=T1 | Duskull[P] played=T1
-  hand     UltraBall, CiphermaniacsCodebreaking, Bronzong, Switch
-  discard  PokePad, UltraBall, RareCandy, MegaLopunnyex, Hilda
-  deck     40 cards   prizes 6   stadium -
+  bench    Latiasex[P] played=T1 | Meowthex[C] played=T1 | Duskull[P] played=T1 | Bronzor(TEF)[P] played=T1
+  hand     Dusknoir, Dusclops, CiphermaniacsCodebreaking, PokePad, RareCandy, Salvatore, MegaLopunnyex
+  discard  PokePad, UltraBall, Duskull, Duskull, LilliesDetermination
+  deck     35 cards   prizes 6   stadium JammingTower
 ```
 
-Every other card in hand is on the never-discard list: the only Bronzong, the only
-Switch with a Bronzor benched, and Ciphermaniac's. The playbook's rule says Ultra
-Ball is therefore unplayable.
+Bronzong is the only gap and the Poké Pad can close it for free. That leaves Rare
+Candy, Dusknoir and Salvatore all live on a turn the metric no longer needs — and
+§8 says not to evolve Dusknoir *in preference to* Bronzong, which is not the
+question here.
 
-- **a)** Correct — do not play it. Evolve and attack; the Ultra Ball is a dead
-  card this turn and that is fine.
-- **b)** Discard Ciphermaniac's and the Switch to play it — the Bronzor is already
-  Active, so the Switch is doing nothing.
-- **c)** Discard Ciphermaniac's and Bronzong, then Ultra Ball for a second
-  Bronzong.
+- **a)** Poké Pad for the Bronzong, evolve, attack. Leave the Rare Candy and the
+  Dusknoir in hand; they are off-plan.
+- **b)** Same, but Rare Candy the benched Duskull into Dusknoir before attacking —
+  the metric is already banked and the board this leaves behind is worth more.
+- **c)** Same as (a), and spend the Supporter on Salvatore for the second Bronzong
+  onto the benched Bronzor.
 - **d)** something else: ______
 
-*Probes PB-05, PB-06.*
+*Probes DT-23, PB-13.*
 
 ---
 
-## S-08 — Buneary Active with the line benched
+## S-20 — The escape that is one card away
 
-*Turn 2, going second, `clear`. Seed 9. **7.4%** of games.*
+*Turn 2, going second, `clear`. Seed 134. **1.6%** of games — and the one worth
+reading out of order.*
 
 ```
-  active   Buneary[C] played=T0
-  bench    Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1 | Latiasex[P] played=T1
-  hand     CiphermaniacsCodebreaking, NightStretcher, RareCandy, Bronzong, UltraBall
-  discard  UltraBall, BosssOrders, Dusknoir, Hilda
+  active   Duskull[P] played=T0
+  bench    Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1 | Duskull[P] played=T1
+  hand     FlutterMane, Hilda, MegaKangaskhanex, Bronzong, RareCandy
+  discard  UltraBall, Dusknoir, RareCandy, Hilda
   deck     41 cards   prizes 6   stadium -
 ```
 
-Latias ex is out, so Buneary retreats free. Bronzong is in hand and the Bronzor
-already carries its Energy. Run Around is also available — but it is turn 2, where
-attacking with Buneary ends the game's window.
+Sub-goal C is the whole problem. There is no Latias ex in play, so the Duskull's
+retreat costs 1 and nothing is attached to pay it; there is no Switch. The benched
+Bronzor already carries its Energy and the Bronzong is in hand, so **every other
+sub-goal is met**. The §4.3 rung-5 escape wants a Dusknoir to Rare Candy the
+Duskull into — and the only one you have seen is in the discard.
 
-- **a)** Retreat into Bronzor, evolve, attack.
-- **b)** Evolve the Bronzor on the Bench first, then retreat into a finished
-  Bronzong.
-- **c)** Ultra Ball for a second Bronzor before committing.
+- **a)** Evolve the benched Bronzor into Bronzong and take the miss. Nothing in
+  hand moves the Active.
+- **b)** Play **Hilda aimed at a Dusknoir** — she fetches an Evolution Pokémon, and
+  Dusknoir is one. Rare Candy it onto the Duskull, Cursed Blast, promote the
+  Bronzong, attack.
+- **c)** Play Hilda for what she is normally for — a second Bronzong and an Energy
+  — evolve on the Bench, and accept the miss.
 - **d)** something else: ______
 
-*Probes DT-06, DT-08.*
+*Probes DT-22, and a rule the playbook does not yet have: **when the Cursed Blast
+escape is the only route to C, does Dusknoir join the want-list ahead of
+everything else?***
 
 ---
 
-## S-09 — Going first, turn 1, a Supporter you cannot play
+## S-21 — *(no example found)*
 
-*Turn 1, going first, `clear`. Seed 1. **85%** of games.*
+The predicate asked for a **Night Stretcher in hand with a Bronzor or Bronzong in
+the discard**, to settle PB-10. In 500 games it never happened, and the reason is a
+rule that already works: the Ultra Ball never-discard list protects the only
+Bronzor and the only Bronzong, so the line does not reach the discard in the first
+place. **PB-10 is answered by its own unreachability** — Night Stretcher has
+nothing to recover inside this window, which is what justifies its new rank third
+on the Ultra Ball discard order. Left in the predicate list so a future decklist
+that changes the discard pattern re-raises it.
+
+---
+
+## S-22 — Enriching Energy and an attachment with nothing to spend it on
+
+*Turn 1, going second, `clear`. Seed 7. **12.8%** of games.*
+
+```
+  active   Duskull[P] played=T0
+  bench    (empty)
+  hand     Dusknoir, UltraBall, PokePad, PokePad, NightStretcher, RareCandy, EnrichingEnergy
+  discard  -
+  deck     46 cards   prizes 6   stadium -
+```
+
+No Bronzor, no Bronzong, and no `[P]` source — Enriching Energy provides `[C]` and
+does not count for sub-goal D. But the turn's one attachment is otherwise going
+completely unused, and attaching Enriching draws **4**.
+
+- **a)** Search with the Poké Pads and the Ultra Ball, and attach nothing. Enriching
+  is not a `[P]` source and the attachment is better left alone.
+- **b)** Attach Enriching to the Duskull for the draw-4. Turn 2 gets its own
+  attachment, so this costs sub-goal D nothing at all.
+- **c)** Search first, then attach Enriching to whichever Bronzor the searches turn
+  up, so the draw-4 happens on the body that will actually attack.
+- **d)** something else: ______
+
+*Probes PB-09.*
+
+---
+
+## S-23 — Poké Pad and Ultra Ball, and which one chases what
+
+*Turn 1, going second, `clear`. Seed 33. **9%** of games.*
+
+```
+  active   Meowthex[C] played=T0
+  bench    (empty)
+  hand     LilliesDetermination, LilliesDetermination, UltraBall, PokePad, TelepathicPsychicEnergy, TelepathicPsychicEnergy, LilliesDetermination
+  discard  -
+  deck     46 cards   prizes 6   stadium -
+```
+
+Meowth ex led, so Last-Ditch Catch never fired — §3 says never to lead it, and this
+is what that costs. Two Energy and three Lillie's in hand; no Bronzor, no Bronzong,
+and a Colorless Active that will need moving. **Poké Pad cannot fetch Latias ex**
+(Rule Box); Ultra Ball is the only Item that can.
+
+- **a)** Poké Pad for the Bronzor, Ultra Ball for **Latias ex** — the Active is
+  Colorless and something has to move it.
+- **b)** Poké Pad for the Bronzor, Ultra Ball for the **Bronzong**, and trust the
+  Supporter to find the mover.
+- **c)** Ultra Ball for Latias ex first, then Poké Pad for whichever of Bronzor and
+  Bronzong the board turns out to want more.
+- **d)** something else: ______
+
+Note the Ultra Ball discard: one Telepathic and this turn's Supporter are both
+protected, so it pays with two of the spare Lillie's.
+
+*Probes PB-07.*
+
+---
+
+## S-24 — Four candidate leads and no Bronzor
+
+*Turn 1, going second, `clear`. Seed 1. **3%** of games.*
 
 ```
   active   MegaKangaskhanex[C] played=T0
@@ -253,154 +299,79 @@ attacking with Buneary ends the game's window.
   deck     46 cards   prizes 6   stadium -
 ```
 
-No Supporter may be played and no attack may be made. Hilda is stuck in hand until
-turn 2. There is no Bronzor anywhere, and the only `[P]` bodies available are ones
-you would have to bench first.
+The opening hand held Kangaskhan, Duskull, Budew and Buneary and no Bronzor. §3's
+order picked Kangaskhan, and that order is still a default rather than a ruling.
+The measured rates going second are Latias ex 65.6%, **Kangaskhan 55.8%**, Budew
+53.7%, Duskull 49.4%, Meowth ex 46.2%, Buneary 40.2%, Flutter Mane 35.7% — but
+those are facts about the policy as much as about the deck.
 
-- **a)** Bench nothing; Run Errand and attach the Telepathic to Kangaskhan, whose
-  `[C]` type means the search does not fire — but the Energy is banked.
-- **b)** Bench Duskull, attach Telepathic to it, fire the search for two Basic
-  `[P]` Pokémon.
-- **c)** Run Errand only; hold the Energy so turn 2 can put it on a real Bronzor.
+- **a)** Kangaskhan, as §3 says — Run Errand draws 2 now, and it retreats free once
+  Latias ex is benched.
+- **b)** Duskull — a `[P]` body, so the Telepathic can go on it this turn and fire
+  its search for two Basics including the Bronzor.
+- **c)** Buneary — Run Around can put a found Bronzor into the Active spot on turn 1
+  without spending the Supporter slot or the retreat.
 - **d)** something else: ______
 
-*Probes DT-12, DT-19, DT-05.*
+*Probes DT-03.*
 
 ---
 
-## S-10 — Items locked on turn 2, going first
+## S-25 — The line Active, and only the attachment missing
 
-*Turn 2, going first, `item_lock`. Seed 1. **47.2%** of that cell.*
+*Turn 2, going second, `clear`. Seed 7. **11.6%** of games.*
 
 ```
-  active   MegaKangaskhanex[C] played=T0
-  bench    Latiasex[P]{TelepathicPsychicEnergy} played=T1 | Bronzor(TEF)[P] played=T1
-  hand     Hilda, Duskull, Budew, Buneary, Dusknoir, Dusknoir, LilliesDetermination, PokePad
-  discard  -
-  deck     42 cards   prizes 6   stadium -
+  active   Bronzor(TEF)[P] played=T1
+  bench    Latiasex[P] played=T1 | Duskull[P] played=T0
+  hand     PokePad, RareCandy, EnrichingEnergy, Meowthex
+  discard  PokePad, UltraBall, NightStretcher, Dusknoir
+  deck     43 cards   prizes 6   stadium -
 ```
 
-Itchy Pollen has locked your Items, so the Poké Pad is dead this turn. The retreat
-into Bronzor is still free. Turn 1 put the Telepathic on Latias ex.
+Positioning is solved — the Bronzor is Active and reached play last turn, so it
+evolves. **Both** remaining gaps are cards: a Bronzong and a `[P]` source, and one
+Supporter has to find both. Meowth ex in hand can fetch that Supporter, at the cost
+of a Bench slot.
 
-- **a)** Retreat into Bronzor, Hilda for Bronzong plus an Energy, evolve, attack.
-- **b)** Same, but Lillie's instead of Hilda — the hand is full of cards the lock
-  has made useless.
-- **c)** Retreat and evolve only; save the Supporter, since the lock ends next
-  turn.
+- **a)** Bench Meowth ex for the Supporter, Poké Pad for the Bronzong, and let the
+  fetched Supporter find the Energy.
+- **b)** Poké Pad for the Bronzong and keep Meowth ex in hand — a Supporter is
+  likely to be drawn anyway and the Bench slot is not recoverable.
+- **c)** Bench Meowth ex aimed at **Lillie's** rather than Hilda, and take an
+  eight-card redraw at both missing pieces at once.
 - **d)** something else: ______
 
-*Probes DT-20, DT-14.*
+*Probes DT-01 — §1 claims C is the sub-goal that actually fails, and this is a
+position where C was free and the attachment is what is left.*
 
 ---
 
-## S-11 — The last Bench slot: Latias ex or deck thinning
+## S-26 — The last Bench slot against a second Telepathic
 
-*Turn 2, going second, `clear`. Seed 24. **5.4%** of games.*
+*Turn 2, going second, `clear`. Seed 33. **5.2%** of games.*
 
 ```
   active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
-  bench    Buneary[C] played=T0 | Latiasex[P] played=T1 | Bronzor(TEF)[P] played=T1 | Duskull[P] played=T1
-  hand     TelepathicPsychicEnergy, Bronzong, Dusknoir
-  discard  PokePad, UltraBall, Duskull, LilliesDetermination
-  deck     41 cards   prizes 6   stadium -
+  bench    Latiasex[P] played=T1 | Meowthex[C] played=T0 | Duskull[P] played=T1 | Bronzor(TEF)[P] played=T1
+  hand     TelepathicPsychicEnergy, Dusknoir, Dusknoir, RareCandy, Hilda, LilliesDetermination, RareCandy, MegaLopunnyex
+  discard  PokePad, UltraBall, LilliesDetermination, TelepathicPsychicEnergy, LilliesDetermination
+  deck     34 cards   prizes 6   stadium JammingTower
 ```
 
-Four Bench slots used, one left. The second Telepathic in hand would fetch **two**
-Basics if the space existed, thinning the deck — but only one slot remains, and
-sub-goal D is already met by the Energy on the Active Bronzor.
+Sub-goal D is already paid on the Active Bronzor, so the second Telepathic in hand
+has nothing to buy but its own search — which would fill the one remaining Bench
+slot. Thirty-four cards left in the deck, and Bronzong is the only gap.
 
-- **a)** Evolve and attack; do not attach the second Telepathic at all.
-- **b)** Attach it and fetch one Basic into the last slot — a thinner deck is a
-  better draw next turn.
-- **c)** Attach it to the Active Bronzong for a second Energy, declining the
-  search entirely.
+- **a)** Hilda for the Bronzong, evolve, attack; attach nothing and leave the last
+  slot empty.
+- **b)** Same, but attach the second Telepathic to the Bronzong so its search fills
+  the slot and thins the deck by two.
+- **c)** Lillie's rather than Hilda — with 34 cards left an eight-card redraw finds
+  the Bronzong about as reliably and leaves a real hand behind.
 - **d)** something else: ______
 
-*Probes DT-02, DT-10, PB-03.*
-
----
-
-## S-12 — Both Bronzor gone, Bronzong in hand
-
-*Turn 2, going second, `clear`. Seed 30. **7.6%** of games.*
-
-```
-  active   Latiasex[P]{TelepathicPsychicEnergy} played=T0
-  bench    (empty)
-  hand     LilliesDetermination, Bronzong, RareCandy, RareCandy, Hilda, Salvatore, LilliesDetermination
-  discard  -
-  deck     45 cards   prizes 6   stadium -
-```
-
-Latias ex led — the last resort in §3's order. Turn 1's Telepathic search **whiffed
-on both Bronzor**, which is how you know they are prized. Bronzong, Hilda and
-Salvatore are all in hand and all useless without a Bronzor.
-
-- **a)** Lillie's — the hand cannot win, so redraw eight.
-- **b)** Hilda for an Energy, and accept the miss.
-- **c)** Nothing at all; hold everything for turn 3, which this project does not
-  measure.
-- **d)** something else: ______
-
-*Probes DT-03, DT-12, PB-03.*
-
----
-
-## S-13 — Dusclops stuck Active *(constructed)*
-
-*Turn 2, going second, `clear`. **The current policy never reaches this**, which is
-why it needs an answer.*
-
-```
-  active   Duskull>Dusclops[P] played=T0 evo=T2
-  bench    Bronzor(TEF)[P]{PsychicEnergy(SVE)} played=T1
-  hand     Bronzong, RareCandy, Dusknoir
-  deck     ~42 cards  prizes 6   stadium -
-```
-
-Dusclops is a Stage 1, so **Skyliner would not help even with Latias ex out**, and
-its retreat costs 2. No Switch. The benched Bronzor already carries a `[P]` source.
-§8's Cursed Blast escape exists for exactly this — and note **Rare Candy is not the
-route here**: it goes Basic → Stage 2, and Dusclops is a Stage 1. The Dusclops uses
-**its own** Cursed Blast, Knocking itself Out, and you choose the replacement
-Active. (The Rare Candy → Dusknoir route is for a **Duskull** Active, which is the
-Basic version of this same position.)
-
-- **a)** Take the escape: Cursed Blast, promote the Bronzor, evolve, attack. Costs
-  a Prize to the opponent and the Dusclops.
-- **b)** Evolve the benched Bronzor into Bronzong and accept the miss — a Prize is
-  too much to give for one turn of tempo.
-- **c)** Only take it going second, where the game is otherwise lost anyway.
-- **d)** something else: ______
-
-*Probes DT-22, DT-23.*
-
----
-
-## S-14 — A Metal Bronzor in the list *(constructed)*
-
-*Turn 1, going second, `clear`. **No decklist runs a Metal Bronzor**, so this asks
-whether one should be added.*
-
-```
-  active   Bronzor(PRE)[M] played=T0        <- Metal, 70 HP
-  bench    (empty)
-  hand     TelepathicPsychicEnergy, BuddyBuddyPoffin, Bronzong, Duskull
-  deck     ~46 cards  prizes 6   stadium -
-```
-
-The Metal printing is **Poffin-findable** (70 HP) but **not** a legal recipient for
-Telepathic's search, which needs a `[P]` body. Attaching the Telepathic here pays
-sub-goal D and fires nothing.
-
-- **a)** Attach the Telepathic anyway — D is what matters, the search is a bonus.
-- **b)** Play the Poffin first to get a second body down, then attach.
-- **c)** The trade-off is bad enough that a 2/2 Psychic/Metal split is wrong;
-  stay on TEF 68 only.
-- **d)** something else: ______
-
-*Probes PB-08, and hypothesis 9 in `CLAUDE_kevin.md`.*
+*Probes PB-15, DT-02.*
 
 ---
 
@@ -409,36 +380,36 @@ sub-goal D and fires nothing.
 Computed by running `policy_turn()` from each position, not remembered. Regenerate
 with `scripts/generate_scenarios_claude.R`.
 
-- **S-01** — Poké Pad → Bronzong; promote Bronzor via **retreat (free)**; evolve;
-  **Evolution Jammer**. Option (a), and it hits.
-- **S-02** — Run Errand; Poké Pad → Duskull; retreat into Bronzor; Hilda, whose
-  evolution search is declined and whose Energy search finds Telepathic; evolve;
-  attach; **Evolution Jammer**. Closest to (b).
-- **S-03** — Hilda → Bronzong and Telepathic; evolve; attach; search; **Evolution
-  Jammer**. Option (a); Lillie's is never reached, because the hand is 8 cards and
-  §6 priority 4 wants four or fewer.
-- **S-04** — Run Errand; Ultra Ball → Bronzor; bench it; promote via **Switch**;
-  attach Telepathic; fetch Latias ex and a second Bronzor. No Supporter at all —
-  Hilda is skipped because she can fetch nothing, and nothing below her fires.
-- **S-05** — Ultra Ball → Bronzor; **Ciphermaniac's stacking Bronzong then
-  Telepathic**; bench the Bronzor; play Jamming Tower. Between (b) and (d).
-- **S-06** — **evolve the benched Bronzor into Bronzong, and nothing else.**
-  Salvatore is never considered, because §6 priority 1 confines it to turn 1. The
-  turn ends with Bronzong on the Bench and a miss. This is DT-13.
-- **S-07** — evolve; **Evolution Jammer**. Option (a): Ultra Ball is correctly left
-  unplayed.
-- **S-08** — Ultra Ball → Meowth ex; retreat into Bronzor; bench Meowth ex, whose
-  Last-Ditch Catch fetches Hilda; evolve; **Evolution Jammer**. Option (a) plus an
-  Ultra Ball first.
-- **S-09** — Run Errand; bench Latias ex; attach Telepathic **to Latias ex**;
-  search finds a Bronzor. Option (b), with Latias ex as the recipient.
-- **S-10** — Run Errand; retreat into Bronzor; Hilda → Bronzong and Telepathic;
-  evolve; attach; search; **Evolution Jammer**. Option (a).
-- **S-11** — evolve; attach the second Telepathic **to the Bronzong**; fetch one
-  Duskull into the last slot; **Evolution Jammer**. Between (b) and (c).
-- **S-12** — Hilda, whose evolution search is declined and whose Energy search
-  finds a Telepathic; attach it **to Latias ex**; fetch Duskull and Flutter Mane.
-  A miss, and two Bench slots spent on bodies that do nothing.
-- **S-13** — **not implemented.** The policy has `play_rare_candy()`,
-  `use_cursed_blast()` and `knock_out()` but no line that reaches them.
-- **S-14** — **not reachable**: no decklist runs a Metal Bronzor.
+- **S-15** — evolve; attach the Telepathic; search Duskull and Flutter Mane;
+  **Lillie's Determination, drew 8**; play Jamming Tower; **Evolution Jammer**.
+  Option (a): the fallback spends the slot even on a won turn.
+- **S-16** — **Poké Pad → Bronzong**; evolve; Hilda, whose evolution search is
+  declined and whose Energy search finds a Telepathic; **Evolution Jammer**. Option
+  (c), and Salvatore is never reached because the free Item got there first.
+- **S-17** — **Ultra Ball → Bronzong**; attach the Telepathic to the Bronzor;
+  search Latias ex and Duskull; **Ciphermaniac's stacking Bronzong then Switch**.
+  Option (c).
+- **S-18** — evolve; Hilda, evolution search declined, Energy search finds a
+  Telepathic; **evolve again** — the second Bronzong onto the benched Bronzor;
+  **Evolution Jammer**. Between (a) and (c).
+- **S-19** — Poké Pad → Bronzong; evolve; **Salvatore → Bronzong** onto the benched
+  Bronzor; evolve again; **Evolution Jammer**. Option (c). Rare Candy is left in
+  hand.
+- **S-20** — evolve the benched Bronzor; Hilda, evolution search **declined**,
+  Energy search finds a Telepathic. **A miss.** The escape is not taken, because
+  Hilda is never aimed at a Dusknoir and Rare Candy has nothing to become.
+- **S-22** — Poké Pad → Bronzor; Ultra Ball → Latias ex; bench both; promote the
+  Bronzor by free retreat. **Enriching Energy is never attached**, so the turn's
+  attachment goes unused. Option (a).
+- **S-23** — Poké Pad → Bronzor; Ultra Ball → Latias ex; bench both; promote by
+  free retreat; attach a Telepathic to the Bronzor; search Duskull and a second
+  Bronzor; **Lillie's, drew 8**; play Jamming Tower. Option (a).
+- **S-24** — Run Errand; bench Latias ex; Hilda → Bronzong and a Telepathic; attach
+  the Telepathic **to Latias ex**; search Bronzor and Duskull; promote the Bronzor
+  by free retreat. The Kangaskhan lead, played out.
+- **S-25** — bench Meowth ex, whose Last-Ditch Catch fetches **Hilda**; Poké Pad →
+  Bronzong; Hilda → Bronzong and a Telepathic; evolve; attach; search; **Evolution
+  Jammer**. Option (a).
+- **S-26** — Hilda → Bronzong and a Telepathic; evolve; **Evolution Jammer**. The
+  second Telepathic is **not** attached and the last Bench slot stays empty.
+  Option (a).

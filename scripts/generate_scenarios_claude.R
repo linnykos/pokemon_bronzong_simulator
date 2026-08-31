@@ -92,100 +92,119 @@ num_seeds <- 500L
     !.active_is(pair$state, c("Bronzor", "Bronzong"))
 }
 
+#' Which of sub-goals B, C, D would still be open if the turn stopped now
+#'
+#' Re-exported from the policy so a predicate can ask the same question section
+#' 6 asks. Naming it here rather than inlining the arithmetic keeps the bank and
+#' the tree reading the same way.
+#' @noRd
+.gaps <- function(pair) .missing_bcd_vec(pair)
+
 # One predicate per question worth asking. Each names the sections and question
 # ids it probes, so a scenario cannot drift loose from the document it is for.
+#
+# The bank is renumbered from S-15: S-01 to S-14 are answered, and their answers
+# are rules in docs/03_decision_tree.md now rather than questions here.
 PREDICATE_LIST <- list(
-  list(id = "S-01",
-       label = "Free retreat and a Switch both available for the same job",
+  list(id = "S-15",
+       label = "Lillie's as the fallback, on a hand worth keeping",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-08, DT-09",
+       probes = "DT-24",
        test = function(pair){
-         .line_benched(pair) && .holds(pair, "MEG-130") &&
-           length(.bench_idx_named(pair$state, "Latias ex")) > 0 &&
-           can_retreat(pair$state) && retreat_cost(pair$state) == 0
+         .holds(pair, "MEG-119") &&
+           is.null(.choose_supporter(pair, bool_fallback = FALSE)) &&
+           length(pair$state$hand_vec) >= 5 &&
+           (.holds(pair, "TEF-069") || length(.psychic_in_hand(pair$state)) > 0)
        }),
-  list(id = "S-02",
-       label = "Kangaskhan Active on turn 2, the line on the Bench",
+  list(id = "S-16",
+       label = "Salvatore and Hilda in the same hand on turn 2",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-11, DT-04",
+       probes = "DT-25",
        test = function(pair){
-         .active_is(pair$state, "Mega Kangaskhan ex") && .line_benched(pair)
+         .holds(pair, "TEF-160") && .holds(pair, "WHT-084")
        }),
-  list(id = "S-03",
-       label = "Lillie's and Hilda in the same hand",
-       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-15, DT-14",
+  list(id = "S-17",
+       label = "Ciphermaniac's with exactly one piece missing",
+       turn_number = 1L, bool_going_first = FALSE, scenario = "clear",
+       probes = "DT-17, PB-04",
        test = function(pair){
-         .holds(pair, "MEG-119") && .holds(pair, "WHT-084")
+         .holds(pair, "TEF-145") && .subgoal_status(pair$state)[["a"]] &&
+           length(.gaps(pair)) == 1L
        }),
-  list(id = "S-04",
-       label = "Hilda in hand with both her targets already held",
+  list(id = "S-18",
+       label = "Hilda whose two fetches would both be redundant",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-14",
+       probes = "PB-16",
        test = function(pair){
          .holds(pair, "WHT-084") && .holds(pair, "TEF-069") &&
            length(.psychic_in_hand(pair$state)) > 0
        }),
-  list(id = "S-05",
-       label = "Ciphermaniac's on P2T1 with another Supporter in hand",
+  list(id = "S-19",
+       label = "Rare Candy and Dusknoir held on a turn Bronzong cannot arrive",
+       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
+       probes = "DT-23, PB-13",
+       test = function(pair){
+         .holds(pair, "MEG-125") && .holds(pair, "PRE-037") &&
+           !.holds(pair, "TEF-069") && !.subgoal_status(pair$state)[["b"]]
+       }),
+  list(id = "S-20",
+       label = "The Cursed Blast escape, actually reachable",
+       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
+       probes = "DT-22",
+       test = function(pair){
+         .active_is(pair$state, c("Duskull", "Dusclops", "Dusknoir")) &&
+           .line_benched(pair) && !.holds(pair, "MEG-130") &&
+           !(can_retreat(pair$state) && retreat_cost(pair$state) == 0)
+       }),
+  list(id = "S-21",
+       label = "Night Stretcher with a piece of the line in the discard",
+       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
+       probes = "PB-10",
+       test = function(pair){
+         .holds(pair, "ASC-196") &&
+           any(pair$state$discard_vec %in%
+                 c(.bronzor_ids(pair$state$card_df), "TEF-069"))
+       }),
+  list(id = "S-22",
+       label = "Enriching Energy on turn 1, going second",
        turn_number = 1L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-17",
+       probes = "PB-09",
+       test = function(pair) .holds(pair, "SSP-191")),
+  list(id = "S-23",
+       label = "Poke Pad and Ultra Ball both held, both A and B open",
+       turn_number = 1L, bool_going_first = FALSE, scenario = "clear",
+       probes = "PB-07",
        test = function(pair){
-         .holds(pair, "TEF-145") &&
-           any(c("WHT-084", "MEG-119") %in% pair$state$hand_vec)
-       }),
-  list(id = "S-06",
-       label = "Salvatore still in hand on turn 2",
-       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-13",
-       test = function(pair) .holds(pair, "TEF-160")),
-  list(id = "S-07",
-       label = "Ultra Ball with nothing spare to pay for it",
-       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "PB-05, PB-06",
-       test = function(pair){
-         .holds(pair, "MEG-131") && is.null(.ultra_ball_discards(pair))
-       }),
-  list(id = "S-08",
-       label = "Buneary Active with the line benched",
-       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-06, DT-07",
-       test = function(pair){
-         .active_is(pair$state, "Buneary") && .line_benched(pair)
-       }),
-  list(id = "S-09",
-       label = "Going first, turn 1, no Supporter legal",
-       turn_number = 1L, bool_going_first = TRUE, scenario = "clear",
-       probes = "DT-12, DT-19",
-       test = function(pair){
-         length(intersect(pair$state$hand_vec,
-                          c("WHT-084", "MEG-119", "TEF-145", "TEF-160"))) > 0
-       }),
-  list(id = "S-10",
-       label = "Items locked on turn 2, going first",
-       turn_number = 2L, bool_going_first = TRUE, scenario = "item_lock",
-       probes = "DT-20",
-       test = function(pair){
-         items_are_locked(pair$state) &&
+         .holds(pair, "POR-081") && .holds(pair, "MEG-131") &&
+           !.subgoal_status(pair$state)[["a"]] && !.holds(pair, "TEF-069") &&
            length(intersect(pair$state$hand_vec,
-                            c("MEG-130", "MEG-131", "POR-081"))) > 0
+                            .bronzor_ids(pair$state$card_df))) == 0
        }),
-  list(id = "S-11",
-       label = "Bench nearly full while Telepathic wants two more bodies",
-       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-10, PB-03",
+  list(id = "S-24",
+       label = "Three candidate leads in the opening hand and no Bronzor",
+       turn_number = 1L, bool_going_first = FALSE, scenario = "clear",
+       probes = "DT-03",
        test = function(pair){
-         .holds(pair, "POR-088") && length(pair$state$bench_list) >= 3 &&
+         !.active_is(pair$state, "Bronzor") &&
+           length(intersect(pair$state$hand_vec,
+                            c("MEG-104", "PFL-083", "PRE-035", "ASC-016",
+                              "POR-062", "TEF-078", "SSP-076"))) >= 3
+       }),
+  list(id = "S-25",
+       label = "The line Active on turn 2 with only the attachment missing",
+       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
+       probes = "DT-01",
+       test = function(pair){
+         .active_is(pair$state, c("Bronzor", "Bronzong")) &&
+           !.psychic_secured(pair$state)
+       }),
+  list(id = "S-26",
+       label = "The last Bench slot, and a Telepathic that wants two bodies",
+       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
+       probes = "PB-15, DT-02",
+       test = function(pair){
+         length(pair$state$bench_list) == 4L && .holds(pair, "POR-088") &&
            can_attach_energy(pair$state)
-       }),
-  list(id = "S-12",
-       label = "Two Bronzong in hand and nothing to put them on",
-       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-03, PB-08",
-       test = function(pair){
-         sum(pair$state$hand_vec == "TEF-069") >= 1 &&
-           !.active_is(pair$state, c("Bronzor", "Bronzong")) &&
-           !.line_benched(pair)
        }))
 
 # ---------------------------------------------------------------------------
@@ -245,6 +264,7 @@ print(paste0("sweeping ", num_seeds, " seeds for ", length(PREDICATE_LIST),
 
 hit_list <- vector("list", length(PREDICATE_LIST))
 count_vec <- integer(length(PREDICATE_LIST))
+shown_vec <- character(0)
 
 for(i in seq_along(PREDICATE_LIST)){
   spec_list <- PREDICATE_LIST[[i]]
@@ -257,11 +277,18 @@ for(i in seq_along(PREDICATE_LIST)){
     if(!spec_list$test(pair)) next
 
     count_vec[i] <- count_vec[i] + 1L
-    if(is.null(hit_list[[i]])){
+    # Two predicates can both match the same seed, and rendering one position
+    # twice under two ids asks the reader the same question twice while looking
+    # like two questions. Keep the count -- the frequency is still true -- but
+    # show a different example.
+    key_str <- paste0(one_seed, "/", spec_list$turn_number, "/",
+                      spec_list$bool_going_first, "/", spec_list$scenario)
+    if(is.null(hit_list[[i]]) && !key_str %in% shown_vec){
       # A scenario must be a legal position or it teaches the wrong lesson.
       stopifnot(length(.census(pair$state)) == 60)
       pair$state$seed_label <- one_seed
       hit_list[[i]] <- pair
+      shown_vec <- c(shown_vec, key_str)
     }
   }
   print(paste0(spec_list$id, ": ", count_vec[i], "/", num_seeds,

@@ -25,9 +25,17 @@ Invocation from the Git Bash shell used in these sessions:
 
 ## Project Status (as of 2026-08-30)
 
-Parts 1-5 are done; part 6 is not started. Part 5 is a **first draft written to
-be argued with**, and `demo/demo_simulator_claude.Rmd` is the document to argue
-with it from.
+Parts 1-5 are done; part 6 is not started. Part 5 is **no longer a first draft**:
+Kevin has answered all fourteen positions in the first scenario bank, and the
+policy is aligned to those answers. `demo/demo_simulator_claude.Rmd` is the
+document to argue with it from.
+
+**decklist2, 1,000 replicates: 75.8% going second, 64.1% going first, 60.7%
+`item_lock` going first** — up from 52.6 / 53.4 / 49.0 before the answers were
+folded in. The movement is attributed per change in the demo, not reported as a
+lump. Two changes are almost all of it, and they are the same idea twice: **play a
+Supporter every turn** (§6 priority 8, worth 15.2 going second) and **then use
+what it drew** (§7 step 6, worth another 5.0 going second and 6.7 going first).
 
 **The decision documents are the specification and the code follows them**
 (`CLAUDE.md` → *The decision documents are the specification*). Kevin edits
@@ -35,12 +43,18 @@ with it from.
 brings `R/decision_claude.R` back into line afterwards. As of 2026-08-30 the two
 agree.
 
+Those two files are also **present-tense only**: they state the tree as it stands and
+never how it got there. The evolution of a rule lives in `HISTORY_kevin.md`, or in an
+ADR the document cites by number. **Migrated 2026-08-30** — §9's answers and
+corrections tables are gone, their three still-live rules folded into the sections
+they govern first, and no `(Kevin, <date>)` stamp survives in either document.
+
 - **Part 1 — rules (done).** `docs/01_rules_standard.md`.
 - **Part 2 — card text (done).** 37 files in `docs/cards/` covering 36 distinct cards, indexed by `docs/02_cards.md` with a count matrix across all six decklists. Coverage and the matrix are verified by script, not by eye.
-- **Part 3 — decision tree (reviewed twice, now the specification).** `docs/03_decision_tree.md` §9 records Kevin's answers rather than questions, plus a second block of five **corrections he made to the document itself** — bench discipline, the immaterial Items/Salvatore ordering, the retreat-before-Switch ladder, and the Cursed Blast exception. Two answers he deferred to the simulation logs — the §3 lead order and Ciphermaniac's use within `P2T1` — so both are written as defaults part 6 is expected to overturn or confirm, not as rules. Both files now end with a numbered open-question register — 23 `DT-nn` and 14 `PB-nn` — and `docs/03b_scenarios.md` poses 14 of them as real board positions with the tree's answer held back to an appendix.
+- **Part 3 — decision tree (the specification, and now present-tense).** Both documents state the tree as it stands and nothing about how it got there; §9 of the decision tree (the answers table and the corrections table) has been **deleted**, with its three still-live rules folded into §4.1, §4.2 and §6 first. Every `(Kevin, <date>)` stamp is gone. §9 is now the open-question register — **7 `DT-nn`** (01, 03, 07, 16, 18, 21, 23) plus two the answers raised (**DT-24**, **DT-25**) — and the playbook carries **11 `PB-nn`**, including the new **PB-17**. `docs/03b_scenarios.md` is a fresh bank, **S-15 to S-26**, with the tree's answer held back to appendix A.
 - **Part 4 — base simulator (done).** Eight files in `R/`: card database, decklist parsing, game state, belief state, rules, setup, card effects, traces. Now includes Rare Candy, Cursed Blast, Knock Outs and caller-chosen promotion, added 2026-08-29 once Kevin showed the Cursed Blast self-KO is an out for sub-goal C. No Monte Carlo yet, by design; the policy now lives beside it in part 5.
-- **Tests (done).** `tests/run_tests_claude.R` runs **1938 assertions**, all passing, plus `scripts/smoke_test_claude.R`. testthat is not installable here, so `tests/testthat_shim_claude.R` provides a testthat-compatible harness; the test files use testthat's real API so `devtools::test()` will run them unchanged once testthat exists.
-- **Part 5 — the policy (first draft).** `R/decision_claude.R`, a section-by-section translation of the decision tree so the two can be read side by side. Replacing the old placeholder policy moved decklist2 from 19.5% to **52.6% going second, 53.4% going first**. Written to be argued with, not tuned. A doc-section to function cross-reference sits at the top of the file, so editing a section says what to change.
+- **Tests (done).** `tests/run_tests_claude.R` runs **1966 assertions**, all passing, plus `scripts/smoke_test_claude.R`. testthat is not installable here, so `tests/testthat_shim_claude.R` provides a testthat-compatible harness; the test files use testthat's real API so `devtools::test()` will run them unchanged once testthat exists.
+- **Part 5 — the policy (aligned to Kevin's answers).** `R/decision_claude.R`, a section-by-section translation of the decision tree so the two can be read side by side. decklist2 went 19.5% (placeholder) → 52.6% (first draft) → **75.8% going second, 64.1% going first**. A doc-section to function cross-reference sits at the top of the file, so editing a section says what to change.
 - **Demo (done).** `demo/demo_simulator_claude.Rmd`, knitted to `.md` and `.html` by `scripts/knit_rmd_claude.R`: one game narrated turn by turn, then 1,000 replicates a cell with every diagnostic table, and a closing list of what the policy does **not** do yet so feedback lands on decisions rather than gaps.
 - **Part 6 — not started.** The decklist registry over 10,000 replicates per cell.
 
@@ -60,7 +74,10 @@ Six cards are imported as **candidates not yet in any list**: Buddy-Buddy Poffin
 - **Three different cards are named "Bronzor."** Never write "Bronzor" without a set and number.
 - **Buneary's Run Around costs `[C]`, i.e. the turn's Energy attachment**, and the Energy leaves with Buneary for the Bench. It is a last resort, not free positioning. Budew's Itchy Pollen costs no Energy, so the two §4.2 exceptions are not symmetric.
 - **Retreating costs the retreat cost of the Pokémon *leaving* the Active spot.** Bronzor's retreat 3 does not obstruct promoting it; what matters is what is currently Active. Latias ex's Skyliner makes any *Basic* Active retreat free, and on turn 1 the Active is almost always a Basic — but **only a Basic**, which is why a Stage 1 Dusclops gets stuck.
-- **One positioning ladder, stated once in §4.3**: free retreat under Latias ex → Switch → Surfer → Run Around → Cursed Blast. The retreat comes first because it is free and otherwise unspent; spending a Switch under Skyliner throws a card away.
+- **One positioning ladder, stated once in §4.3**: free retreat under Latias ex → Switch → Surfer → Run Around → Cursed Blast. The retreat comes first because it is free and otherwise unspent; spending a Switch under Skyliner throws a card away. **All five rungs are now implemented**; rung 5 was the last one, added 2026-08-30.
+- **The Supporter slot is a per-turn resource that carries no credit forward, so it is never left idle** (§6 priority 8). Every named priority above it decides *which* Supporter, never *whether*. This is the largest single change the policy has ever made — 15.2 points going second.
+- **A Supporter is only worth playing if the turn then uses what it gave you** (§7 step 6). Bench / evolve / position / attach run a **second time** after the fallback Supporter. Without that pass the fallback is worth nothing at all on turn 2, because ADR 0007 closes the window before the drawn cards can be played — the two rules only make sense together.
+- **Rank Supporters by what each can *solve*, never by how many sub-goals are open.** Kevin's framing, and it is what fences Ciphermaniac's into "exactly one of B, C, D missing": it puts one card into turn 2's draw, so one gap is all it can close. Two hands with the same number of gaps can want different Supporters.
 - **Bench space is the fourth scarce resource** (§2, §4.4). Five slots, one reserved for Latias ex, and a benched Basic cannot be un-benched. **Bench nothing at setup**; during a turn bench only Latias ex, Meowth ex for a named absent Supporter, a Bronzor for A, and everything else only ahead of Lillie's Determination. Benching nothing is safe *only* inside this window — an empty Bench loses the game to a Knocked Out Active.
 - **Cursed Blast is a switching effect, not a damage plan.** Its self-Knock Out lets us choose the replacement Active, so it is the last rung for sub-goal C; Rare Candy is what reaches it from a Duskull Active, and is therefore **not** an inert card. A self-KO costs us no Prize (the opponent takes one from *their* pile, unmodelled), so Lillie's still draws 8.
 - **The transcription source mis-renders attacks as Abilities.** It did so for Evolution Jammer and Itchy Pollen. Any card whose details drive the decision tree gets a second, pointed query.
@@ -69,27 +86,27 @@ Six cards are imported as **candidates not yet in any list**: Buddy-Buddy Poffin
 ## Open Questions / Next Steps
 
 ### Needs Kevin
-0. **Read `demo/demo_simulator_claude.md` and react to the policy.** The code is aligned to today's documents as of 2026-08-30, so any divergence from here is one you introduced deliberately. That is what it was built for. It ends with a list of known gaps so feedback lands on decisions, and it raises one question of its own: **§6 never plays Salvatore on turn 2** — read literally, priority 1 confines it to turn 1 — but on turn 2 it still fetches Bronzong *and* evolves in one card. Should it be ranked against Hilda there?
-1. **Work through `docs/03b_scenarios.md`** — 14 board positions with options, the tree's own answer held back to appendix A so it does not anchor you. **Answer in frequency order**: S-06 (Salvatore on turn 2) arises in 23.4% of games, S-05 in 13%, S-03 in 9.2%; S-07 in 2.2% and can wait. The two constructed ones, S-13 and S-14, are the rules nothing currently exercises.
-1a. **Then the registers**: 23 `DT-nn` questions in `docs/03_decision_tree.md` §10 and 14 `PB-nn` in the playbook, each a rule stated as a default rather than a ruling. `/generate-scenarios` turns any of them into a board position if prose is the wrong way to answer it.
-2. **Sign off the `CONTEXT.md` coinages** — *on time*, *earliest legal turn*, *shell*, *whiff*, *cell*, marked `[unconfirmed]` in that file.
-3. **Decide the mulligan-bonus divergence.** The opening hand omits the bonus cards owed for an opponent's mulligans, because no opponent is modelled. Biases consistency **downward** by an unknown amount. Fixing it means modelling an opposing decklist or assuming a distribution.
-4. **Confirm one wording in ADR 0003.** Kevin wrote "should NOT immediately know what's benched before the first deck-search card is played." Implemented as *deck contents / what is prized*, since that is what a deck search reveals.
+0. **Read `demo/demo_simulator_claude.md`.** It now opens the results with a **per-change attribution table** rather than a single rate: which of the twelve changes made from your fourteen answers is worth what, in both cells, each measured by neutralising it alone. Four of them cost points and stay anyway, because they are rulings rather than optimisations.
+1. **Work through the new `docs/03b_scenarios.md`** — 12 positions, **S-15 to S-26**, the tree's own answer held back to appendix A. **Answer in frequency order**: S-15 (Lillie's on a won turn) arises in 19.8% of games, S-22 (Enriching Energy) in 12.8%, S-25 (only the attachment missing) in 11.6%, S-23 in 9%. **Read S-20 out of order** at 1.6%: it is the one where the tree misses a position it could have won.
+1a. **Then the registers**: 9 `DT-nn` in `docs/03_decision_tree.md` §9 and 11 `PB-nn` in the playbook. `/generate-scenarios` turns any of them into a board position if prose is the wrong way to answer it.
+2. **Rule on PB-17, which the new bank raised.** With a Duskull Active, the line stranded on the Bench and a Rare Candy in hand, the Cursed Blast escape is **one Dusknoir away** — and Dusknoir is an Evolution Pokémon, so **Hilda can fetch it**. The want-list has no Dusknoir entry, so she is never aimed at one. Should Dusknoir join the want-list ahead of everything else exactly when the escape is the only route to sub-goal C, the way Latias ex does when C is blocked? Not implemented: it is a new rule and the documents are yours.
+3. **Sign off the `CONTEXT.md` coinages** — *on time*, *earliest legal turn*, *shell*, *whiff*, *cell*, marked `[unconfirmed]` in that file.
+4. **Decide the mulligan-bonus divergence.** The opening hand omits the bonus cards owed for an opponent's mulligans, because no opponent is modelled. Biases consistency **downward** by an unknown amount. Fixing it means modelling an opposing decklist or assuming a distribution.
+5. **Confirm one wording in ADR 0003.** Kevin wrote "should NOT immediately know what's benched before the first deck-search card is played." Implemented as *deck contents / what is prized*, since that is what a deck search reveals.
 
 ### Next work
-5. **Improve the policy where the demo says it is weak.** Chiefly: it leaves the Supporter slot unspent in most misses, never plays Pokégear 3.0, and never takes the Cursed Blast escape. A paid retreat is never considered. The lead order and Ciphermaniac's timing also still need to become **parameters rather than constants**, since Kevin deferred both to the logs.
-5a. **Rule on one tension Kevin has not settled:** Telepathic's deck-thinning fetch puts up to two more bodies on the Bench, while §4.4 says Bench space is scarce and one slot is held for Latias ex. Currently thinning yields — the fetch is capped by remaining space.
-6. **Part 6 — the registry** over 10,000 replicates per (decklist, scenario, first/second) cell.
-7. **Wire the smoke script into the test runner.** It is the only end-to-end hand-played line and nothing currently runs it automatically.
+6. **The two gaps the demo still lists.** Pokégear 3.0 is never played, and a **paid** retreat is never considered even when the Energy spent was going to waste. The lead order and Ciphermaniac's timing also still need to become **parameters rather than constants**, since both were deferred to the logs.
+7. **Part 6 — the registry** over 10,000 replicates per (decklist, scenario, first/second) cell. This is the next substantial piece of work; everything it needs now exists.
+8. **Wire the smoke script into the test runner.** It is the only end-to-end hand-played line and nothing currently runs it automatically.
 
 ### Hypotheses to test rather than assume
-8. **Getting Bronzong *Active* is the suspected bottleneck**, not drawing it — Salvatore fixes timing, not positioning. With the real policy the unmet tally over 1,000 replicates a cell is A 95 / B 284 / C 347 / D 468 going second, so C is the most-unmet of the three that are not the attack cost itself. Still not conclusive: D is inflated because it can only be met once B and C are.
-8a. **The §3 lead order** — deferred to the logs by Kevin, and `lead_hit_df` is the table that settles it. **Read it only as a fact about the policy until every lead's card is played properly.** Kangaskhan sat near the bottom at 40.9% purely because the policy did not use Run Errand; implementing a two-card draw moved it to 55.8%, the best of the common non-Bronzor leads, vindicating §3. The remaining oddity is Buneary — §3's second choice, second from last (40.2%) — whose case is Run Around, which §4.2 then makes a last resort. Latias ex leads the non-Bronzor field (65.6%) on n=32.
-8b. **Ciphermaniac's on `P2T1`** — legal only there, and Kevin expects the right answer to depend on the board and hand. Logged as a decision, to be judged from traces.
-9. **The Bronzor printing trade-off.** Poffin caps at 70 HP, so it cannot fetch TEF 68 (80) but can fetch PRE 66 (70) and SSP 126 (60) — at the cost of those being Metal, so Telepathic Psychic Energy can no longer find them. A 2/2 split keeps both routes.
-10. **Surfer competes with Salvatore for the one Supporter slot**, so Switch (an Item) is better for the turn-1 line — Kevin agreed, adding the simpler reason that no decklist runs Surfer at all. Live again only if a Surfer list is added.
+9. **Getting Bronzong *Active* is the suspected bottleneck**, not drawing it. The unmet tally over 1,000 replicates going second is now **A 51 / B 153 / C 177 / D 221**, and the shape is unchanged by the rate rising 23 points: C is still the most-unmet of the three that are not the attack cost itself, and D is still inflated because it can only be met once B and C are. **S-25 poses this as a position** (11.6% of games) where C was free and the attachment was what was left.
+10. **The §3 lead order** — deferred to the logs, and `lead_hit_df` is the table that settles it. **Read it only as a fact about the policy.** Kangaskhan sat at 40.9% purely because the policy did not use Run Errand; implementing the draw moved it to 55.8%. Latias ex leads the non-Bronzor field (65.6%) on a small n. **S-24 poses it as a position.**
+11. **The Bronzor printing trade-off.** Poffin caps at 70 HP, so it cannot fetch TEF 68 (80) but can fetch PRE 66 (70) and SSP 126 (60) — at the cost of those being Metal, so Telepathic Psychic Energy can no longer find them. A 2/2 split keeps both routes. **Answered in principle** (S-14: attach the Telepathic to a Metal Bronzor anyway, since D is what matters), but no decklist runs one yet.
+12. **Surfer competes with Salvatore for the one Supporter slot**, so Switch (an Item) is better for the turn-1 line — and no decklist runs Surfer at all. Live again only if a Surfer list is added.
 
 ### Loose ends
-11. **`Mystery Garden` is modelled as inert but is not.** Its text is a live turn-1/2 draw effect. In no decklist yet, so it only bites when added as a candidate. **Rare Candy was the same error and has been fixed** (2026-08-29) — worth re-reading the whole "inert for turns 1–2" list in `R/card_effects_claude.R` with the lesson in mind: *inert* is a claim about every line a card appears in, not about its headline use.
-12. **Nighttime Mine's effect text is uncorroborated** and looks implausible (hoses Tera Pokémon; no list runs Tera). decklist1 only, inert for the metric either way.
-13. **The Salvatore first-turn ruling has no citable public source** (ADR 0001) — Kevin's expertise is the citation. Residual risk only.
+13. **`Mystery Garden` is modelled as inert but is not.** Its text is a live turn-1/2 draw effect. In no decklist yet, so it only bites when added as a candidate. **Rare Candy was the same error and has been fixed** — worth re-reading the whole "inert for turns 1–2" list in `R/card_effects_claude.R` with the lesson in mind: *inert* is a claim about every line a card appears in, not about its headline use.
+14. **Nighttime Mine's effect text is uncorroborated** and looks implausible (hoses Tera Pokémon; no list runs Tera). decklist1 only, inert for the metric either way.
+15. **The Salvatore first-turn ruling has no citable public source** (ADR 0001) — Kevin's expertise is the citation. Residual risk only.
+16. **A neutralising patch that silently matches nothing reads as a change that costs nothing.** The first attribution run reported ten of thirteen changes as worth 0.0, because multiline `perl` patterns written with `\n` do not match a **CRLF** source and `perl` still exits 0. The harness now `cmp`s each patched copy and prints `SKIPPED`. Same family as the confidently-wrong diagnostics this project has hit three times: the failure produces a plausible number rather than an error.

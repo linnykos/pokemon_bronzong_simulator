@@ -18,16 +18,18 @@
 #   section 4.2 the turn-1 build, Run Around     .policy_build_turn()
 #                                                .policy_run_around()
 #   section 4.3 the positioning ladder           .policy_position()
+#               rung 5, the Cursed Blast escape  .policy_cursed_blast_escape()
 #   section 4.4 what to bench, and when          .policy_bench()
 #   section 5   going first                      .policy_build_turn(), which
 #                                                branches on can_play_supporter
 #                                                rather than on the coin flip
 #   section 6   the Supporter priority table     .choose_supporter()
 #                                                .play_chosen_supporter()
+#               priority 2, Salvatore on turn 2  .salvatore_beats_hilda()
+#               priority 6, Ciphermaniac's gate  .missing_bcd_vec()
+#               priority 8, the fallback         .fallback_supporter()
 #   section 7   turn 2                           .policy_build_turn()
-#   section 8   Cursed Blast escape              NOT IMPLEMENTED -- machinery
-#                                                exists (use_cursed_blast) but
-#                                                no line here reaches it
+#   section 8   Cursed Blast escape              .policy_cursed_blast_escape()
 #   03a         the want-list, per-card rules    .want_vec(), and the
 #                                                .*_targets() helpers
 #
@@ -121,6 +123,52 @@ POLICY_ID_LIST <- list(bronzong = "TEF-069",
                                           POLICY_ID_LIST$psychic_energy))
   held_vec[order(match(held_vec, c(POLICY_ID_LIST$telepathic,
                                    POLICY_ID_LIST$psychic_energy)))]
+}
+
+#' Is a `[P]` source already secured for sub-goal D?
+#'
+#' Secured means in hand OR already attached to a Bronzor/Bronzong in play. The
+#' distinction matters in three places that all read the same way once it is
+#' named: section 4.2 step 6 declines the attachment, section 6 priority 2 ranks
+#' Salvatore over Hilda, and the Ciphermaniac's gate counts D as met.
+#' @noRd
+.psychic_secured <- function(state){
+  if(length(.psychic_in_hand(state)) > 0) return(TRUE)
+
+  line_list <- c(if(.active_is(state, c("Bronzor", "Bronzong"))){
+    list(state$active)
+  },
+  state$bench_list[.bench_idx_named(state, c("Bronzor", "Bronzong"))])
+
+  any(sapply(line_list, function(one){
+    .has_psychic_attached(state, one)
+  }))
+}
+
+#' Does this in-play Pokemon already carry a `[P]` source?
+#' @noRd
+.has_psychic_attached <- function(state, in_play){
+  if(is.null(in_play) || length(in_play$energy_vec) == 0) return(FALSE)
+
+  any(in_play$energy_vec %in% c(POLICY_ID_LIST$telepathic,
+                                POLICY_ID_LIST$psychic_energy))
+}
+
+#' Can sub-goal C be paid this turn without spending the Supporter slot?
+#'
+#' The section 4.3 ladder's free rungs only: the line is already Active, or a
+#' free retreat or a Switch can move it. Surfer and Run Around are excluded
+#' deliberately -- both cost a resource this predicate's callers are trying to
+#' protect.
+#' @noRd
+.c_is_free <- function(state){
+  if(.active_is(state, c("Bronzor", "Bronzong"))) return(TRUE)
+  if(length(.bench_idx_named(state, c("Bronzor", "Bronzong"))) == 0){
+    return(FALSE)
+  }
+
+  (can_retreat(state) && retreat_cost(state) == 0) ||
+    (POLICY_ID_LIST$switch_item %in% state$hand_vec && can_play_item(state))
 }
 
 #' The first target this card could plausibly still find
@@ -291,6 +339,20 @@ policy_placement <- function(state){
   pair
 }
 
+#' Could a Salvatore fetched right now actually be cashed this turn?
+#'
+#' docs/03a_card_playbook.md -> Meowth ex. Salvatore solves sub-goal B and
+#' nothing else, so it converts only where C is already free and D is already
+#' secured -- and only on `P2T1`, since its evolution-timing bypass is what it
+#' is being fetched for.
+#' @noRd
+.salvatore_is_cashable <- function(pair){
+  state <- pair$state
+  if(state$bool_going_first || state$turn_number != 1L) return(FALSE)
+
+  .psychic_secured(state) && .c_is_free(state)
+}
+
 #' Bench Meowth ex when a named Supporter is wanted and absent
 #' @noRd
 .policy_bench_meowth <- function(pair){
@@ -299,9 +361,13 @@ policy_placement <- function(state){
   if(!has_bench_space(state)) return(pair)
   if(isTRUE(state$turn_flag_list$bool_last_ditch_used)) return(pair)
 
-  # What the NEXT Supporter play wants, in section 6 order. Salvatore only while
-  # a turn-1 kill could still happen; Hilda otherwise.
-  want_vec <- if(!state$bool_going_first && state$turn_number == 1L){
+  # What the NEXT Supporter play wants. Salvatore fixes sub-goal B alone, so it
+  # is worth fetching only where the turn can actually cash it: `P2T1`, with
+  # sub-goal C already free and a [P] source already secured. Fetched into any
+  # weaker hand it is a card the turn cannot use, which is the single most
+  # common way a `P2T1` Meowth ex is wasted -- Hilda fixes B *and* D, and
+  # Lillie's replaces the hand, so both convert far more often.
+  want_vec <- if(.salvatore_is_cashable(pair)){
     c(POLICY_ID_LIST$salvatore, POLICY_ID_LIST$hilda)
   } else {
     c(POLICY_ID_LIST$hilda, POLICY_ID_LIST$lillies)
@@ -374,7 +440,63 @@ policy_placement <- function(state){
     return(play_surfer(pair, bench_idx = target_idx))
   }
 
-  pair
+  # Rung 4 is Buneary's Run Around, which is NOT taken here: it ends the turn
+  # and spends the Energy attachment, so section 4.2 puts it after every other
+  # play and .policy_run_around() owns it.
+  #
+  # Rung 5: the Cursed Blast escape, the last door.
+  .policy_cursed_blast_escape(pair, target_idx)
+}
+
+#' Rung 5 of the section 4.3 ladder: Knock our own Active out to promote
+#'
+#' Section 8. Cursed Blast reads "if you use this Ability, this Pokemon is
+#' Knocked Out", and the player whose Pokemon was Knocked Out chooses the
+#' replacement Active -- so it is a switching effect costing no Switch, no
+#' Supporter slot, no retreat and no Energy. It costs the Pokemon, and a Prize
+#' from the OPPONENT's pile, which is why Lillie's still draws 8 afterwards.
+#'
+#' Taken on either branch and whatever the score, because the alternative once
+#' the ladder has got this far is a turn that cannot attack at all.
+#'
+#' Two routes, in cost order:
+#' \itemize{
+#'   \item a Dusclops or Dusknoir Active uses its own Ability -- no card spent;
+#'   \item a Duskull Active needs **Rare Candy** to reach a Dusknoir first, since
+#'     Rare Candy goes Basic to Stage 2 and Dusknoir evolves from Dusclops.
+#' }
+#'
+#' @param pair a `list(state, knowledge)`.
+#' @param target_idx the Bench slot to promote, from the caller's own choice.
+#'
+#' @returns The updated pair, unchanged when neither route is available.
+#' @noRd
+.policy_cursed_blast_escape <- function(pair, target_idx){
+  state <- pair$state
+  if(!can_act(state)) return(pair)
+  # use_cursed_blast() refuses an empty Bench because rules section 8 loses the
+  # game on the spot. Nothing should ever ask, so the guard is here too: with
+  # one Bench Pokemon the promotion is the target itself and the Bench survives.
+  if(length(state$bench_list) == 0) return(pair)
+
+  if(.active_is(state, c("Dusclops", "Dusknoir"))){
+    return(use_cursed_blast(pair, promote_idx = target_idx))
+  }
+
+  # The Duskull route. Rare Candy is an Item, so Itchy Pollen closes this door
+  # on the turn it matters most.
+  if(!.active_is(state, "Duskull")) return(pair)
+  if(!can_play_item(state)) return(pair)
+  if(!POLICY_ID_LIST$rare_candy %in% state$hand_vec) return(pair)
+  if(!POLICY_ID_LIST$dusknoir %in% state$hand_vec) return(pair)
+  if(!can_rare_candy(state, state$active, POLICY_ID_LIST$dusknoir)){
+    return(pair)
+  }
+
+  pair <- play_rare_candy(pair, stage2_card_id = POLICY_ID_LIST$dusknoir,
+                          target_is_active = TRUE)
+
+  use_cursed_blast(pair, promote_idx = target_idx)
 }
 
 # ---------------------------------------------------------------------------
@@ -470,7 +592,7 @@ policy_placement <- function(state){
   if(num_space == 0) return(character(0))
 
   target_vec <- character(0)
-  for(one_id in .want_vec(pair)){
+  for(one_id in .want_vec(pair, bool_to_hand = FALSE)){
     if(length(target_vec) >= min(2L, num_space)) break
     found_id <- .first_findable(pair, one_id, ALLOWED_TARGET_LIST$poffin)
     if(!is.null(found_id)) target_vec <- c(target_vec, found_id)
@@ -485,7 +607,7 @@ policy_placement <- function(state){
 #' actually missing. Sub-goal order, not card order, so the same list serves
 #' every search card.
 #' @noRd
-.want_vec <- function(pair){
+.want_vec <- function(pair, bool_to_hand = TRUE){
   state <- pair$state
   status_vec <- .subgoal_status(state)
   bronzor_vec <- .bronzor_ids(state$card_df)
@@ -494,7 +616,10 @@ policy_placement <- function(state){
   if(!status_vec[["a"]] && length(intersect(state$hand_vec, bronzor_vec)) == 0){
     want_vec <- c(want_vec, bronzor_vec)
   }
-  if(length(.psychic_in_hand(state)) == 0){
+  # Item 2 reads "none in hand and none ATTACHED": once the line carries a [P]
+  # source, sub-goal D is paid and a second Energy is a card the window cannot
+  # spend.
+  if(!.psychic_secured(state)){
     want_vec <- c(want_vec, POLICY_ID_LIST$telepathic,
                   POLICY_ID_LIST$psychic_energy)
   }
@@ -504,11 +629,15 @@ policy_placement <- function(state){
   if(!status_vec[["c"]] && length(.bench_idx_named(state, "Latias ex")) == 0){
     want_vec <- c(want_vec, POLICY_ID_LIST$latias)
   }
-  # Items 6-8 of the playbook's want-list: a SECOND Bronzor as insurance, then
-  # Meowth ex while a Supporter is still wanted, then Duskull as filler and as a
-  # legal Poffin/Telepathic target.
-  want_vec <- c(want_vec, bronzor_vec)
-  if(!POLICY_ID_LIST$meowth %in% state$hand_vec &&
+  # Items 6-7 of the playbook's want-list. A SECOND Bronzor is deliberately
+  # absent: it insures against a Knock Out this window cannot produce, and it
+  # cost 1.4 points where it used to sit here.
+  #
+  # Meowth ex is conditioned on `bool_to_hand`, which Poffin and Telepathic pass
+  # as FALSE. They put Basics on the BENCH, and Last-Ditch Catch fires only on
+  # being played from hand -- so a Meowth ex fetched their way spends a Bench
+  # slot and triggers nothing.
+  if(bool_to_hand && !POLICY_ID_LIST$meowth %in% state$hand_vec &&
      length(.bench_idx_named(state, "Meowth ex")) == 0){
     want_vec <- c(want_vec, POLICY_ID_LIST$meowth)
   }
@@ -527,17 +656,24 @@ policy_placement <- function(state){
 
 #' Is sub-goal C the thing standing in the way, with no out in hand?
 #'
-#' The condition that promotes Latias ex up the want-list. Deliberately narrow:
-#' the line must already be in play and benched, so this is about POSITIONING
-#' and nothing else.
+#' The condition that promotes Latias ex up the want-list. About POSITIONING and
+#' nothing else, and **prospective**: a Bronzor still in hand counts as the
+#' line, because it will be benched this turn and by then every search that
+#' could have found the mover is spent. Reading it as "already benched" is a
+#' turn too late and is how a Bronzor ends up stranded with the Ultra Ball that
+#' would have found Latias ex already gone.
 #' @noRd
 .c_is_blocked <- function(pair){
   state <- pair$state
-  status_vec <- .subgoal_status(state)
-  if(status_vec[["c"]]) return(FALSE)
-  if(length(.bench_idx_named(state, c("Bronzor", "Bronzong"))) == 0){
-    return(FALSE)
-  }
+  if(.subgoal_status(state)[["c"]]) return(FALSE)
+  # An Active Bronzor is one evolution from C, so positioning is not what is
+  # wrong even though sub-goal C -- a Bronzong Active -- is not yet met.
+  if(.active_is(state, c("Bronzor", "Bronzong"))) return(FALSE)
+
+  bool_line <- length(.bench_idx_named(state, c("Bronzor", "Bronzong"))) > 0 ||
+    length(intersect(state$hand_vec, .bronzor_ids(state$card_df))) > 0
+  if(!bool_line) return(FALSE)
+
   if(length(.bench_idx_named(state, "Latias ex")) > 0) return(FALSE)
   if(can_retreat(state) && retreat_cost(state) == 0) return(FALSE)
 
@@ -578,13 +714,19 @@ policy_placement <- function(state){
 
 #' The playbook's Ultra Ball discard order, first listed goes first
 #'
-#' Transcribed rather than improved on: Kevin has "is that priority list right?"
-#' open as one of the playbook's four questions, so the code should reflect what
-#' the document says while he decides.
+#' Transcribed rather than improved on: `docs/03a_card_playbook.md` owns the
+#' order and PB-05 is still open on whether it is right.
+#'
+#' Night Stretcher (ASC 196) and Ciphermaniac's (TEF 145) sit third and fourth,
+#' ahead of Rare Candy, the Stadiums and Dusknoir: they are the cards this
+#' window most reliably cannot convert. A Ciphermaniac's that IS this turn's
+#' Supporter is protected by \code{.ultra_ball_keep_idx()} instead, so its rank
+#' here only ever applies to a copy that will not be played.
 #' @noRd
-.ULTRA_BALL_ORDER_VEC <- c("CRI-082", "MEG-114", "PRE-035", "PRE-036",
-                           "PRE-037", "MEG-125", "ASC-197", "TWM-153",
-                           "TWM-149", "MEG-122", "TEF-078", "TEF-069")
+.ULTRA_BALL_ORDER_VEC <- c("CRI-082", "MEG-114", "ASC-196", "TEF-145",
+                           "PRE-035", "PRE-036", "PRE-037", "MEG-125",
+                           "ASC-197", "TWM-153", "TWM-149", "MEG-122",
+                           "TEF-078", "TEF-069")
 
 #' Hand positions Ultra Ball may not discard
 #'
@@ -600,10 +742,14 @@ policy_placement <- function(state){
   if(length(.bench_idx_named(state, c("Bronzor", "Bronzong"))) > 0){
     single_vec <- c(single_vec, POLICY_ID_LIST$switch_item)
   }
-  # Salvatore, on a turn where the kill is still live.
+  # Salvatore, on a turn where the kill is still live -- and, generally, THIS
+  # turn's Supporter whichever card it is. A Supporter about to be played is not
+  # spare: discarding it trades the whole Supporter slot for one search.
   if(.kill_line_is_live(pair)){
     single_vec <- c(single_vec, POLICY_ID_LIST$salvatore)
   }
+  chosen_id <- .choose_supporter(pair)
+  if(!is.null(chosen_id)) single_vec <- c(single_vec, chosen_id)
 
   keep_idx <- integer(0)
   for(one_id in unique(single_vec)){
@@ -635,20 +781,24 @@ policy_placement <- function(state){
 #'
 #' @returns A card id, or `NULL`.
 #' @noRd
-.choose_supporter <- function(pair){
+.choose_supporter <- function(pair, bool_fallback = TRUE){
   state <- pair$state
   if(!can_play_supporter(state)) return(NULL)
   status_vec <- .subgoal_status(state)
 
-  # Priority 2 -- Hilda, but only when it can actually fetch something. With
-  # Bronzong and a [P] source already in hand both of its searches resolve to
-  # NULL, and playing it then spends the Supporter slot on nothing at all.
+  # Priority 2 -- Salvatore on turn 2, ranked against Hilda rather than confined
+  # to turn 1. It fetches Bronzong AND puts it on the Bronzor in one card.
+  if(.salvatore_beats_hilda(pair)) return(POLICY_ID_LIST$salvatore)
+
+  # Priority 3 -- Hilda, but only when a search of hers advances something. A
+  # fetch that duplicates a card already held spends the slot for no sub-goal,
+  # so she yields to the next priority; the fallback below can still reach her.
   if(POLICY_ID_LIST$hilda %in% state$hand_vec &&
-     .hilda_targets(pair)$bool_any){
+     .hilda_targets(pair)$bool_worth_slot){
     return(POLICY_ID_LIST$hilda)
   }
 
-  # Priority 3 -- Brock's Scouting, in Basics mode for a Bronzor plus Latias ex.
+  # Priority 4 -- Brock's Scouting, in Basics mode for a Bronzor plus Latias ex.
   # Also when sub-goal C is blocked, even with A already met: Brock's is one of
   # only two cards that can fetch the Latias ex that unblocks it.
   if(POLICY_ID_LIST$brocks %in% state$hand_vec &&
@@ -663,14 +813,10 @@ policy_placement <- function(state){
     return(POLICY_ID_LIST$brocks)
   }
 
-  # Priority 4 -- Lillie's Determination, on a hand that is not worth keeping.
-  if(POLICY_ID_LIST$lillies %in% state$hand_vec && length(state$hand_vec) <= 4){
-    return(POLICY_ID_LIST$lillies)
-  }
-
   # Priority 5 -- Surfer, which is also rung 3 of the section 4.3 ladder. Only
   # when the cheaper rungs are unavailable, or it spends the slot to do what the
-  # retreat or a Switch would have done for less.
+  # retreat or a Switch would have done for less. Ahead of Lillie's because it
+  # solves a sub-goal outright where Lillie's only replaces the hand.
   if(POLICY_ID_LIST$surfer %in% state$hand_vec && !status_vec[["c"]] &&
      length(.bench_idx_named(state, c("Bronzor", "Bronzong"))) > 0 &&
      !(can_retreat(state) && retreat_cost(state) == 0) &&
@@ -681,6 +827,154 @@ policy_placement <- function(state){
   # Priority 6 -- Ciphermaniac's, legal and useful in exactly one cell: going
   # second, on our own first turn (section 6). On turn 2 the draw step has
   # passed and the stacked cards are never reached.
+  #
+  # And gated on what it can SOLVE rather than on the cell alone: turn 2 draws
+  # exactly one of the two stacked cards, so it is worth the slot only when one
+  # card finishes the job -- sub-goal A met and exactly one of B, C and D still
+  # missing. Missing three, Lillie's replaces the whole hand and is the better
+  # card.
+  if(POLICY_ID_LIST$ciphermaniacs %in% state$hand_vec &&
+     !state$bool_going_first && state$turn_number == 1L &&
+     status_vec[["a"]] && length(.missing_bcd_vec(pair)) == 1L &&
+     length(.codebreaking_stack(pair)) > 0){
+    return(POLICY_ID_LIST$ciphermaniacs)
+  }
+
+  # Priority 7 -- Lillie's Determination, on a hand that is not worth keeping.
+  if(POLICY_ID_LIST$lillies %in% state$hand_vec && length(state$hand_vec) <= 4){
+    return(POLICY_ID_LIST$lillies)
+  }
+
+  # Priority 8 -- the fallback. One Supporter may be played per turn and an
+  # unplayed one carries no credit into the next, so a slot left idle is a
+  # resource destroyed rather than saved.
+  #
+  # `bool_fallback = FALSE` is what .policy_build_turn() passes for the
+  # MID-turn Supporter play. The fallback runs at the end of the turn instead,
+  # because none of its cards is fetching a piece the turn still needs and
+  # Lillie's would otherwise shuffle the hand away underneath the evolution and
+  # the attachment.
+  if(!bool_fallback) return(NULL)
+
+  .fallback_supporter(pair)
+}
+
+#' Which of sub-goals B, C and D this turn cannot currently pay
+#'
+#' The Ciphermaniac's gate (section 6 priority 6). C counts as met when the
+#' section 4.3 ladder's free rungs can reach it, since a Switch already in hand
+#' is not something the stack needs to supply.
+#' @noRd
+.missing_bcd_vec <- function(pair){
+  state <- pair$state
+  status_vec <- .subgoal_status(state)
+
+  miss_vec <- character(0)
+  if(!status_vec[["b"]] && !POLICY_ID_LIST$bronzong %in% state$hand_vec){
+    miss_vec <- c(miss_vec, "b")
+  }
+  if(!.c_is_free(state)) miss_vec <- c(miss_vec, "c")
+  if(!.psychic_secured(state)) miss_vec <- c(miss_vec, "d")
+
+  miss_vec
+}
+
+#' Does Salvatore beat Hilda for this turn's Supporter slot?
+#'
+#' Section 6 priority 2. Salvatore solves sub-goal B and Hilda solves B and D,
+#' so Hilda wins by default -- but Salvatore is ahead in two positions:
+#'
+#' - the `[P]` source is already secured, so Hilda's second search adds nothing;
+#' - the only Bronzor reached play THIS turn, where a Bronzong in hand cannot
+#'   legally be used and Salvatore's timing bypass (ADR 0001) is the only route
+#'   to B at all.
+#' @noRd
+.salvatore_beats_hilda <- function(pair){
+  state <- pair$state
+  if(state$turn_number != 2L) return(FALSE)
+  if(!POLICY_ID_LIST$salvatore %in% state$hand_vec) return(FALSE)
+  if(.subgoal_status(state)[["b"]]) return(FALSE)
+  if(is.null(.salvatore_spot(pair))) return(FALSE)
+
+  .psychic_secured(state) || .bronzong_cannot_evolve(state)
+}
+
+#' Where Salvatore would put the Bronzong, or `NULL` if nowhere
+#'
+#' A Bronzor must be in play to receive it, and the Bronzong must still be
+#' believed findable -- the ADR 0003 gate, since `is_salvatore_target()`
+#' deliberately answers on public information and would let a fully prized
+#' Bronzong look declarable.
+#' @noRd
+.salvatore_spot <- function(pair){
+  state <- pair$state
+  if(!believes_findable(pair$knowledge, state, POLICY_ID_LIST$bronzong)){
+    return(NULL)
+  }
+  if(!is_salvatore_target(state, POLICY_ID_LIST$bronzong)) return(NULL)
+
+  if(.active_is(state, "Bronzor") &&
+     can_evolve(state, state$active, POLICY_ID_LIST$bronzong,
+                bool_via_salvatore = TRUE)){
+    return(list(bool_active = TRUE, bench_idx = NA_integer_))
+  }
+
+  for(one_idx in .bench_idx_named(state, "Bronzor")){
+    if(can_evolve(state, state$bench_list[[one_idx]], POLICY_ID_LIST$bronzong,
+                  bool_via_salvatore = TRUE)){
+      return(list(bool_active = FALSE, bench_idx = one_idx))
+    }
+  }
+
+  NULL
+}
+
+#' Is every Bronzor in play barred from evolving from hand this turn?
+#'
+#' The case only Salvatore can answer: an ordinary evolution needs the base to
+#' have been in play since before this turn, and Salvatore does not.
+#' @noRd
+.bronzong_cannot_evolve <- function(state){
+  in_play_list <- c(if(.active_is(state, "Bronzor")) list(state$active),
+                    state$bench_list[.bench_idx_named(state, "Bronzor")])
+  if(length(in_play_list) == 0) return(FALSE)
+
+  !any(sapply(in_play_list, function(one){
+    can_evolve(state, one, POLICY_ID_LIST$bronzong)
+  }))
+}
+
+#' The Supporter to play rather than leave the slot unspent
+#'
+#' Section 6 priority 8. Nothing above fired, so no card here is solving a named
+#' sub-goal -- the question is only which of them changes the position most, and
+#' the order is Lillie's (replaces the hand), then a Hilda who can still fetch
+#' one of her two targets, then Brock's, then Salvatore, then Ciphermaniac's.
+#'
+#' It never plays a card that cannot legally resolve, and \code{
+#' .policy_build_turn()} calls it after every other play of the turn has run, so
+#' Lillie's cannot shuffle away a card the turn still meant to use.
+#' @noRd
+.fallback_supporter <- function(pair){
+  state <- pair$state
+
+  if(POLICY_ID_LIST$lillies %in% state$hand_vec){
+    return(POLICY_ID_LIST$lillies)
+  }
+  if(POLICY_ID_LIST$hilda %in% state$hand_vec &&
+     .hilda_targets(pair)$bool_any){
+    return(POLICY_ID_LIST$hilda)
+  }
+  if(POLICY_ID_LIST$brocks %in% state$hand_vec &&
+     (length(.brocks_targets(pair)) > 0 ||
+      !is.null(.first_findable(pair, POLICY_ID_LIST$bronzong,
+                               ALLOWED_TARGET_LIST$evolution)))){
+    return(POLICY_ID_LIST$brocks)
+  }
+  if(POLICY_ID_LIST$salvatore %in% state$hand_vec &&
+     !is.null(.salvatore_spot(pair))){
+    return(POLICY_ID_LIST$salvatore)
+  }
   if(POLICY_ID_LIST$ciphermaniacs %in% state$hand_vec &&
      !state$bool_going_first && state$turn_number == 1L &&
      length(.codebreaking_stack(pair)) > 0){
@@ -696,17 +990,29 @@ policy_placement <- function(state){
   state <- pair$state
   status_vec <- .subgoal_status(state)
 
-  evo_id <- if(status_vec[["b"]] ||
-               POLICY_ID_LIST$bronzong %in% state$hand_vec) NULL else
-                 .first_findable(pair, POLICY_ID_LIST$bronzong,
-                                 ALLOWED_TARGET_LIST$evolution)
-  energy_id <- if(length(.psychic_in_hand(state)) > 0) NULL else
-    .first_findable(pair, c(POLICY_ID_LIST$telepathic,
-                            POLICY_ID_LIST$psychic_energy),
-                    ALLOWED_TARGET_LIST$energy)
+  # Both searches are taken whatever the hand already holds. They are
+  # independent, and declining one saves no card and avoids no shuffle -- the
+  # slot is spent either way, so a redundant second Bronzong is strictly better
+  # than nothing. The Energy search is NOT restricted to [P]: Hilda's text takes
+  # any Energy card, so Enriching Energy is a legal last resort and a whiff here
+  # means every Energy in the list is prized or discarded.
+  evo_id <- .first_findable(pair, POLICY_ID_LIST$bronzong,
+                            ALLOWED_TARGET_LIST$evolution)
+  energy_id <- .first_findable(pair, c(POLICY_ID_LIST$telepathic,
+                                       POLICY_ID_LIST$psychic_energy,
+                                       POLICY_ID_LIST$enriching),
+                               ALLOWED_TARGET_LIST$energy)
+
+  # Whether she is worth the SLOT is a different question, and section 6
+  # priority 3 asks this one: a fetch that duplicates a card already held
+  # advances no sub-goal, so it does not on its own justify the Supporter.
+  bool_evo_new <- !is.null(evo_id) && !status_vec[["b"]] &&
+    !POLICY_ID_LIST$bronzong %in% state$hand_vec
+  bool_energy_new <- !is.null(energy_id) && !.psychic_secured(state)
 
   list(evo_id = evo_id, energy_id = energy_id,
-       bool_any = !is.null(evo_id) || !is.null(energy_id))
+       bool_any = !is.null(evo_id) || !is.null(energy_id),
+       bool_worth_slot = bool_evo_new || bool_energy_new)
 }
 
 #' What Brock's Scouting would fetch in Basics mode
@@ -747,14 +1053,30 @@ policy_placement <- function(state){
 }
 
 #' What Ciphermaniac's would stack on top of the deck
+#'
+#' Turn 2 draws exactly one of the two, so the missing piece goes first. Where
+#' the gap is sub-goal C that means a **Switch**: Ciphermaniac's searches
+#' Trainers, which nothing else in the deck does, so it is the only card that
+#' can turn the want-list's Switch entry into the card itself.
 #' @noRd
 .codebreaking_stack <- function(pair){
   energy_want_vec <- c(POLICY_ID_LIST$telepathic,
                        POLICY_ID_LIST$psychic_energy)
+  miss_vec <- .missing_bcd_vec(pair)
 
-  unlist(Filter(Negate(is.null),
-                list(.first_findable(pair, POLICY_ID_LIST$bronzong),
-                     .first_findable(pair, energy_want_vec))))
+  want_list <- list(b = POLICY_ID_LIST$bronzong,
+                    c = POLICY_ID_LIST$switch_item,
+                    d = energy_want_vec)
+  # The gaps first, in b / c / d order, then the other two as the second card.
+  order_list <- c(want_list[miss_vec], want_list[setdiff(names(want_list),
+                                                         miss_vec)])
+
+  found_vec <- unlist(Filter(Negate(is.null),
+                             lapply(order_list, function(one_vec){
+                               .first_findable(pair, one_vec)
+                             })))
+
+  unname(found_vec[seq_len(min(2L, length(found_vec)))])
 }
 
 #' Play the Supporter that \code{.choose_supporter()} named
@@ -795,6 +1117,17 @@ policy_placement <- function(state){
     }
 
     return(pair)
+  }
+  if(supporter_id == POLICY_ID_LIST$salvatore){
+    # Section 6 priority 2, and the priority 8 fallback. The section 4.1 kill
+    # line plays its own Salvatore; this is the turn-2 use, where the card is
+    # worth the slot for the evolution alone.
+    spot_list <- .salvatore_spot(pair)
+    if(is.null(spot_list)) return(pair)
+
+    return(play_salvatore(pair, target_id = POLICY_ID_LIST$bronzong,
+                          target_is_active = spot_list$bool_active,
+                          bench_idx = spot_list$bench_idx))
   }
   if(supporter_id == POLICY_ID_LIST$lillies){
     return(play_lillies_determination(pair))
@@ -851,6 +1184,14 @@ policy_placement <- function(state){
 
   recipient <- if(bool_active) state$active else
     state$bench_list[[bench_idx_vec[1]]]
+
+  # Section 4.2 step 6: attach only while sub-goal D is unmet. Positioning has
+  # already run by the time this is called, so the recipient IS the Pokemon that
+  # will attack -- and one [P] source is the whole cost of Evolution Jammer. A
+  # second Energy would buy nothing but Telepathic's search, whose two fetches
+  # land in the Bench slots section 4.4 is holding for Latias ex.
+  if(.has_psychic_attached(state, recipient)) return(pair)
+
   energy_id <- energy_vec[1]
 
   # Telepathic's search fires only on a [P] recipient. On a Metal Bronzor it
@@ -897,7 +1238,7 @@ policy_placement <- function(state){
 
   target_vec <- character(0)
   # The sub-goal want-list first: these are fetched because we need them.
-  for(one_id in .want_vec(pair)){
+  for(one_id in .want_vec(pair, bool_to_hand = FALSE)){
     if(length(target_vec) >= num_want) break
     found_id <- .first_findable(pair, one_id, ALLOWED_TARGET_LIST$telepathic)
     if(!is.null(found_id)) target_vec <- c(target_vec, found_id)
@@ -1039,7 +1380,7 @@ policy_placement <- function(state){
   # onto the Bench right. Asking "is Lillie's in hand?" instead filled the Bench
   # for a Lillie's that priority 4 never played, and the full Bench then
   # blocked Poffin and Telepathic's search for the rest of the window.
-  supporter_id <- .choose_supporter(pair)
+  supporter_id <- .choose_supporter(pair, bool_fallback = FALSE)
 
   pair <- .policy_bench(pair,
                         bool_before_lillies = identical(supporter_id,
@@ -1047,16 +1388,28 @@ policy_placement <- function(state){
   pair <- .policy_search_items(pair)
   pair <- .policy_position(pair, bool_allow_surfer = FALSE)
   # Re-asked, because the searches may have changed the hand.
-  pair <- .play_chosen_supporter(pair, .choose_supporter(pair))
+  pair <- .play_chosen_supporter(pair,
+                                 .choose_supporter(pair,
+                                                   bool_fallback = FALSE))
 
   # The Supporter may have fetched the pieces, so bench and evolve afterwards --
   # and position AFTER evolving, not before. The other order left a Bronzong
   # that .policy_evolve() had just made on the Bench stranded there with a
   # Switch still in hand, which the trace then reported as a decision defect.
-  pair <- .policy_bench(pair)
-  pair <- .policy_evolve(pair)
-  pair <- .policy_position(pair, bool_allow_surfer = TRUE)
-  pair <- .policy_energy(pair)
+  pair <- .policy_assemble(pair)
+
+  # Section 6 priority 8, here rather than above because the fallback's cards
+  # are not fetching a piece the turn still needs -- and Lillie's, which is
+  # first among them, would shuffle the hand away underneath the evolution and
+  # the attachment if it fired any earlier.
+  pair <- .policy_fallback_supporter(pair)
+  # ...and then the same steps AGAIN, over whatever it drew or fetched. A
+  # Supporter played at the very end of a turn, whose cards can never be used,
+  # does not "increase my chances to get set up" at all, which is the whole
+  # reason section 6 priority 8 exists. The second pass is worth 5.0 points
+  # going second and 6.7 going first; without it the fallback is worth nothing
+  # on turn 2, where the window closes before the cards can be played.
+  pair <- .policy_assemble(pair)
   # Section 4.2 step 6 and section 5 step 6, both of which come after everything
   # that matters: neither advances a sub-goal, and Pokegear shuffles.
   pair <- .policy_stadium(pair)
@@ -1069,6 +1422,48 @@ policy_placement <- function(state){
   # Section 4.2: Run Around only as a last resort, after every other play, and
   # only when it does not cost the [P] source sub-goal D needs.
   .policy_run_around(pair)
+}
+
+#' Put the pieces together: bench, evolve, position, attach
+#'
+#' The four steps that convert cards in hand into the board the attack needs,
+#' factored out because \code{.policy_build_turn()} runs them twice -- once on
+#' the hand as it stands, and once more on whatever the section 6 priority 8
+#' fallback drew or fetched.
+#'
+#' Order matters and is section 7's: evolve BEFORE positioning, so a Bronzong
+#' made on the Bench is promoted in the same pass rather than stranded there
+#' with a Switch still in hand.
+#' @noRd
+.policy_assemble <- function(pair){
+  pair <- .policy_bench(pair)
+  pair <- .policy_evolve(pair)
+  pair <- .policy_position(pair, bool_allow_surfer = TRUE)
+
+  .policy_energy(pair)
+}
+
+#' Spend the Supporter slot rather than end the turn with it unspent
+#'
+#' Section 6 priority 8, run at the end of the turn. The slot is a per-turn
+#' resource that carries no credit forward, so leaving it idle destroys it.
+#'
+#' Lillie's shuffles the hand into the deck, so the Pokemon worth keeping go to
+#' the Bench first (section 4.4) exactly as they do for a priority-7 Lillie's.
+#' @noRd
+.policy_fallback_supporter <- function(pair){
+  if(!can_play_supporter(pair$state)) return(pair)
+
+  supporter_id <- .fallback_supporter(pair)
+  if(is.null(supporter_id)) return(pair)
+
+  if(identical(supporter_id, POLICY_ID_LIST$lillies)){
+    pair <- .policy_bench(pair, bool_before_lillies = TRUE)
+    # Benching may have emptied the hand enough to change the answer.
+    supporter_id <- .fallback_supporter(pair)
+  }
+
+  .play_chosen_supporter(pair, supporter_id)
 }
 
 #' Play a Stadium, if one is held and it does not hurt us
