@@ -1,0 +1,258 @@
+# Decision traces -- read the header, then count motifs, then read traces.
+
+# NOT a representative sample: stratified toward misses on purpose. Never
+# compute a rate from the traces; the rates below are over every replicate.
+
+decklist   : dl_4c2d5ab6
+cell       : clear, going second
+replicates : 1000   misses: 195   traces kept: 15
+hit (t<=2) : 80.50%   turn split  t1=41 t2=764 late=0 never=195
+mulligans  : 14.90% of games, mean 0.184   (orthogonal -- never counts as a miss, ADR 0005)
+
+# HIT RATE BY THE BASIC THAT LED AT SETUP, over EVERY replicate. It is a
+# rate and may be read as one -- but it does NOT settle the section 3 lead
+# order, and reading it that way is the easy mistake (ADR 0008). The hand
+# holding a Kangaskhan is not the hand holding a Duskull, so this compares
+# leads ACROSS DIFFERENT HANDS and reports a property of the hands. The lead
+# is not randomised here; it is chosen, by the very rule under test. The
+# order is settled by varying it and measuring the cell rate instead --
+# scripts/tune_lead_order_claude.R. Read this as a fact about the policy.
+#   MegaKangaskhanex         137/  184  74.46%
+#   Buneary                   40/   68  58.82%
+#   Meowthex                  15/   25  60.00%
+#   Duskull                  178/  230  77.39%
+#   Latiasex                  78/   96  81.25%
+#   Bronzor(TEF)             333/  367  90.74%
+#   FlutterMane               24/   30  80.00%
+
+# THE 60 CARDS IN THIS DECK. Do not recommend a card that is not here.
+#   2 NightStretcher | 2 MegaKangaskhanex | 2 BosssOrders | 4 LilliesDetermination | 4 RareCandy | 3 Switch | 4 UltraBall | 2 Buneary | 2 MegaLopunnyex | 1 Meowthex | 4 PokePad | 4 TelepathicPsychicEnergy | 4 Duskull | 2 Dusclops | 4 Dusknoir | 1 Latiasex | 1 EnrichingEnergy | 2 PsychicEnergy(SVE) | 3 Bronzor(TEF) | 2 Bronzong | 1 FlutterMane | 1 Salvatore | 1 JammingTower | 4 Hilda
+
+# UNMET SUB-GOALS, counted as a SET so a miss appears in every row it
+# belongs to. Rows therefore sum to more than the miss count, by design:
+# reporting only the first unmet goal made C look like it never failed.
+#   A bronzor_in_play    16/195
+#   B bronzong_on_it     117/195
+#   C bronzong_active    140/195
+#   D psychic_attached   173/195
+
+# PLAY MOTIFS across every miss. These are the counts worth acting on:
+#       0 / 195  Telepathic attached to a Colorless body (search dead)
+#      14 / 195  a search resolved with no target named
+#      30 / 195  Bronzor/Bronzong in play but never made Active
+#     125 / 195  a turn ended with the Supporter slot unspent
+#       0 / 195  combo assembled but Evolution Jammer never declared
+
+# misses holding a PLAYABLE out they did not play: 94/195
+#   (a lower bound on decision defects -- it can only see a card LEFT in
+#    hand, never one that was played wrongly. The motifs above catch those.)
+
+# ------------------------------------------------------------------
+
+#1/15 seed=1  MISS unmet=B,C,D first=B
+  !! PLAYABLE OUT unused: Switch
+  setup hand[NightStretcher+MegaKangaskhanex+Buneary+TelepathicPsychicEnergy+Dusclops+Dusknoir+Hilda] | lead MegaKangaskhanex
+  T1    hand[NightStretcher+Buneary+TelepathicPsychicEnergy+Dusclops+Dusknoir+Dusknoir+Hilda] | Run Errand | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach EnrichingEnergy to MegaKangaskhanex
+  T2    hand[NightStretcher+LilliesDetermination+UltraBall+Buneary+Buneary+MegaLopunnyex+Meowthex+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Dusclops+Dusknoir+Dusknoir+Bronzong+Bronzong] | Run Errand | bench Meowthex | Last-Ditch Catch -> Hilda | Ultra Ball -> Bronzor(TEF) | bench Bronzor(TEF) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Latiasex | bench Buneary | bench Buneary | Lillie's Determination, drew 8 | promote Bronzor(TEF) via retreat(free)
+  end of turn 2 -- board state when the window closed; setup lead=MegaKangaskhanex
+    active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T2
+    bench    Meowthex[C] played=T2 | MegaKangaskhanex[C]{EnrichingEnergy} played=T0 | Latiasex[P] played=T2 | Buneary[C] played=T2 | Buneary[C] played=T2
+    hand     PsychicEnergy(SVE), Switch, FlutterMane, BosssOrders, Dusclops, RareCandy, RareCandy, TelepathicPsychicEnergy
+    discard  Hilda, UltraBall, Dusclops, Dusknoir, LilliesDetermination
+    zones    deck=33 prizes=6 stadium=-
+    turn     energy=spent supporter=played items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): RareCandy, UltraBall, Bronzor(TEF), TelepathicPsychicEnergy, UltraBall, Bronzor(TEF)
+
+#2/15 seed=2 mull=1  HIT t2
+  setup hand[NightStretcher+UltraBall+PokePad+Duskull+Duskull+Bronzor(TEF)+Bronzong] | lead Bronzor(TEF)
+  T1    hand[NightStretcher+MegaKangaskhanex+UltraBall+PokePad+Duskull+Duskull+Bronzong] | Poke Pad -> Duskull | Ultra Ball -> Meowthex | bench Meowthex | Last-Ditch Catch -> Hilda | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Duskull, Bronzor(TEF)
+  T2    hand[NightStretcher+MegaKangaskhanex+LilliesDetermination+Duskull+Bronzong+Bronzong] | evolve into Bronzong | bench MegaKangaskhanex | bench Duskull | Lillie's Determination, drew 8 | evolve into Bronzong | attach EnrichingEnergy to Meowthex | EVOLUTION JAMMER
+  end of turn 2 -- board state when the window closed; setup lead=Bronzor(TEF)
+    active   Bronzor(TEF)>Bronzong[P]{TelepathicPsychicEnergy} played=T0 evo=T2
+    bench    Meowthex[C]{EnrichingEnergy} played=T1 | Duskull[P] played=T1 | Bronzor(TEF)>Bronzong[P] played=T1 evo=T2 | MegaKangaskhanex[C] played=T2 | Duskull[P] played=T2
+    hand     RareCandy, RareCandy, BosssOrders, UltraBall, Switch, LilliesDetermination, LilliesDetermination, Dusknoir, Latiasex, PokePad
+    discard  PokePad, UltraBall, Duskull, Duskull, Hilda, LilliesDetermination
+    zones    deck=28 prizes=6 stadium=-
+    turn     energy=spent supporter=played items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Hilda, Switch, Hilda, TelepathicPsychicEnergy, Dusknoir, RareCandy
+
+#3/15 seed=3  HIT t2
+  setup hand[BosssOrders+RareCandy+Duskull+Dusclops+Dusclops+Dusknoir+Hilda] | lead Duskull
+  T1    hand[BosssOrders+RareCandy+Dusclops+Dusclops+Dusknoir+Bronzor(TEF)+Hilda] | bench Bronzor(TEF) | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Latiasex | promote Bronzor(TEF) via retreat(free)
+  T2    hand[BosssOrders+RareCandy+Dusclops+Dusclops+Dusknoir+EnrichingEnergy+Bronzong] | evolve into Bronzong | evolve into Dusknoir | attach EnrichingEnergy to Latiasex | EVOLUTION JAMMER
+  end of turn 2 -- board state when the window closed; setup lead=Duskull
+    active   Bronzor(TEF)>Bronzong[P]{TelepathicPsychicEnergy} played=T1 evo=T2
+    bench    Duskull>Dusknoir[P] played=T0 evo=T2 | Latiasex[P]{EnrichingEnergy} played=T1
+    hand     BosssOrders, Dusclops, Dusclops, PokePad, RareCandy, MegaLopunnyex, Hilda
+    discard  Hilda, RareCandy
+    zones    deck=38 prizes=6 stadium=-
+    turn     energy=spent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): TelepathicPsychicEnergy, LilliesDetermination, UltraBall, LilliesDetermination, Salvatore, PsychicEnergy(SVE)
+
+#4/15 seed=4  HIT t2
+  setup hand[MegaKangaskhanex+LilliesDetermination+RareCandy+Dusknoir+Bronzor(TEF)+JammingTower+Hilda] | lead Bronzor(TEF)
+  T1    hand[NightStretcher+MegaKangaskhanex+LilliesDetermination+RareCandy+Dusknoir+JammingTower+Hilda] | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Duskull, Bronzor(TEF) | play Stadium JammingTower
+  T2    hand[NightStretcher+MegaKangaskhanex+LilliesDetermination+RareCandy+Dusclops+Dusknoir+Bronzong] | evolve into Bronzong | evolve into Dusknoir | bench MegaKangaskhanex | Lillie's Determination, drew 8 | EVOLUTION JAMMER
+  end of turn 2 -- board state when the window closed; setup lead=Bronzor(TEF)
+    active   Bronzor(TEF)>Bronzong[P]{TelepathicPsychicEnergy} played=T0 evo=T2
+    bench    Duskull>Dusknoir[P] played=T1 evo=T2 | Bronzor(TEF)[P] played=T1 | MegaKangaskhanex[C] played=T2
+    hand     Duskull, UltraBall, Duskull, LilliesDetermination, Dusknoir, RareCandy, Salvatore, Switch
+    discard  Hilda, RareCandy, LilliesDetermination
+    zones    deck=35 prizes=6 stadium=JammingTower
+    turn     energy=unspent supporter=played items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Bronzong, FlutterMane, PokePad, Duskull, NightStretcher, MegaLopunnyex
+
+#5/15 seed=15  MISS unmet=B,C,D first=B
+  !! PLAYABLE OUT unused: Hilda
+  !! a turn ended with the Supporter slot unspent
+  setup hand[BosssOrders+TelepathicPsychicEnergy+Duskull+Duskull+Dusknoir+PsychicEnergy(SVE)+Bronzor(TEF)] | lead Bronzor(TEF)
+  T1    hand[NightStretcher+BosssOrders+TelepathicPsychicEnergy+Duskull+Duskull+Dusknoir+PsychicEnergy(SVE)] | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Duskull, Bronzor(TEF)
+  T2    hand[NightStretcher+BosssOrders+Duskull+Duskull+Dusknoir+EnrichingEnergy+PsychicEnergy(SVE)] | attach EnrichingEnergy to Duskull
+  end of turn 2 -- board state when the window closed; setup lead=Bronzor(TEF)
+    active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T0
+    bench    Duskull[P]{EnrichingEnergy} played=T1 | Bronzor(TEF)[P] played=T1
+    hand     Duskull, PsychicEnergy(SVE), Dusknoir, Duskull, BosssOrders, NightStretcher, Hilda, Buneary, TelepathicPsychicEnergy, LilliesDetermination
+    discard  -
+    zones    deck=39 prizes=6 stadium=-
+    turn     energy=spent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Hilda, MegaLopunnyex, RareCandy, Dusknoir, UltraBall, JammingTower
+
+#6/15 seed=16 mull=1  MISS unmet=C,D first=C
+  !! Bronzor/Bronzong in play but never made Active
+  setup hand[LilliesDetermination+Buneary+MegaLopunnyex+Dusclops+PsychicEnergy(SVE)+PsychicEnergy(SVE)+Salvatore] | lead Buneary
+  T1    hand[LilliesDetermination+MegaLopunnyex+TelepathicPsychicEnergy+Dusclops+PsychicEnergy(SVE)+PsychicEnergy(SVE)+Salvatore] | Lillie's Determination, drew 8
+  T2    hand[BosssOrders+RareCandy+UltraBall+Duskull+Dusclops+Dusknoir+Bronzong+Salvatore+JammingTower] | Ultra Ball -> Bronzor(TEF) | bench Bronzor(TEF) | play Stadium JammingTower | evolve into Bronzong | Salvatore -> Bronzong
+  end of turn 2 -- board state when the window closed; setup lead=Buneary
+    active   Buneary[C] played=T0
+    bench    Bronzor(TEF)>Bronzong[P] played=T2 evo=T2
+    hand     RareCandy, Bronzong, Dusknoir, Duskull
+    discard  LilliesDetermination, UltraBall, BosssOrders, Dusclops, Salvatore
+    zones    deck=41 prizes=6 stadium=JammingTower
+    turn     energy=unspent supporter=played items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): LilliesDetermination, Hilda, UltraBall, Bronzor(TEF), RareCandy, MegaLopunnyex
+
+#7/15 seed=53  MISS unmet=B,C,D first=B
+  !! PLAYABLE OUT unused: Switch, PokePad
+  setup hand[MegaKangaskhanex+BosssOrders+LilliesDetermination+Duskull+Dusclops+Dusknoir+Hilda] | lead MegaKangaskhanex
+  T1    hand[BosssOrders+LilliesDetermination+Meowthex+Duskull+Dusclops+Dusknoir+Hilda] | Run Errand | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | bench Meowthex | Last-Ditch Catch -> Hilda
+  T2    hand[BosssOrders+LilliesDetermination+Switch+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Duskull+Dusclops+Dusknoir+Bronzor(TEF)+Bronzong+Hilda] | Run Errand | bench Bronzor(TEF) | Ultra Ball -> Duskull | promote Bronzor(TEF) via Switch | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Duskull, Bronzor(TEF) | bench Duskull | Lillie's Determination, drew 8 | play Stadium JammingTower
+  end of turn 2 -- board state when the window closed; setup lead=MegaKangaskhanex
+    active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T2
+    bench    Meowthex[C] played=T1 | MegaKangaskhanex[C] played=T0 | Duskull[P] played=T2 | Bronzor(TEF)[P] played=T2 | Duskull[P] played=T2
+    hand     RareCandy, PsychicEnergy(SVE), Buneary, Dusknoir, Switch, NightStretcher, PokePad
+    discard  Hilda, UltraBall, BosssOrders, Dusclops, Switch, LilliesDetermination
+    zones    deck=33 prizes=6 stadium=JammingTower
+    turn     energy=spent supporter=played items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Dusknoir, MegaLopunnyex, Latiasex, PokePad, TelepathicPsychicEnergy, Buneary
+
+#8/15 seed=55  MISS unmet=D first=D
+  !! a turn ended with the Supporter slot unspent
+  setup hand[NightStretcher+RareCandy+Meowthex+Duskull+Dusknoir+Latiasex+Bronzong] | lead Latiasex
+  T1    hand[NightStretcher+RareCandy+Meowthex+Duskull+Dusclops+Dusknoir+Bronzong] | bench Meowthex | Last-Ditch Catch -> Hilda | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Latiasex | Telepathic Psychic Energy -> Bronzor(TEF), Duskull | promote Bronzor(TEF) via retreat(free)
+  T2    hand[NightStretcher+RareCandy+Duskull+Duskull+Dusclops+Dusknoir+Bronzong+Bronzong] | evolve into Bronzong | evolve into Dusknoir
+  end of turn 2 -- board state when the window closed; setup lead=Latiasex
+    active   Bronzor(TEF)>Bronzong[P] played=T1 evo=T2
+    bench    Meowthex[C] played=T1 | Latiasex[P]{TelepathicPsychicEnergy} played=T0 | Duskull>Dusknoir[P] played=T1 evo=T2
+    hand     Duskull, NightStretcher, Dusclops, Bronzong, Duskull
+    discard  Hilda, RareCandy
+    zones    deck=40 prizes=6 stadium=-
+    turn     energy=unspent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Bronzor(TEF), PokePad, TelepathicPsychicEnergy, NightStretcher, Duskull, TelepathicPsychicEnergy
+
+#9/15 seed=64  MISS unmet=D first=D
+  !! a turn ended with the Supporter slot unspent
+  setup hand[NightStretcher+MegaKangaskhanex+BosssOrders+UltraBall+PokePad+FlutterMane+JammingTower] | lead MegaKangaskhanex
+  T1    hand[NightStretcher+BosssOrders+UltraBall+PokePad+Dusclops+FlutterMane+JammingTower] | Run Errand | Poke Pad -> Bronzor(TEF) | Poke Pad -> Bronzong | Poke Pad -> Duskull | Ultra Ball -> Latiasex | bench Latiasex | bench Bronzor(TEF) | promote Bronzor(TEF) via retreat(free) | play Stadium JammingTower
+  T2    hand[NightStretcher+RareCandy+Duskull+Bronzong+FlutterMane] | evolve into Bronzong
+  end of turn 2 -- board state when the window closed; setup lead=MegaKangaskhanex
+    active   Bronzor(TEF)>Bronzong[P] played=T1 evo=T2
+    bench    Latiasex[P] played=T1 | MegaKangaskhanex[C] played=T0
+    hand     NightStretcher, FlutterMane, Duskull, RareCandy
+    discard  PokePad, PokePad, PokePad, UltraBall, BosssOrders, Dusclops
+    zones    deck=39 prizes=6 stadium=JammingTower
+    turn     energy=unspent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Hilda, RareCandy, Duskull, Switch, MegaLopunnyex, Dusclops
+
+#10/15 seed=71 mull=1  MISS unmet=B,C,D first=B
+  setup hand[Buneary+MegaLopunnyex+TelepathicPsychicEnergy+Dusclops+EnrichingEnergy+Hilda+Hilda] | lead Buneary
+  T1    hand[MegaLopunnyex+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Dusclops+EnrichingEnergy+Hilda+Hilda] | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach EnrichingEnergy to Buneary
+  T2    hand[LilliesDetermination+LilliesDetermination+RareCandy+MegaLopunnyex+TelepathicPsychicEnergy+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Dusclops+Dusknoir+Bronzor(TEF)+Bronzong+Hilda] | bench Bronzor(TEF) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Latiasex | Lillie's Determination, drew 8 | promote Bronzor(TEF) via retreat(free)
+  end of turn 2 -- board state when the window closed; setup lead=Buneary
+    active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T2
+    bench    Buneary[C]{EnrichingEnergy} played=T0 | Latiasex[P] played=T2
+    hand     RareCandy, PsychicEnergy(SVE), LilliesDetermination, NightStretcher, Bronzor(TEF), RareCandy, Hilda, Dusclops
+    discard  Hilda, LilliesDetermination
+    zones    deck=39 prizes=6 stadium=-
+    turn     energy=spent supporter=played items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): FlutterMane, Bronzor(TEF), PokePad, Duskull, BosssOrders, Meowthex
+
+#11/15 seed=72  MISS unmet=D first=D
+  setup hand[MegaKangaskhanex+MegaKangaskhanex+BosssOrders+RareCandy+Meowthex+Latiasex+Salvatore] | lead Latiasex
+  T1    hand[MegaKangaskhanex+MegaKangaskhanex+BosssOrders+RareCandy+Meowthex+Dusknoir+Salvatore] | bench Meowthex | Last-Ditch Catch -> Hilda | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | attach TelepathicPsychicEnergy to Latiasex | Telepathic Psychic Energy -> Bronzor(TEF), Duskull | promote Bronzor(TEF) via retreat(free)
+  T2    hand[MegaKangaskhanex+MegaKangaskhanex+BosssOrders+LilliesDetermination+RareCandy+Dusknoir+Bronzong+Salvatore] | evolve into Bronzong | evolve into Dusknoir | bench MegaKangaskhanex | bench MegaKangaskhanex | Lillie's Determination, drew 8 | play Stadium JammingTower
+  end of turn 2 -- board state when the window closed; setup lead=Latiasex
+    active   Bronzor(TEF)>Bronzong[P] played=T1 evo=T2
+    bench    Meowthex[C] played=T1 | Latiasex[P]{TelepathicPsychicEnergy} played=T0 | Duskull>Dusknoir[P] played=T1 evo=T2 | MegaKangaskhanex[C] played=T2 | MegaKangaskhanex[C] played=T2
+    hand     BosssOrders, Bronzong, Switch, Dusclops, Dusknoir, Bronzor(TEF), NightStretcher
+    discard  Hilda, RareCandy, LilliesDetermination
+    zones    deck=34 prizes=6 stadium=JammingTower
+    turn     energy=unspent supporter=played items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): PokePad, Hilda, Bronzor(TEF), RareCandy, PsychicEnergy(SVE), Duskull
+
+#12/15 seed=78 mull=1  MISS unmet=A,B,C,D first=A
+  !! PLAYABLE OUT unused: TelepathicPsychicEnergy, PsychicEnergy(SVE)
+  !! a search resolved with no target named
+  setup hand[BosssOrders+Buneary+MegaLopunnyex+TelepathicPsychicEnergy+Dusknoir+PsychicEnergy(SVE)+Hilda] | lead Buneary
+  T1    hand[BosssOrders+MegaLopunnyex+TelepathicPsychicEnergy+Dusknoir+PsychicEnergy(SVE)+Hilda+Hilda] | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy
+  T2    hand[BosssOrders+MegaLopunnyex+TelepathicPsychicEnergy+TelepathicPsychicEnergy+Duskull+Dusknoir+PsychicEnergy(SVE)+Bronzong+Hilda] | Hilda (evolution) -> DECLINED (no target named) | Hilda (energy) -> TelepathicPsychicEnergy
+  end of turn 2 -- board state when the window closed; setup lead=Buneary
+    active   Buneary[C] played=T0
+    bench    -
+    hand     MegaLopunnyex, BosssOrders, Dusknoir, TelepathicPsychicEnergy, PsychicEnergy(SVE), Bronzong, TelepathicPsychicEnergy, Duskull, TelepathicPsychicEnergy
+    discard  Hilda, Hilda
+    zones    deck=42 prizes=6 stadium=-
+    turn     energy=unspent supporter=played items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Latiasex, Dusclops, Bronzong, RareCandy, Buneary, FlutterMane
+
+#13/15 seed=84  MISS unmet=C first=C
+  !! Bronzor/Bronzong in play but never made Active
+  !! a turn ended with the Supporter slot unspent
+  setup hand[RareCandy+UltraBall+Buneary+MegaLopunnyex+PokePad+PsychicEnergy(SVE)+FlutterMane] | lead FlutterMane
+  T1    hand[RareCandy+UltraBall+Buneary+MegaLopunnyex+PokePad+PsychicEnergy(SVE)+Hilda] | Poke Pad -> Bronzor(TEF) | Ultra Ball -> Bronzong | bench Bronzor(TEF) | attach PsychicEnergy(SVE) to Bronzor(TEF) | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy
+  T2    hand[RareCandy+TelepathicPsychicEnergy+Bronzor(TEF)+Bronzong+Bronzong] | evolve into Bronzong
+  end of turn 2 -- board state when the window closed; setup lead=FlutterMane
+    active   FlutterMane[P] played=T0
+    bench    Bronzor(TEF)>Bronzong[P]{PsychicEnergy(SVE)} played=T1 evo=T2
+    hand     RareCandy, Bronzong, TelepathicPsychicEnergy, Bronzor(TEF)
+    discard  PokePad, UltraBall, Buneary, MegaLopunnyex, Hilda
+    zones    deck=41 prizes=6 stadium=-
+    turn     energy=unspent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): UltraBall, LilliesDetermination, Dusclops, Duskull, Latiasex, Dusknoir
+
+#14/15 seed=88  MISS unmet=B,C,D first=B
+  !! a turn ended with the Supporter slot unspent
+  setup hand[RareCandy+Switch+UltraBall+Buneary+TelepathicPsychicEnergy+Dusclops+FlutterMane] | lead FlutterMane
+  T1    hand[RareCandy+Switch+UltraBall+UltraBall+Buneary+TelepathicPsychicEnergy+Dusclops] | Ultra Ball -> Bronzor(TEF) | bench Bronzor(TEF) | promote Bronzor(TEF) via Switch | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Duskull, Bronzor(TEF)
+  T2    hand[RareCandy+UltraBall+Dusknoir] | evolve into Dusknoir
+  end of turn 2 -- board state when the window closed; setup lead=FlutterMane
+    active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
+    bench    FlutterMane[P] played=T0 | Duskull>Dusknoir[P] played=T1 evo=T2 | Bronzor(TEF)[P] played=T1
+    hand     UltraBall
+    discard  UltraBall, Dusclops, Buneary, Switch, RareCandy
+    zones    deck=42 prizes=6 stadium=-
+    turn     energy=unspent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): PokePad, MegaLopunnyex, Switch, Bronzong, NightStretcher, Switch
+
+#15/15 seed=91  MISS unmet=D first=D
+  !! a turn ended with the Supporter slot unspent
+  setup hand[BosssOrders+LilliesDetermination+RareCandy+Switch+Dusclops+Bronzor(TEF)+Bronzong] | lead Bronzor(TEF)
+  T1    hand[BosssOrders+LilliesDetermination+RareCandy+Switch+Dusclops+Bronzong+FlutterMane] | bench FlutterMane | Lillie's Determination, drew 8 | bench Latiasex
+  T2    hand[MegaKangaskhanex+Switch+Buneary+Dusclops+Dusknoir+Bronzor(TEF)+Bronzor(TEF)+Bronzong] | evolve into Bronzong
+  end of turn 2 -- board state when the window closed; setup lead=Bronzor(TEF)
+    active   Bronzor(TEF)>Bronzong[P] played=T0 evo=T2
+    bench    FlutterMane[P] played=T1 | Latiasex[P] played=T1
+    hand     Dusclops, Buneary, Bronzor(TEF), MegaKangaskhanex, Dusknoir, Switch, Bronzor(TEF)
+    discard  LilliesDetermination
+    zones    deck=42 prizes=6 stadium=-
+    turn     energy=unspent supporter=unplayed items=open
+    prized   GROUND TRUTH, never visible to the policy (ADR 0003): Dusknoir, Duskull, Hilda, TelepathicPsychicEnergy, EnrichingEnergy, Hilda

@@ -249,3 +249,398 @@ Kevin answered all fourteen positions in `docs/03b_scenarios.md`. Nine confirmed
 **Housekeeping.** §9 of the decision tree (the answers table and the corrections table) is **deleted**, closing the loose end logged in session 15. Its three rules that were stated only there were folded into their sections first — Switch over Surfer into §4.1 step 2, Ciphermaniac's confined to `P2T1` into §6, declining Run Around into §4.2 — and the rule set was diffed before the delete. Every `(Kevin, 2026-08-29)` stamp and every "the draft said…" clause is gone from both decision documents; §10 became §9 and now lists only what is still open. The generator gained position **dedupe**: two predicates matching the same seed used to render the same board twice under two ids, which asks one question while looking like two.
 
 **Motif count that is no longer a defect.** "A turn ended with the Supporter slot unspent" is still the largest motif (393 of 1,000 going second), but only **80** of those replicates hold a Supporter at all: 28 a Salvatore with no Bronzor in play to put a Bronzong onto — not a legal declaration — and 56 a Ciphermaniac's whose stack the window can never draw. Hilda and Lillie's are **never** stranded. The number to watch is 80, not 393.
+
+### 2026-08-30 (Session 17 — the second bank of answers, and the lead order stops being a guess)
+
+Kevin answered all twelve positions in the S-15 to S-26 bank. Seven confirmed the
+tree, four changed it, and one — S-24 — he explicitly refused to answer from
+intuition and handed to the simulator. Order was documents → code → measure, per
+`CLAUDE.md` → *The decision documents are the specification*.
+
+**The answers, verbatim, because the bank itself is rewritten from S-27 and the
+documents carry no history of their own.**
+
+- **S-15** (19.8% of games, DT-24) — *"Yes, (a) is the clear answer."* Play the
+  Lillie's on a turn that is already won. **DT-24 is now a ruling**, folded into
+  §6 priority 8: the slot is destroyed if it is not used, and eight fresh cards
+  are a better record of where the game stood.
+- **S-16** (4.4%, DT-25) — *"(c) is the clear answer here."* The free Poké Pad
+  finds the Bronzong and the Supporter slot is left for whatever is worth more
+  afterwards. The general rule this states — **a free Item that closes the gap is
+  played before the Supporter slot is considered at all** — is now the paragraph
+  that opens §6. It also means **DT-25 was sidestepped rather than settled**: the
+  Salvatore-versus-Hilda discriminator only ever binds where no Item can fetch
+  the Bronzong, so DT-25 stays open, narrowed to that residual.
+- **S-17** (2.4%) — *"(c) is the clear answer here."* Ultra Ball for the Bronzong
+  outright **and then** Ciphermaniac's on top of it. Confirms the tree.
+- **S-18** (4.8%, PB-16) — *"(c) is the correct choice — the turn will end with
+  two different Bronzong, each with a Psychic energy attached."* This is a change,
+  and it is the one that needed care: **S-26 says the opposite about a second
+  Bronzor.** The two are not in conflict once the rule is scoped to the evolved
+  body — a Bronzong holding a `[P]` source is a second attacker, a Bronzor holding
+  one is still a Bronzor, and the Bench slots the Telepathic search would fill are
+  worth more than the Energy. §4.2 step 6 now carries exactly that exception and
+  no wider one.
+- **S-19** (8%, DT-23 / PB-13) — *"Basically (b). The Supporter for the turn would
+  be Ciphermaniac, but it's not too important since the goal is achieved already."*
+  Rare Candy the benched Duskull into a Dusknoir on a turn that is already won.
+  §8's non-goal is rewritten as being about **order** — Bronzong first, always;
+  Dusknoir with what is left over.
+- **S-20** (1.6%, PB-17) — *"(b) is the clear play, assuming there is a Dusknoir in
+  the deck."* **This is the position the tree could win and did not.** Dusknoir now
+  enters the want-list ahead of everything else exactly when the Cursed Blast
+  escape is the only route to sub-goal C, and Hilda is aimed at it. The
+  *"assuming there is a Dusknoir in the deck"* clause is ADR 0003 and is
+  implemented as `believes_findable()`, so the promotion is the player's own
+  deduction rather than a peek.
+- **S-21** (0 examples, PB-10) — answered as a rule rather than a position:
+  *"it's only okay to discard Bronzong… if there's a Night Stretcher in hand to
+  easily re-find the Bronzong. It's almost always not ideal to discard Bronzor,
+  because it will take an extra turn to evolve it into Bronzong unless there's a
+  Salvatore in my hand."* The Ultra Ball never-discard list changes shape: the
+  line is protected **by name rather than by count**, every copy included, and
+  each is released only by the card that undoes the discard.
+- **S-22** (12.8%, PB-09) — the longest answer, and two changes in it: *"I would
+  Poke Pad for a Bronzor… Then… play the second Poke Pad to search for the
+  Bronzong… Finally, I would attach the Enriching Energy onto the Latias ex, since
+  it at least might have a chance to use the `[C]` in the future."* So **every
+  Poké Pad in hand is played, not just the first**, and **Enriching Energy takes an
+  attachment nothing else can use**, on a body that is not the attacker.
+- **S-23** (9%, PB-07) — *"(a) is closer to the answer… it's critical to ensure
+  Bronzor is on the field since I cannot evolve into Bronzong on the same turn
+  Bronzor is played to the field."* Confirms the tree's division of labour: Poké
+  Pad chases the Bronzor, Ultra Ball chases the Latias ex it is the only Item that
+  can fetch.
+- **S-24** (3% for that exact hand, DT-03) — *"Overall, opening Duskull would have
+  been better, but this is something we would need the Monte Carlo simulator to
+  answer decisively."* Handed to the simulator; see below.
+- **S-25** (11.6%, DT-01) — *"Play Meowth ex onto the bench to find a Hilda, which
+  will find both the Bronzong and `[P]` energy."* Confirms the tree.
+- **S-26** (5.2%, PB-15 / DT-02) — *"(a) is the clear answer."* Attach nothing and
+  leave the last Bench slot empty. Confirms the tree, and supplies the principle
+  that narrows PB-15: on turn 2 a fetch whose only effect is to occupy a Bench slot
+  buys nothing.
+
+**Two places the letter of an answer was not followed, both flagged to Kevin
+rather than buried.**
+
+- **S-19's Supporter.** He named Ciphermaniac's and marked the choice unimportant.
+  On a won turn 2 a Ciphermaniac's stack is two cards the window can never draw,
+  while the Salvatore the fallback prefers puts a second Bronzong onto the benched
+  Bronzor. The fallback order was left as it is and the question raised as
+  **DT-26**.
+- **DT-23's other half.** He ruled on the turn that is already *won*. Applying the
+  same Rare Candy to a turn already *lost* is written into §8 as a proposal, and
+  DT-23 stays in the register narrowed to that half.
+
+**A latent crash the lead-order search found before a run did.** The first sweep
+died on `card TEF-160 is not in zone 'hand'`. `.kill_line_is_live()` gates entry to
+the §4.1 kill line, but the free Items run *inside* it and can make the line dead
+again: Ultra Ball protects the Salvatore only while the line is live, liveness
+reads `believes_findable()`, and a search that takes the last Bronzong out of the
+**deck** — into hand, where Salvatore cannot reach it and turn 1 cannot evolve it —
+releases the Salvatore onto the discard order. `is_salvatore_target()` then still
+answers TRUE, because it reads public information and deliberately keeps a prized
+Bronzong declarable, so it is no substitute for holding the card. The line now
+re-checks both halves. **The general lesson is the one this project keeps
+relearning**: a guard evaluated once at the top of a sequence is not a guard on the
+sequence, and the second Poké Pad — a change worth a fraction of a point — is what
+made a two-year-old-shaped bug common enough to fire.
+
+**Rates.** decklist2, 1,000 replicates: going second **75.8% → 77.5%**, going
+first **64.1% → 64.3%**, `item_lock` going first **60.7% → 61.6%**. That is
+**1.7 points** against the previous bank's 23, and the honest reading is that the
+policy is mostly right now: seven of twelve answers confirmed the tree. Two of the
+changes measure exactly **0.0** and are supposed to — S-18 and S-19 alter the
+board the window closes on, not whether the attack happens.
+
+**The methodological addition worth keeping is the noise floor.** At 1,000 paired
+replicates the standard error on a per-change difference is 0.2–0.4 points, so
+most rows in `results/change_attribution.md` are honestly zero, and the file now
+says so at the top. The previous session's table had no such line, and every row
+in it was read as a measurement.
+
+### 2026-08-30 (Session 17, part 2 — DT-03 settled, and the lead order stops being a guess)
+
+Kevin's S-24 answer was *"we would need the Monte Carlo simulator to answer
+decisively"*, and this is that. Recorded as **ADR 0008**, because the *method* is
+the part worth re-reading rather than the answer.
+
+- **The confounding was the whole problem, and it took a while to see.**
+  `summarise_run()`'s `lead_hit_df` groups every replicate by the Basic that led
+  and looks exactly like the right table. It is not: the hand that contains a
+  Kangaskhan is not the hand that contains a Duskull, so it compares leads across
+  different hands and reports a property of the hands. The lead is not
+  randomised; it is chosen, by the rule under test. **The trace file's own header
+  said "this is what settles it"** and has been rewritten to say the opposite.
+- **The experiment is to vary the order**, which is what the policy controls, and
+  read the cell rate. `LEAD_ORDER_LIST` and `make_policy_placement()` exist so
+  `setup_game()`'s `placement_fn(state)` hook can carry it.
+- **Greedy positional search, not 720 permutations.** Twenty evaluations per cell,
+  valid because only the top-ranked Basic actually present in the hand is ever
+  used, so the order acts as a ranking rather than as a sequence.
+- **Out-of-sample confirmation is the step that mattered.** Going second the
+  winner held on two disjoint seed blocks (+1.3, then **+0.68 with a standard
+  error of 0.20**, paired). Going first it did not: three orders landed within
+  **0.22 points**, so that branch was **left exactly as it was**. A greedy search
+  is the maximum of twenty noisy numbers and will always report a winner.
+
+**What moved, and what did not.** Kevin's specific guess — that Duskull would beat
+Kangaskhan — was **not confirmed**; Kangaskhan is ahead in both cells. What
+changed is the pair he was not asked about: **Latias ex rises from last to first
+going second, and Buneary falls from second to last.** Buneary's fall is the tree
+agreeing with itself at last — its whole case as a lead is Run Around, and §4.2
+classes Run Around as a last resort because it spends the turn's Energy attachment
+and strands it on the Bench.
+
+**And the finding that outranks the ranking: the lead order is worth about a
+point.** At rank 1 going second the six candidates span 74.9% to 75.8%. Against
+the 23 points the Supporter rules moved, that is a rounding error — worth getting
+right, and not where the deck is won.
+
+### 2026-08-30 (Session 17, part 3 — two new decklists, ten new cards)
+
+Kevin dropped **decklist7 and decklist8** into `decklists/` mid-session, and the
+test suite found them within the minute: `unknown card id(s): PBL-063, SFA-019,
+TWM-134, TWM-095, MEG-127, PBL-078, MEG-167, MEE-007`. They are **a different
+deck, not a variation** on the six-list shell — no Mega Kangaskhan ex, no Boss's
+Orders, no Ciphermaniac's, Rare Candy cut to 1, and a Darkness sub-theme.
+
+**All ten cards were transcribed from primary sources, and the second query earned
+its keep for the third time.** limitlesstcg lists **Dunsparce JTG 120's Trading
+Places as an Ability**; pokemon.com and Bulbapedia both give it as an **attack
+costing `[C]`**. That is the difference between a free rung on the §4.3 ladder and
+a last resort that ends the turn — after Evolution Jammer and Itchy Pollen, the
+third time this source has mis-rendered an attack as an Ability.
+
+**Two of the ten cards cannot be used at all in the lists that run them**, and
+both are decklist questions rather than simulator ones:
+
+- **Blissey ex TWM 134 evolves from Chansey**, and neither list runs one. Rare
+  Candy is Basic → Stage 2 and cannot reach a Stage 1; Salvatore fetches a card
+  that evolves from a Pokémon we control. There is no route.
+- **Buddy-Buddy Poffin cannot fetch a Bronzor in either list.** Both printings
+  they run are 80 HP — TEF 68 and the new PBL 63 — against Poffin's 70 HP cap.
+  Its only legal targets there are Duskull, Buneary and Dunsparce.
+
+That is four of sixty cards in decklist7 doing nothing, and it still finishes in
+the registry's top tier, which says something about how much slack the deck has.
+
+**Two rules were implemented rather than deferred**, because scoring a list while
+ignoring its cards is the confidently-wrong-number failure again:
+
+- **Gwynn** (`play_gwynn()`), a draw Supporter that **keeps the hand** and pays in
+  spare Pokémon. Which Pokémon count as spare reuses the Ultra Ball never-discard
+  list rather than inventing a second one — two lists answering "which cards are
+  spare" will disagree, and the disagreement will be silent. Extracting
+  `.line_keep_idx()` was forced by a real recursion: `.ultra_ball_keep_idx()` asks
+  `.choose_supporter()`, and Gwynn's branch inside that would have called back
+  into itself.
+- **Risky Ruins is never played**, under §4.2 step 7's existing *"not disruptive
+  to us"*. Its text damages every Basic non-`[D]` Pokémon **any player** benches,
+  and with no opposing board modelled that is only ever ours.
+
+### 2026-08-30 (Session 17, part 4 — a document that disagreed with itself)
+
+Reordering §6 to match the document surfaced something neither
+`/align-decision-tree` direction had caught: **§6's priority table and §6's own
+prose disagreed.** The table numbered Lillie's at 5 and Ciphermaniac's at 7; the
+prose under Ciphermaniac's read *"it is not the answer to a hand missing three
+things; there Lillie's, which replaces the whole hand, is"* — which only parses if
+Ciphermaniac's is ahead. The code followed the prose. A test pinned the code.
+
+**Measured, the prose is right by 1.92 points with a standard error of 0.22**
+(4,000 paired replicates). The mechanism is clean: Ciphermaniac's is a **tutor**
+for the one card the turn is missing, and Lillie's is **eight random cards out of
+forty**. A tutor beats a lottery when the target is one named card. The table is
+renumbered and now carries the measurement.
+
+**The lesson is about where to look.** Both `/align-decision-tree` directions ask
+whether the code and the document agree. Neither asks whether **the document
+agrees with itself**, and a numbered table sitting above prose that argues against
+it is exactly the shape that survives both audits.
+
+### 2026-08-30 (Session 17, part 5 — the registry, and what it can and cannot say)
+
+`scripts/score_decklists_claude.R` is part 6's first piece: **24 cells** — eight
+decklists × {going second `clear`, going first `clear`, going first `item_lock`} —
+at 1,000 replicates each. There is no going-second `item_lock` cell, because Itchy
+Pollen is an attack and only a player who went second can use it.
+
+**The first thing the registry says is what it cannot say.** At 1,000 replicates
+the standard error on a rate near 75% is ±1.4 points and on a difference between
+two decklists ±2.0, so a gap under about **4 points** is not resolved. The field
+sorts into three tiers rather than eight positions, and **the top five (7, 5, 8, 2,
+4) are a tie** inside a 1.5-point band. That caveat is generated into
+`results/registry.md` rather than left to the reader.
+
+**What is resolved is decklist1, and its cause.** It is the only list with no
+Telepathic Psychic Energy, running four basic Psychic instead, and it is last in
+every cell — by 13.7 points going second and **18.6 under the Item lock**. The
+mechanism is visible rather than inferred: **its sub-goal A fails 101 times
+against decklist2's 43**, on lists that both run two Bronzor. A basic Psychic
+Energy pays sub-goal D and does nothing else; a Telepathic pays D **and** searches
+two Basic `[P]` Pokémon onto the Bench, which is A's cheapest out and costs no
+card. **The energy base is an A question wearing a D costume**, and that is the
+most useful thing the registry found.
+
+**Salvatore buys turn-1 kills and almost no rate**, which is ADR 0004 working as
+designed. The two lists without it are the only two with a turn-1 count of zero;
+every other list lands between 25 and 36 in 1,000 games. Its value has to be
+argued from the turn-1 column, never from the hit rate.
+
+**Sub-goal D is the largest unmet count in all 24 cells.** §1 claims C is the one
+that actually fails, and DT-01 has been open on it since the first run; the claim
+has now survived the rate rising twenty-five points without C and D changing
+places. Not refuted — D can only be *unmet* once B and C are met — but worth
+deciding rather than leaving open.
+
+### 2026-08-30 (Session 17, part 6 — the third bank, and two more latent guards)
+
+`docs/03b_scenarios.md` is rewritten as **S-27 to S-39**, and three things about it
+are deliberate departures:
+
+- **It leaves the going-second `clear` cell.** Every position S-15 to S-26 came
+  from there, and that is one of three cells the registry reports — so two thirds
+  of what the project measures had never been put as a question. **S-33, turn 2
+  under the Item lock, arises in 30.2% of games** and is the most common position
+  ever put in this file.
+- **It leaves decklist2**, because decklist7's questions cannot be asked from it.
+- **It asks about turns the metric has already lost**, since that is where the
+  next decision defect lives.
+
+**Two latent defects were found by reading the generator's own appendix**, which is
+worth noting as a technique: the appendix prints what the policy *actually does*
+from each captured position, and a line that reads oddly is a defect report.
+
+- **S-27's line ended with a Meowth ex benched to fetch a Hilda that could never
+  be played**, because Gwynn had already taken the Supporter slot.
+  `.policy_bench_meowth()` checked that a Supporter was *wanted* and never that
+  one could still be *played*. Fixed, with §4.4 gaining the clause.
+- **S-39 is a defect the tree has not yet fixed, and it is the bank's headline.**
+  With no Bronzor in play the policy attaches a Telepathic to whatever `[P]` body
+  it has, purely to fire the search — and **the search is what puts the Bronzor
+  into play**, one step too late to receive the Energy. The turn's one attachment
+  buys sub-goal A and throws away sub-goal D. It arises in 3.8% of games, and D is
+  the largest unmet count in every registry cell. Left for Kevin, because it is a
+  rule change and the documents are his.
+
+**Both this and the kill-line crash are the same class**, and it now has a name in
+`CLAUDE_kevin.md`: **a guard evaluated once at the top of a sequence is not a guard
+on the sequence.** Both were latent for weeks and became common only when an
+unrelated change made the sequence frequent — a second Poké Pad in one case, Gwynn
+taking the slot in the other.
+
+**One tooling note.** A `cat <<'EOF'` heredoc silently ate a backslash while
+writing an R regex into a test file: `"\\1-\\2"` arrived as `"\1-\2"`, and the test
+then failed with a substitution that had matched nothing — the same
+silent-wrong-answer shape as the CRLF patch failure. Write anything containing
+backslashes with the file-writing tools.
+
+### 2026-08-30 (Session 17, part 7 — /align-decision-tree, red and green)
+
+Two agents in one message, one per direction, kept strictly apart because the
+skill's own history says an agent asked for "any divergence" finds one kind and
+stops. **18 red and 28 green**, and neither list contained the other's items.
+
+**Step 1 mattered more than it looks.** The section-to-function map at the top of
+`R/decision_claude.R` had no row for §1, §2, §4.5 or §9, and an absent row reads
+as *not implemented* — which is the shape a divergence hides in. Every section
+has a row now, including the two that describe rather than instruct, and the
+three **specified and not implemented** cards are recorded as deliberately having
+no function.
+
+**Twelve red findings became code fixes, each with a test written first and
+watched fail.** The ones worth remembering:
+
+- **"In play" meant "on the Bench."** Three predicates asked
+  `.bench_idx_named()` where both documents say *in play*, so an **Active** Latias
+  ex was invisible to all of them. Survivable while §3 ranked Latias ex last —
+  and ADR 0008 had just moved it to **first going second**, which is what turned
+  a dormant bug into a live one. The lesson is the pairing rather than either
+  half: a tuning change made a stale predicate expensive.
+- **Want-list item 4's second clause reads "and **Bronzor** is not Active"** and
+  was coded as "sub-goal C is not met", i.e. *Bronzong* not Active. So with a
+  Bronzor Active the policy kept chasing a mover it did not need. **This one fix
+  is worth 2.0 points going first on decklist7** and is almost the whole
+  alignment gain.
+- **Rare Candy had no discard protection at all**, though the playbook's order
+  says "**surplus** Rare Candy" and its own entry says "never spending a copy the
+  rung-5 escape still needs". decklist7 and decklist8 run **one**, so a single
+  Ultra Ball could close the §4.3 rung-5 escape for the whole game. Same for
+  "surplus Duskull beyond 1", which was never implemented either.
+- **Hilda's Energy search was the literal `c(Telepathic, Psychic, Enriching)`**
+  where the playbook says she "takes **any** Energy card". Basic Darkness Energy
+  was invisible, and decklist7 runs three of them and no basic Psychic — so she
+  could log `DECLINED` with Energy still in the deck, which is exactly the sharp
+  inference the document says a whiff licenses.
+- **A single Brock's or Poffin could fetch two Bronzor**, because `.want_vec()`
+  emits every *printing* as its own entry and the multi-target loops walk them one
+  at a time. The playbook is explicit that the list does not chase a second
+  Bronzor, and that it cost 1.4 points where it used to sit there. Invisible on
+  the six single-printing lists, which is why it survived every earlier audit.
+- **The Telepathic went to Bench order rather than to the `[P]` printing**, so a
+  Metal Bronzor in the first slot swallowed the attachment and fired nothing.
+- **A second Latias ex was benched** while one was already in play, spending a
+  slot §2 calls the fourth scarce resource. decklist7 and decklist8 run two.
+- **The §6 priority 8 fallback was not last.** Five plays ran after it, and a
+  fallback Lillie's shuffled away the **Dusknoir** §8's leftover Rare Candy needs
+  — §4.4's bench-before-Lillie's rule saves Basics, and a Dusknoir is a Stage 2.
+  The Stadium and the Rare Candy now precede the fallback.
+
+**A thirteenth, found outside the agents' scope while they ran.** `unused_outs()`
+in `R/trace_claude.R` held the Bronzor printings as a **hand-maintained literal of
+three ids**, and PBL 63 arrived as a fourth. So a decklist7 trace could report *no
+unused out* with a Bronzor sitting in hand — which reads as a **deck** problem
+when it is a **decision** problem. This is the confidently-wrong-diagnostic
+failure in its worst variant, because it **under**-reports and therefore raises
+nothing at all. Fixed by resolving Bronzor by NAME at run time; every other site
+in that file already did.
+
+**Two red findings were resolved by changing the document instead**, and both are
+worth saying out loud because the reflex is to change the code:
+
+- **`03a` said every shuffling card must check the pending-stack flag.** Guarding
+  the *Supporters* would mean playing **no Supporter at all on turn 2** whenever a
+  `P2T1` Ciphermaniac's had fired — against §6 priority 8, the largest rule in the
+  document — to protect a second stacked card the window can only reach through a
+  draw effect. The rule is narrowed to Items, which is what it always meant.
+- **§6 claimed "one evolution … capped at once per turn by the rules".** The rules
+  cap evolution *per Pokémon*, not per turn, and §4.2 step 6's second-Bronzong
+  exception presumes two Bronzong on one turn — which is what S-18 asked for. The
+  document was simply wrong about the game.
+
+**And one finding was a document arguing with itself, which neither audit
+direction is built to catch.** §6's priority table numbered Lillie's at 5 and
+Ciphermaniac's at 7; the prose under Ciphermaniac's argued the reverse. Both
+`/align-decision-tree` directions ask whether the code and the document agree;
+neither asks whether **the document agrees with itself**, and a numbered table
+sitting above prose that contradicts it survives both. Worth adding to the skill.
+
+**The 28 green findings are all written into the documents** rather than left in
+a chat message, per step 4 — as rules where the code is clearly right, and as
+**defaults rather than rulings** where it is a judgement call. Five new register
+entries came out of it: **DT-28** (unranked Basics tie-broken by hand order, with
+Meowth ex tying where §3 rules it out), **DT-29** (every Poké Pad but only one
+Poffin, though Poffin is free too), **DT-30** (Ciphermaniac's declined when A is
+unmet — should it stack the **Bronzor** instead?), **DT-31** (a fallback Brock's
+has no mode rule), **DT-32** (§7 numbers C before B and the turn does the
+reverse), plus **PB-19** and **PB-20**.
+
+**Attribution.** decklist7 **79.0% → 80.5%** going second, **65.8% → 67.2%** going
+first, **63.7% → 65.1%** under the lock — and essentially all of it is the
+want-list item 4 fix. decklist2 moved +0.3 / −0.4 / −0.4, which is **unattributed
+and is noise**: both fixes measured on it come out at 0.0, and seven of the nine
+need two Bronzor printings, two Latias ex or a Darkness Energy to bite at all.
+
+**One fix costs points and stays**: protecting a Duskull and a Rare Candy is worth
++0.4 going second and **−0.6 going first**, because a protected Duskull more often
+leaves Ultra Ball with fewer than two spare cards. It stays because the playbook
+says so and because decklist7 and decklist8 run one Rare Candy. It is also why
+**decklist1 fell 1.7 points** — that list leans on Ultra Ball hardest, having no
+Telepathic search to find bodies for free.
+
+**The registry re-run sharpened the field.** Five lists inside 1.5 points became
+**three** — decklist5, decklist7 and decklist8, level in all three cells — with
+decklist2 and decklist4 a clear 1.7 behind and decklist1 now **18.4** behind.
+2,080 assertions pass.

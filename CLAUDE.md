@@ -60,8 +60,8 @@ Paths here are relative to the project root and are the same for everyone.
 | `CONTEXT.md` | Shared glossary: what this project's words mean |
 | `R/` | Simulator source (parts 4–5) |
 | `decklists/` | Candidate 60-card lists, one `.txt` each, PTCG-Live export format |
-| `results/` | Per-decklist simulation results and the run registry (part 6) |
-| `scripts/` | Entry points |
+| `results/` | The registry (`registry.md`, `decklist_registry.csv`) and its hand-written reading (`registry_notes.md`); per-decklist trace files; `change_attribution.md` and `lead_order_tuning.md` |
+| `scripts/` | Entry points. `score_decklists_claude.R` writes the registry, `tune_lead_order_claude.R` settles the §3 lead order (ADR 0008), `attribute_changes_claude.R` prices one rule at a time, `generate_scenarios_claude.R` builds the next `S-nn` bank, and `refresh_card_index_claude.R` regenerates `docs/02_cards.md`'s matrix and checks card coverage both ways |
 | `tests/testthat/` | Tests |
 | `additional_context/` | Reference material + `summary.md` index |
 
@@ -97,7 +97,7 @@ Refer to these locations by name in prose, code comments, and session notes. To 
 
 ## Shared vocabulary and decisions
 - **`CONTEXT.md`** (project root) is the glossary — what this project's words mean. Read it before using a term like *turn*, *Bronzor*, *`[P]` source*, or *cell*; several of them are ambiguous in ordinary Pokémon TCG usage. Update it via `/domain-modeling` when a term settles.
-- **`docs/adr/`** holds numbered decision records — the choices that were expensive to make and would be surprising without context. Seven exist; read them before revisiting the metric, the Salvatore ruling, the information-hiding rule, or the length of the measured window.
+- **`docs/adr/`** holds numbered decision records — the choices that were expensive to make and would be surprising without context. Eight exist; read them before revisiting the metric, the Salvatore ruling, the information-hiding rule, the length of the measured window, or **how the §3 lead order is chosen** (ADR 0008, which also says why the per-lead hit-rate table cannot answer it).
 
 ## The decision documents are the specification
 

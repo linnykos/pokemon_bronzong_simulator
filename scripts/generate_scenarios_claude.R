@@ -24,8 +24,19 @@ for(one_file in list.files("R", pattern = "[.]R$", full.names = TRUE)){
 }
 
 card_df <- build_card_database()
-decklist <- read_decklist(file.path("decklists", "decklist2.txt"), card_df)
 num_seeds <- 500L
+
+# Positions are drawn from more than one decklist now. decklist2 is still the
+# reference -- it runs both Salvatore and Latias ex, so the turn-1 kill and the
+# free-retreat rung are both expressible in it -- but decklist7 is a different
+# deck rather than a variation, and the questions it raises (Gwynn, Risky Ruins,
+# a Poffin that cannot fetch a Bronzor) cannot be asked from decklist2 at all.
+DECKLIST_LIST <- lapply(stats::setNames(nm = c("decklist2", "decklist7")),
+                        function(one_name){
+                          read_decklist(file.path("decklists",
+                                                  paste0(one_name, ".txt")),
+                                        card_df)
+                        })
 
 # ---------------------------------------------------------------------------
 # Reaching a decision point
@@ -37,6 +48,7 @@ num_seeds <- 500L
 #' @param turn_number 1 or 2; turn 2 has turn 1 played by the policy first.
 #' @param bool_going_first the coin flip.
 #' @param scenario the opponent model.
+#' @param decklist_name which list in `DECKLIST_LIST` to play.
 #'
 #' @returns The `list(state, knowledge)` pair at the decision point, or `NULL`
 #'   if the game ended first.
@@ -44,8 +56,9 @@ num_seeds <- 500L
 .state_at_decision <- function(seed_number,
                                turn_number,
                                bool_going_first = FALSE,
-                               scenario = "clear"){
-  pair <- setup_game(decklist, card_df,
+                               scenario = "clear",
+                               decklist_name = "decklist2"){
+  pair <- setup_game(DECKLIST_LIST[[decklist_name]], card_df,
                      bool_going_first = bool_going_first,
                      placement_fn = policy_placement,
                      scenario = scenario,
@@ -103,108 +116,161 @@ num_seeds <- 500L
 # One predicate per question worth asking. Each names the sections and question
 # ids it probes, so a scenario cannot drift loose from the document it is for.
 #
-# The bank is renumbered from S-15: S-01 to S-14 are answered, and their answers
-# are rules in docs/03_decision_tree.md now rather than questions here.
+# The bank is renumbered from S-27: S-01 to S-26 are answered, their answers are
+# rules in docs/03_decision_tree.md and docs/03a_card_playbook.md now, and the
+# answers themselves are archived verbatim in HISTORY_kevin.md.
+#
+# THREE THINGS ARE DELIBERATELY DIFFERENT ABOUT THIS BANK.
+#
+# It leaves the going-second `clear` cell. Every position S-15 to S-26 came from
+# there, and it is one of three cells the registry reports -- so two thirds of
+# what the project measures had never been put as a question. Going first is the
+# weaker branch by twelve points and has never been asked about at all.
+#
+# It leaves decklist2. decklist7 is a different deck rather than a variation, and
+# the questions it raises cannot be asked from decklist2: a Gwynn to rank, a
+# Stadium that damages our own Bench, and a Buddy-Buddy Poffin that cannot fetch
+# a Bronzor because both printings in that list are 80 HP.
+#
+# And it asks about turns the metric has already lost. The registry's misses are
+# where the next decision defect lives, and a bank made only of winnable
+# positions cannot find one.
 PREDICATE_LIST <- list(
-  list(id = "S-15",
-       label = "Lillie's as the fallback, on a hand worth keeping",
+  list(id = "S-27",
+       label = "Gwynn and Lillie's competing for the same slot",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-24",
+       decklist = "decklist7", probes = "DT-27",
        test = function(pair){
-         .holds(pair, "MEG-119") &&
-           is.null(.choose_supporter(pair, bool_fallback = FALSE)) &&
-           length(pair$state$hand_vec) >= 5 &&
-           (.holds(pair, "TEF-069") || length(.psychic_in_hand(pair$state)) > 0)
+         .holds(pair, "PBL-078") && .holds(pair, "MEG-119") &&
+           length(.gwynn_discards(pair)) > 0
        }),
-  list(id = "S-16",
-       label = "Salvatore and Hilda in the same hand on turn 2",
+  list(id = "S-28",
+       label = "A won turn with a spare Salvatore and a spare Ciphermaniac's",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-25",
+       decklist = "decklist2", probes = "DT-26",
        test = function(pair){
-         .holds(pair, "TEF-160") && .holds(pair, "WHT-084")
+         .holds(pair, "TEF-160") && .holds(pair, "TEF-145") &&
+           length(.missing_bcd_vec(pair)) == 0
        }),
-  list(id = "S-17",
-       label = "Ciphermaniac's with exactly one piece missing",
-       turn_number = 1L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-17, PB-04",
-       test = function(pair){
-         .holds(pair, "TEF-145") && .subgoal_status(pair$state)[["a"]] &&
-           length(.gaps(pair)) == 1L
-       }),
-  list(id = "S-18",
-       label = "Hilda whose two fetches would both be redundant",
+  list(id = "S-29",
+       label = "Rare Candy on a turn the metric has already lost",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "PB-16",
-       test = function(pair){
-         .holds(pair, "WHT-084") && .holds(pair, "TEF-069") &&
-           length(.psychic_in_hand(pair$state)) > 0
-       }),
-  list(id = "S-19",
-       label = "Rare Candy and Dusknoir held on a turn Bronzong cannot arrive",
-       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-23, PB-13",
+       decklist = "decklist2", probes = "DT-23, PB-13",
        test = function(pair){
          .holds(pair, "MEG-125") && .holds(pair, "PRE-037") &&
+           !believes_findable(pair$knowledge, pair$state, "TEF-069") &&
            !.holds(pair, "TEF-069") && !.subgoal_status(pair$state)[["b"]]
        }),
-  list(id = "S-20",
-       label = "The Cursed Blast escape, actually reachable",
+  list(id = "S-30",
+       label = "Salvatore against Hilda with no Item that can fetch Bronzong",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-22",
+       decklist = "decklist2", probes = "DT-25",
        test = function(pair){
-         .active_is(pair$state, c("Duskull", "Dusclops", "Dusknoir")) &&
-           .line_benched(pair) && !.holds(pair, "MEG-130") &&
-           !(can_retreat(pair$state) && retreat_cost(pair$state) == 0)
+         .holds(pair, "TEF-160") && .holds(pair, "WHT-084") &&
+           !.holds(pair, "POR-081") && !.holds(pair, "MEG-131") &&
+           !.subgoal_status(pair$state)[["b"]] && !.holds(pair, "TEF-069") &&
+           .psychic_secured(pair$state)
        }),
-  list(id = "S-21",
-       label = "Night Stretcher with a piece of the line in the discard",
+  list(id = "S-31",
+       label = "Ultra Ball paying two cards for a Duskull",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "PB-10",
+       decklist = "decklist2", probes = "PB-01, PB-15",
        test = function(pair){
-         .holds(pair, "ASC-196") &&
-           any(pair$state$discard_vec %in%
-                 c(.bronzor_ids(pair$state$card_df), "TEF-069"))
+         if(!.holds(pair, "MEG-131")) return(FALSE)
+         if(is.null(.ultra_ball_discards(pair))) return(FALSE)
+
+         target_id <- .first_findable(pair,
+                                      c(.want_vec(pair), "SSP-076"),
+                                      ALLOWED_TARGET_LIST$ultra_ball)
+         identical(target_id, "PRE-035")
        }),
-  list(id = "S-22",
-       label = "Enriching Energy on turn 1, going second",
-       turn_number = 1L, bool_going_first = FALSE, scenario = "clear",
-       probes = "PB-09",
-       test = function(pair) .holds(pair, "SSP-191")),
-  list(id = "S-23",
-       label = "Poke Pad and Ultra Ball both held, both A and B open",
-       turn_number = 1L, bool_going_first = FALSE, scenario = "clear",
-       probes = "PB-07",
+  list(id = "S-32",
+       label = "Turn 1 going first, where no Supporter may be played",
+       turn_number = 1L, bool_going_first = TRUE, scenario = "clear",
+       decklist = "decklist2", probes = "DT-18, and section 5 as a whole",
        test = function(pair){
-         .holds(pair, "POR-081") && .holds(pair, "MEG-131") &&
-           !.subgoal_status(pair$state)[["a"]] && !.holds(pair, "TEF-069") &&
+         # A Supporter in hand that cannot be played, and a Meowth ex that can
+         # fetch another -- the position section 5 step 1 calls the one branch
+         # where benching Meowth ex is close to automatic.
+         .holds(pair, "POR-062") &&
+           length(intersect(pair$state$hand_vec,
+                            c("WHT-084", "MEG-119", "TEF-160"))) > 0
+       }),
+  list(id = "S-33",
+       label = "Turn 2 under the Item lock, with the Supporter alone",
+       turn_number = 2L, bool_going_first = TRUE, scenario = "item_lock",
+       decklist = "decklist2", probes = "the `item_lock` cell, never asked",
+       test = function(pair){
+         length(.missing_bcd_vec(pair)) >= 1 &&
+           length(intersect(pair$state$hand_vec,
+                            c("WHT-084", "MEG-119", "TEF-160"))) > 0 &&
+           length(intersect(pair$state$hand_vec,
+                            c("MEG-131", "POR-081", "MEG-130"))) > 0
+       }),
+  # PB-11 asks which Stadium to play when holding two. Left in the list rather
+  # than deleted, because "no example found" is itself the answer while no
+  # decklist runs two DIFFERENT Stadiums -- decklist2 runs one Jamming Tower,
+  # and decklist7's two copies are both Risky Ruins, which cannot replace each
+  # other. A future list that runs two names re-raises it automatically.
+  list(id = "S-34",
+       label = "Two different Stadiums in hand and one slot",
+       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
+       decklist = "decklist2", probes = "PB-11",
+       test = function(pair){
+         hand_df <- lookup_card(pair$state$card_df, pair$state$hand_vec)
+         stadium_vec <- hand_df$name[!is.na(hand_df$subtype) &
+                                       hand_df$subtype == "stadium"]
+         length(unique(stadium_vec)) >= 2
+       }),
+  list(id = "S-35",
+       label = "A Poffin that cannot fetch the Bronzor the turn needs",
+       turn_number = 1L, bool_going_first = FALSE, scenario = "clear",
+       decklist = "decklist7", probes = "PB-01, and the Bronzor printing",
+       test = function(pair){
+         .holds(pair, "TEF-144") && !.subgoal_status(pair$state)[["a"]] &&
            length(intersect(pair$state$hand_vec,
                             .bronzor_ids(pair$state$card_df))) == 0
        }),
-  list(id = "S-24",
-       label = "Three candidate leads in the opening hand and no Bronzor",
-       turn_number = 1L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-03",
-       test = function(pair){
-         !.active_is(pair$state, "Bronzor") &&
-           length(intersect(pair$state$hand_vec,
-                            c("MEG-104", "PFL-083", "PRE-035", "ASC-016",
-                              "POR-062", "TEF-078", "SSP-076"))) >= 3
-       }),
-  list(id = "S-25",
-       label = "The line Active on turn 2 with only the attachment missing",
+  list(id = "S-36",
+       label = "Risky Ruins as the only Stadium in hand",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "DT-01",
+       decklist = "decklist7", probes = "PB-11, and section 4.2 step 7",
        test = function(pair){
-         .active_is(pair$state, c("Bronzor", "Bronzong")) &&
-           !.psychic_secured(pair$state)
+         .holds(pair, "MEG-127") && is.na(pair$state$stadium) &&
+           length(pair$state$bench_list) > 0
        }),
-  list(id = "S-26",
-       label = "The last Bench slot, and a Telepathic that wants two bodies",
+  list(id = "S-37",
+       label = "Blissey ex in hand, and no Chansey in the deck",
        turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
-       probes = "PB-15, DT-02",
+       decklist = "decklist7", probes = "a decklist question, not a policy one",
+       test = function(pair) .holds(pair, "TWM-134")),
+  list(id = "S-38",
+       label = "A miss where the attachment was the only thing missing",
+       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
+       decklist = "decklist2", probes = "DT-01",
        test = function(pair){
-         length(pair$state$bench_list) == 4L && .holds(pair, "POR-088") &&
-           can_attach_energy(pair$state)
+         identical(.missing_bcd_vec(pair), "d") &&
+           length(.psychic_in_hand(pair$state)) == 0
+       }),
+  # Found by reading S-36's own turn-1 log rather than by asking for it: the
+  # Telepathic went onto a Latias ex because no Bronzor was in play at the
+  # moment of attaching, and the search it fired then put a Bronzor into play a
+  # moment too late to receive it. Sub-goal D is unmet and the [P] source is
+  # sitting on a body that can never attack.
+  list(id = "S-39",
+       label = "The [P] source stranded on a body that cannot attack",
+       turn_number = 2L, bool_going_first = FALSE, scenario = "clear",
+       decklist = "decklist2", probes = "DT-01, and section 4.2 step 6",
+       test = function(pair){
+         state <- pair$state
+         if(.psychic_secured(state)) return(FALSE)
+         if(!.subgoal_status(state)[["a"]]) return(FALSE)
+
+         # A [P] source attached SOMEWHERE, but not on the line -- which is what
+         # .psychic_secured() having returned FALSE already tells us.
+         any(sapply(all_in_play(state), function(one){
+           .has_psychic_attached(state, one)
+         }))
        }))
 
 # ---------------------------------------------------------------------------
@@ -220,7 +286,7 @@ PREDICATE_LIST <- list(
   state <- pair$state
   cell_str <- paste0("turn ", state$turn_number, ", going ",
                      if(state$bool_going_first) "first" else "second",
-                     ", `", state$scenario, "`")
+                     ", `", state$scenario, "`, **", spec_list$decklist, "**")
 
   bench_str <- if(length(state$bench_list) == 0) "(empty)" else
     paste0(sapply(state$bench_list, function(one){
@@ -272,7 +338,8 @@ for(i in seq_along(PREDICATE_LIST)){
     pair <- .state_at_decision(one_seed,
                                turn_number = spec_list$turn_number,
                                bool_going_first = spec_list$bool_going_first,
-                               scenario = spec_list$scenario)
+                               scenario = spec_list$scenario,
+                               decklist_name = spec_list$decklist)
     if(is.null(pair)) next
     if(!spec_list$test(pair)) next
 
@@ -282,7 +349,8 @@ for(i in seq_along(PREDICATE_LIST)){
     # like two questions. Keep the count -- the frequency is still true -- but
     # show a different example.
     key_str <- paste0(one_seed, "/", spec_list$turn_number, "/",
-                      spec_list$bool_going_first, "/", spec_list$scenario)
+                      spec_list$bool_going_first, "/", spec_list$scenario,
+                      "/", spec_list$decklist)
     if(is.null(hit_list[[i]]) && !key_str %in% shown_vec){
       # A scenario must be a legal position or it teaches the wrong lesson.
       stopifnot(length(.census(pair$state)) == 60)

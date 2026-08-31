@@ -523,8 +523,8 @@ scenario.</p>
 <span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>                     first_summary<span class="sc">$</span>turn_tally_vec[[<span class="st">&quot;never&quot;</span>]]),</span>
 <span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>           <span class="at">row.names =</span> <span class="cn">NULL</span>)</span></code></pre></div>
 <pre><code>          cell hit_rate turn1 turn2 never
-1 going second    0.758    30   728   242
-2  going first    0.641     0   641   359</code></pre>
+1 going second    0.778    31   747   222
+2  going first    0.639     0   639   361</code></pre>
 <p>Going second hits on turn 1 sometimes and going first never does —
 that is Salvatore, and it is the only place its speed is visible,
 because the primary outcome deliberately prices a turn-1 kill and a
@@ -552,31 +552,40 @@ the exact opposite of the truth.</p>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">going_first =</span> <span class="fu">as.integer</span>(first_summary<span class="sc">$</span>unmet_tally_vec),</span>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">row.names =</span> <span class="cn">NULL</span>)</span></code></pre></div>
 <pre><code>  subgoal          meaning going_second going_first
-1       A  bronzor_in_play           51          54
-2       B   bronzong_on_it          153         252
-3       C  bronzong_active          177         282
-4       D psychic_attached          221         337</code></pre>
+1       A  bronzor_in_play           43          50
+2       B   bronzong_on_it          137         258
+3       C  bronzong_active          159         287
+4       D psychic_attached          201         338</code></pre>
 <p>§1 of the decision tree claims <strong>C is the sub-goal that
 actually fails</strong> — getting Bronzong <em>Active</em>, not drawing
 it. These counts are the first real test of that claim.</p>
 <h2 id="hit-rate-by-the-basic-that-led">Hit rate by the Basic that
 led</h2>
-<p>§3’s lead order is an untested default that you asked to settle from
-the logs. This is the table that settles it — computed over every
-replicate, so unlike the traces it may be read as a rate.</p>
+<p><strong>This table cannot settle §3’s lead order, and it is worth
+saying why before reading it.</strong> It groups every replicate by the
+Basic that led — but the hand that contains a Mega Kangaskhan ex is not
+the hand that contains a Duskull, so it compares leads <em>across
+different hands</em> and reports a property of the hands as though it
+were a property of the order. The lead is not randomised here; it is
+chosen, and it is chosen by the very rule under test.</p>
+<p>The order is settled instead by <strong>varying it and measuring the
+cell rate</strong>, which is what
+<code>scripts/tune_lead_order_claude.R</code> does and what ADR 0008
+records. Read the table below as a description of what the policy
+did.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>lead_df <span class="ot">&lt;-</span> second_summary<span class="sc">$</span>lead_hit_df</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>lead_df<span class="sc">$</span>lead <span class="ot">&lt;-</span> <span class="fu">lookup_card</span>(card_df, lead_df<span class="sc">$</span>lead_card_id)<span class="sc">$</span>name</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>lead_df[<span class="fu">order</span>(<span class="sc">-</span>lead_df<span class="sc">$</span>hit_rate), <span class="fu">c</span>(<span class="st">&quot;lead&quot;</span>, <span class="st">&quot;num_replicates&quot;</span>, <span class="st">&quot;num_hit&quot;</span>,</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                                    <span class="st">&quot;hit_rate&quot;</span>)]</span></code></pre></div>
 <pre><code>                lead num_replicates num_hit  hit_rate
-7            Bronzor            251     226 0.9003984
-2 Mega Kangaskhan ex            215     162 0.7534884
-6          Latias ex             32      24 0.7500000
-5            Duskull            243     180 0.7407407
-1              Budew             41      29 0.7073171
-4          Meowth ex             26      17 0.6538462
-3            Buneary            164     104 0.6341463
-8       Flutter Mane             28      16 0.5714286</code></pre>
+7            Bronzor            251     233 0.9282869
+2 Mega Kangaskhan ex            192     149 0.7760417
+1              Budew             45      33 0.7333333
+5            Duskull            273     200 0.7326007
+6          Latias ex            110      80 0.7272727
+3            Buneary             66      43 0.6515152
+8       Flutter Mane             37      24 0.6486486
+4          Meowth ex             26      16 0.6153846</code></pre>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>plot_df <span class="ot">&lt;-</span> lead_df[<span class="fu">order</span>(lead_df<span class="sc">$</span>hit_rate), ]</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>graphics<span class="sc">::</span><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">11</span>, <span class="dv">2</span>, <span class="dv">2</span>))</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>graphics<span class="sc">::</span><span class="fu">barplot</span>(plot_df<span class="sc">$</span>hit_rate, <span class="at">names.arg =</span> plot_df<span class="sc">$</span>lead, <span class="at">horiz =</span> <span class="cn">TRUE</span>,</span>
@@ -591,26 +600,35 @@ second</figcaption>
 </figure>
 <p>The dashed line is the cell’s overall rate. Leading a Bronzor is
 worth far more than any other lead, which is what §3 assumes.</p>
-<p><strong>Two things in this table argue against §3 as
-written</strong>, and both need a better policy before they are worth
-acting on:</p>
+<p><strong>Both of the things this table pointed at turned out to be
+real</strong>, and the proper experiment then confirmed one of them and
+rejected the other:</p>
 <ul>
 <li><strong>§3’s choice of Mega Kangaskhan ex looks right, but only once
-Run Errand is actually used</strong> (75.3%, n = 215). In the first
+Run Errand is actually used</strong> (77.6%, n = 192). In the first
 draft of this policy it came out near the bottom at 40.9%, purely
 because the policy never used the Ability. Implementing a two-card draw
 moved one lead by 15 points — worth remembering before reading any of
 these numbers as facts about the <em>deck</em> rather than about the
 <em>policy</em>.</li>
-<li><strong>Buneary is §3’s second choice and comes out second from
-last</strong> (63.4%, n = 164). Its whole case is Run Around, which §4.2
-then makes a last resort because it spends the turn’s Energy attachment.
-That may be the tree disagreeing with itself.</li>
-<li><strong>Latias ex is the best non-Bronzor lead here</strong> (75.0%,
-n = 32), and §3 says to lead it only when nothing else is available.
-Skyliner works from the Bench, so the tree’s reasoning is sound — but
-leading it does get the free retreat online on turn 1 with no card
-spent. The sample is small; treat it as a question, not a result.</li>
+<li><strong>Buneary was §3’s second choice going second and is now
+last</strong> (65.2%, n = 66). Its whole case is Run Around, which §4.2
+then makes a last resort because it spends the turn’s Energy attachment
+and strands it on the Bench. A lead whose one virtue the rest of the
+tree declines to use is not a virtue — the tree was disagreeing with
+itself, and the search resolved it.</li>
+<li><strong>Latias ex now leads going second</strong> (72.7%, n = 110),
+which §3 previously ranked last. Skyliner works from the Bench, so
+leading it looks like a waste; what leading it actually buys is the free
+retreat online on turn 1 at no card and no Bench slot.</li>
+<li><strong>And the size matters more than the ranking. The lead order
+is worth about a point.</strong> Across every candidate order the
+going-second rate spans well under two points, against the 23 the
+Supporter rules moved. Going <em>first</em>, three different orders land
+within 0.22 points of each other, so §3’s going-first order was left
+exactly as it was rather than replaced by the largest of twenty noisy
+numbers. <code>results/lead_order_tuning.md</code> has both searches in
+full.</li>
 </ul>
 <p>This is exactly the loop the trace machinery exists for: the tree
 makes a claim, the run tests it, and the disagreement is where the next
@@ -625,15 +643,15 @@ change rather than a card to add.</p>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">row.names =</span> <span class="cn">NULL</span>)</span></code></pre></div>
 <pre><code>                                                  motif going_second
 1 Telepathic attached to a Colorless body (search dead)            0
-2                a search resolved with no target named           19
-3        Bronzor/Bronzong in play but never made Active           28
-4          a turn ended with the Supporter slot unspent          140
+2                a search resolved with no target named           21
+3        Bronzor/Bronzong in play but never made Active           25
+4          a turn ended with the Supporter slot unspent          138
 5   combo assembled but Evolution Jammer never declared            0
   going_first
 1           0
-2          13
-3          44
-4         104
+2          14
+3          42
+4         109
 5           0</code></pre>
 <p><strong>“A turn ended with the Supporter slot unspent” is still the
 largest count, and it is no longer a defect.</strong> §6 priority 8 now
@@ -692,12 +710,12 @@ count the traces anyway.</p>
 #2/10 seed=2 mull=1  HIT t2
   setup hand[Budew+UltraBall+Meowthex+Duskull+Duskull+Bronzong+FlutterMane] | lead Duskull
   T1    hand[Budew+MegaKangaskhanex+UltraBall+Meowthex+Duskull+Bronzong+FlutterMane] | bench Meowthex | Last-Ditch Catch -&gt; Hilda | Ultra Ball -&gt; Bronzor(TEF) | Hilda (evolution) -&gt; Bronzong | Hilda (energy) -&gt; TelepathicPsychicEnergy | bench Bronzor(TEF) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -&gt; Latiasex | promote Bronzor(TEF) via retreat(free)
-  T2    hand[Budew+MegaKangaskhanex+Switch+Bronzong+Bronzong] | evolve into Bronzong | EVOLUTION JAMMER
+  T2    hand[MegaKangaskhanex+Switch+Duskull+Bronzong+Bronzong] | evolve into Bronzong | EVOLUTION JAMMER
   end of turn 2 -- board state when the window closed; setup lead=Duskull
     active   Bronzor(TEF)&gt;Bronzong[P]{TelepathicPsychicEnergy} played=T1 evo=T2
     bench    Meowthex[C] played=T1 | Duskull[P] played=T0 | Latiasex[P] played=T1
-    hand     Budew, MegaKangaskhanex, Bronzong, Switch
-    discard  UltraBall, Duskull, FlutterMane, Hilda
+    hand     Duskull, MegaKangaskhanex, Bronzong, Switch
+    discard  UltraBall, FlutterMane, Budew, Hilda
     zones    deck=40 prizes=6 stadium=-
     turn     energy=unspent supporter=unplayed items=open
     prized   GROUND TRUTH, never visible to the policy (ADR 0003): Hilda, Switch, Hilda, TelepathicPsychicEnergy, Dusknoir, LilliesDetermination
@@ -710,114 +728,49 @@ fixed it was in hand and was not played — that is a bug in
 <code>docs/03_decision_tree.md</code>, not in the 60 cards.</p>
 <h1 id="where-the-rate-came-from">Where the rate came from</h1>
 <p>The policy is aligned to the decision documents as of 2026-08-30,
-after Kevin answered all fourteen positions in
-<code>docs/03b_scenarios.md</code>. Going second the rate moved
-<strong>52.6% → 75.8%</strong>, going first <strong>53.4% →
-64.1%</strong>, <code>item_lock</code> going first <strong>49.0% →
-60.7%</strong>. That is a lump, and a lump is not useful, so each change
-was neutralised on its own and both cells re-run. In order of what it is
-worth:</p>
-<table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
-<thead>
-<tr>
-<th>Change</th>
-<th>Going second</th>
-<th>Going first</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>§6 priority 8 — never end a turn with the Supporter slot
-unspent</td>
-<td><strong>15.2</strong></td>
-<td><strong>3.4</strong></td>
-</tr>
-<tr>
-<td>§7 step 6 — assemble the turn again over what the fallback drew</td>
-<td><strong>5.0</strong></td>
-<td><strong>6.7</strong></td>
-</tr>
-<tr>
-<td>§6 priority 6 — Ciphermaniac’s only when one card finishes the
-job</td>
-<td><strong>4.4</strong></td>
-<td>0.0</td>
-</tr>
-<tr>
-<td>Meowth ex fetches Hilda rather than Salvatore</td>
-<td><strong>1.8</strong></td>
-<td>0.0</td>
-</tr>
-<tr>
-<td>the want-list stops chasing a second Bronzor</td>
-<td><strong>1.0</strong></td>
-<td><strong>0.8</strong></td>
-</tr>
-<tr>
-<td>Ultra Ball never discards this turn’s chosen Supporter</td>
-<td><strong>0.7</strong></td>
-<td><strong>0.2</strong></td>
-</tr>
-<tr>
-<td>§4.3 rung 5 — the Cursed Blast escape</td>
-<td><strong>0.5</strong></td>
-<td><strong>0.4</strong></td>
-</tr>
-<tr>
-<td>§6 priority 2 — Salvatore ranked against Hilda on turn 2</td>
-<td><strong>0.3</strong></td>
-<td><strong>0.2</strong></td>
-</tr>
-<tr>
-<td>Ultra Ball discard order gains Night Stretcher and
-Ciphermaniac’s</td>
-<td>0.0</td>
-<td><strong>0.5</strong></td>
-</tr>
-<tr>
-<td>Meowth ex dropped from the bench-placing searches</td>
-<td>0.0</td>
-<td>0.0</td>
-</tr>
-<tr>
-<td>the attachment is declined once sub-goal D is paid</td>
-<td>−0.2</td>
-<td>0.0</td>
-</tr>
-<tr>
-<td>Hilda takes both searches once she is played</td>
-<td>−0.3</td>
-<td>0.0</td>
-</tr>
-<tr>
-<td>sub-goal C counts as blocked while the Bronzor is still in hand</td>
-<td>−0.3</td>
-<td>−0.4</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Two changes are almost all of it, and they are the same
-change twice.</strong> Playing a Supporter every turn is worth 15.2
-going second; making the turn <em>use</em> what that Supporter drew is
-worth another 5.0 going second and 6.7 going first. Without the second
-pass the fallback is worth nothing at all on turn 2 — the window closes
-before the eight cards can be played, which is exactly why it needed
-measuring rather than assuming.</p>
-<p><strong>The four at the bottom cost points and stay anyway.</strong>
-They came from Kevin’s answers to S-02, S-06 and S-11 — they are rulings
-about how the deck should be played, not optimisations — and the
-documents are the specification. Each is worth a fraction of a point,
-which is roughly four replicates in a thousand.</p>
+after two rounds of your answers in
+<code>docs/03b_scenarios.md</code>.</p>
+<p><strong>The first round moved the rate 23 points.</strong> Going
+second <strong>52.6% → 75.8%</strong>, going first <strong>53.4% →
+64.1%</strong>. Almost all of it was one idea stated twice: §6 priority
+8 plays a Supporter every turn one is legal (worth <strong>15.2</strong>
+going second), and §7 step 6 then assembles the turn <em>again</em> over
+whatever it drew (another <strong>5.0</strong> going second,
+<strong>6.7</strong> going first). Without that second pass the fallback
+is worth nothing at all on turn 2, because ADR 0007 closes the window
+before the eight cards can be played.</p>
+<p><strong>The second round moved it 1.7.</strong> Going second
+<strong>75.8% → 77.5%</strong>. That is the shape of a policy that is
+mostly right: seven of your twelve answers confirmed the tree, and the
+changes are refinements rather than structural gaps. The per-change
+table is in <code>results/change_attribution.md</code>, and the number
+to read first is its noise floor — at 1,000 paired replicates the
+standard error on one of those differences is 0.2 to 0.4 points, so most
+of the rows are honestly zero.</p>
+<p><strong>Two of them are zero on purpose.</strong> S-18 (a spare
+<code>[P]</code> onto a second Bronzong) and S-19 (Rare Candy once
+Bronzong is settled) change the <strong>board the window closes
+on</strong>, not whether the attack happens. A 0.0 there is the answer
+rather than a disappointment, and it is why the end-of-turn-2 snapshot
+is recorded in full.</p>
+<p><strong>The one position the tree could win and did not was
+S-20</strong>, worth 0.3 points and worth more than that as a lesson:
+with a Duskull Active and the line stranded on the Bench, the Cursed
+Blast escape was one Dusknoir away — and Dusknoir is an Evolution
+Pokémon, so Hilda could always have fetched it. The want-list simply had
+no entry for it.</p>
 <h1 id="what-the-policy-does-not-do-yet">What the policy does not do
 yet</h1>
 <p>Stated plainly so your feedback lands on decisions rather than on
 known gaps.</p>
 <ul>
+<li><strong>Three cards in decklist7 and decklist8 are transcribed and
+unimplemented</strong>: Dunsparce’s Trading Places (a <code>[C]</code>
+attack that switches, so Run Around’s shape), Dudunsparce’s Run Away
+Draw, and basic Darkness Energy as Run Around’s cheapest payment. Each
+biases decklist8’s rate <em>downward</em>, so its number is a lower
+bound. <code>docs/03a_card_playbook.md</code> → <em>Specified and not
+implemented</em>.</li>
 <li><strong>It never plays Pokégear 3.0</strong>, which is the only Item
 that digs for a Supporter and is exactly what the going-first branch
 lacks.</li>
@@ -827,9 +780,10 @@ anyway.</li>
 <li><strong>Boss’s Orders is the one Supporter with no
 implementation</strong>, deliberately: it moves the <em>opponent’s</em>
 Pokémon, and no opponent is modelled.</li>
-<li><strong>The <code>item_lock</code> scenario is not shown
-here</strong> — only <code>clear</code>. It is implemented and runs; it
-just is not in this document.</li>
+<li><strong>Risky Ruins’ damage is modelled as not arising</strong>,
+because §4.2 step 7 declines to play it. That is correct only while the
+decline holds; a rule that ever plays it has to implement the damage in
+the same change.</li>
 </ul>
 <h1 id="what-we-glossed-over">What we glossed over</h1>
 <ul>
@@ -837,12 +791,14 @@ just is not in this document.</li>
 opposing decklist is modelled, which is also why the opening hand omits
 the bonus cards owed for an opponent’s mulligans — biasing every rate
 slightly downward by an unknown amount.</li>
-<li><strong>Only one decklist appears here.</strong> Part 6 is the
-registry that runs all six across both cells and both scenarios; this
-document runs one cell pair by hand.</li>
-<li><strong>The lead order and Ciphermaniac’s timing are defaults, not
-rulings.</strong> Both are written to be overturned by the tables above
-once the policy is good enough for those tables to mean something.</li>
+<li><strong>Only one decklist appears here.</strong>
+<code>results/registry.md</code> is the registry that runs all eight
+across all three cells; this document runs one cell pair by hand because
+its job is to show the <em>machinery</em>, not to rank the decks.</li>
+<li><strong>Blissey ex cannot be played in either list that runs
+it.</strong> It evolves from Chansey and no decklist runs one. That is a
+decklist question rather than a simulator one, and it is the kind of
+thing the registry cannot tell you.</li>
 </ul>
 <h1 id="references">References</h1>
 <ul>

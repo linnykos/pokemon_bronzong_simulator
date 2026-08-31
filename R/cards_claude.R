@@ -38,8 +38,10 @@
 #'       Abilities, so this is load-bearing, not decorative.}
 #'     \item{has_rule_box}{logical. Poke Pad may only fetch a Pokemon without
 #'       one.}
-#'     \item{energy_provided}{character, `"P"`, `"C"`, or `""`. Enriching Energy
-#'       is `"C"` and therefore cannot pay Evolution Jammer.}
+#'     \item{energy_provided}{character, `"P"`, `"C"`, `"D"`, or `""` for a
+#'       non-Energy card. Only `"P"` pays Evolution Jammer. Enriching Energy is
+#'       `"C"` and basic Darkness Energy is `"D"`, and **neither can pay it**,
+#'       however much an Energy card in hand looks like sub-goal D solved.}
 #'     \item{shuffles}{logical, whether resolving the card shuffles the deck.
 #'       Read by the belief state to invalidate known deck ordering.}
 #'   }
@@ -49,7 +51,7 @@ build_card_database <- function(){
 
   stopifnot(!anyDuplicated(card_df$card_id),
             all(card_df$category %in% c("pokemon", "trainer", "energy")),
-            all(card_df$energy_provided %in% c("P", "C", "")))
+            all(card_df$energy_provided %in% c("P", "C", "D", "")))
 
   # A Pokemon row must carry a stage, and only a Pokemon row may. The two
   # checks are separate because a typo in `category` would otherwise pass one.
@@ -63,8 +65,16 @@ build_card_database <- function(){
 #' Fold a printing onto its canonical card
 #'
 #' Two printings of one card are the same card for every game and
-#' deck-construction purpose. Only basic Psychic Energy is affected in these
-#' decklists.
+#' deck-construction purpose, so the policy should never have to know which one a
+#' decklist happened to cite.
+#'
+#' Two aliases exist: basic Psychic Energy (`MEE-005` onto `SVE-005`) and
+#' Buddy-Buddy Poffin (`MEG-167` onto `TEF-144`). **Dusclops PRE 36 / SFA 19 and
+#' the four Bronzor printings are deliberately NOT aliased**: the Bronzor are
+#' genuinely different cards (different HP and type, and therefore different
+#' search legality), and the two Dusclops are kept separate only because nothing
+#' in the simulator distinguishes them anyway -- every rule that reads them
+#' matches on name.
 #'
 #' @param card_id_vec character vector of card ids.
 #'
@@ -74,7 +84,7 @@ build_card_database <- function(){
 canonical_card_id <- function(card_id_vec){
   stopifnot(is.character(card_id_vec))
 
-  alias_vec <- c("MEE-005" = "SVE-005")
+  alias_vec <- c("MEE-005" = "SVE-005", "MEG-167" = "TEF-144")
   idx_vec <- match(card_id_vec, names(alias_vec))
   card_id_vec[!is.na(idx_vec)] <- alias_vec[idx_vec[!is.na(idx_vec)]]
 
@@ -160,6 +170,12 @@ is_psychic_source <- function(card_df, card_id_vec){
       "70", "metal", "1", "FALSE", "FALSE", "", "FALSE"),
     c("SSP-126", "Bronzor", "pokemon", NA, "basic", NA,
       "60", "metal", "1", "FALSE", "FALSE", "", "FALSE"),
+    # The fourth Bronzor, and the one that fetches worst: 80 HP puts it over
+    # Poffin's cap AND it is Metal, so neither Poffin nor Telepathic can reach
+    # it. decklist7 and decklist8 pair it with TEF 68, also 80 HP, so Poffin
+    # cannot fetch a Bronzor at all in either list.
+    c("PBL-063", "Bronzor", "pokemon", NA, "basic", NA,
+      "80", "metal", "3", "FALSE", "FALSE", "", "FALSE"),
     # Evolution Jammer is an ATTACK costing [P], not an Ability. Bronzong having
     # no Ability is what makes it a legal Salvatore target.
     c("TEF-069", "Bronzong", "pokemon", NA, "stage1", "Bronzor",
@@ -172,6 +188,12 @@ is_psychic_source <- function(card_df, card_id_vec){
       "90", "psychic", "2", "TRUE", "FALSE", "", "FALSE"),
     c("PRE-037", "Dusknoir", "pokemon", NA, "stage2", "Dusclops",
       "160", "psychic", "3", "TRUE", "FALSE", "", "FALSE"),
+    # Identical to PRE 36 in every field, including Cursed Blast. Kept as its own
+    # row rather than aliased because the two are separate printings the
+    # decklists cite separately; every rule that matters matches on NAME, so the
+    # section 4.3 rung-5 escape works from either.
+    c("SFA-019", "Dusclops", "pokemon", NA, "stage1", "Duskull",
+      "90", "psychic", "2", "TRUE", "FALSE", "", "FALSE"),
 
     # -- Pokemon: the Lopunny line and other Basics ------------------------
     c("PFL-083", "Buneary", "pokemon", NA, "basic", NA,
@@ -191,6 +213,28 @@ is_psychic_source <- function(card_df, card_id_vec){
     # turn 1. Budew itself has no Ability.
     c("ASC-016", "Budew", "pokemon", NA, "basic", NA,
       "30", "grass", "0", "FALSE", "FALSE", "", "FALSE"),
+    # Adrena-Brain moves damage counters, which is inert for a metric that ends
+    # on turn 2 -- but Munkidori is a Basic [P] Pokemon, so it IS a legal
+    # Telepathic Psychic Energy search target and a want-list filler. At 110 HP
+    # it is over Poffin's cap.
+    c("TWM-095", "Munkidori", "pokemon", NA, "basic", NA,
+      "110", "psychic", "1", "TRUE", "FALSE", "", "FALSE"),
+    # Blissey ex evolves from CHANSEY, and no decklist runs one -- so in
+    # decklist7 and decklist8 there is no legal way to put it into play at all.
+    # A dead card in both, which is a decklist question rather than a policy one.
+    c("TWM-134", "Blissey ex", "pokemon", NA, "stage1", "Chansey",
+      "300", "colorless", "4", "TRUE", "TRUE", "", "FALSE"),
+    # Trading Places is an ATTACK costing [C], not an Ability: pokemon.com and
+    # Bulbapedia both say so and limitlesstcg is wrong, which is the third time
+    # this project has caught that exact mis-rendering. So has_ability is FALSE,
+    # and the switch is Run Around's shape rather than a free rung on the
+    # section 4.3 ladder. At 70 HP it is a legal Poffin target.
+    c("JTG-120", "Dunsparce", "pokemon", NA, "basic", NA,
+      "70", "colorless", "1", "FALSE", "FALSE", "", "FALSE"),
+    # Run Away Draw genuinely IS an Ability -- confirmed against a second source
+    # because its own sibling above was mis-rendered the other way.
+    c("TEF-129", "Dudunsparce", "pokemon", NA, "stage1", "Dunsparce",
+      "140", "colorless", "3", "TRUE", "FALSE", "", "FALSE"),
 
     # -- Trainers: Supporters ----------------------------------------------
     c("MEG-119", "Lillie's Determination", "trainer", "supporter", NA, NA,
@@ -207,6 +251,10 @@ is_psychic_source <- function(card_df, card_id_vec){
       NA, NA, NA, "FALSE", "FALSE", "", "TRUE"),
     c("SSP-187", "Surfer", "trainer", "supporter", NA, NA,
       NA, NA, NA, "FALSE", "FALSE", "", "FALSE"),
+    # Gwynn does NOT shuffle, which makes it the only draw Supporter that is safe
+    # while a Ciphermaniac's stack is pending.
+    c("PBL-078", "Gwynn", "trainer", "supporter", NA, NA,
+      NA, NA, NA, "FALSE", "FALSE", "", "FALSE"),
 
     # -- Trainers: Items ---------------------------------------------------
     c("MEG-125", "Rare Candy", "trainer", "item", NA, NA,
@@ -218,6 +266,11 @@ is_psychic_source <- function(card_df, card_id_vec){
     c("POR-081", "Poke Pad", "trainer", "item", NA, NA,
       NA, NA, NA, "FALSE", "FALSE", "", "TRUE"),
     c("TEF-144", "Buddy-Buddy Poffin", "trainer", "item", NA, NA,
+      NA, NA, NA, "FALSE", "FALSE", "", "TRUE"),
+    # The MEG reprint of the same card; canonical_card_id() folds it onto TEF 144
+    # so every rule sees one card. Present as a row because decklist7 and
+    # decklist8 cite this printing.
+    c("MEG-167", "Buddy-Buddy Poffin", "trainer", "item", NA, NA,
       NA, NA, NA, "FALSE", "FALSE", "", "TRUE"),
     c("ASC-196", "Night Stretcher", "trainer", "item", NA, NA,
       NA, NA, NA, "FALSE", "FALSE", "", "FALSE"),
@@ -235,6 +288,11 @@ is_psychic_source <- function(card_df, card_id_vec){
       NA, NA, NA, "FALSE", "FALSE", "", "FALSE"),
     c("MEG-122", "Mystery Garden", "trainer", "stadium", NA, NA,
       NA, NA, NA, "FALSE", "FALSE", "", "FALSE"),
+    # Risky Ruins damages OUR Bench as much as anyone's -- "any player" includes
+    # this one, and every Basic these lists bench is non-[D]. Section 4.2 step 7
+    # declines a Stadium that is disruptive to us, so it is never played.
+    c("MEG-127", "Risky Ruins", "trainer", "stadium", NA, NA,
+      NA, NA, NA, "FALSE", "FALSE", "", "FALSE"),
 
     # -- Energy ------------------------------------------------------------
     # SVE 5 and MEE 5 are the same card; canonical_card_id() folds MEE onto SVE.
@@ -247,7 +305,13 @@ is_psychic_source <- function(card_df, card_id_vec){
     # Enriching Energy provides [C]. It is NOT a [P] source and cannot pay for
     # Evolution Jammer, however much it looks like it should.
     c("SSP-191", "Enriching Energy", "energy", "special", NA, NA,
-      NA, NA, NA, "FALSE", "FALSE", "C", "FALSE")
+      NA, NA, NA, "FALSE", "FALSE", "C", "FALSE"),
+    # Basic Darkness Energy provides [D], which pays a [C] cost but NOT the [P]
+    # Evolution Jammer needs. decklist7 and decklist8 run it for Munkidori's
+    # Adrena-Brain, an Ability that is inert for this metric -- so every copy is
+    # a card that cannot advance sub-goal D.
+    c("MEE-007", "Darkness Energy", "energy", "basic", NA, NA,
+      NA, NA, NA, "FALSE", "FALSE", "D", "FALSE")
   )
 
   char_mat <- do.call(rbind, row_list)

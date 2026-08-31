@@ -164,6 +164,31 @@ test_that("a Bronzor in hand is not an out when the bench is full", {
   expect_length(unused_outs(pair$state, "A"), 0)
 })
 
+test_that("EVERY Bronzor printing is an out for A, resolved by name", {
+  ## The out list held three Bronzor ids by hand, and Bronzor PBL 63 arrived
+  ## with decklist7 and decklist8 as a fourth. It was therefore invisible to the
+  ## diagnosis: a trace could say "no unused out" with a Bronzor sitting in
+  ## hand, which reads as a DECK problem when it is a DECISION problem -- the
+  ## confidently-wrong-diagnostic failure this repo has now hit four times, and
+  ## the worst variant of it, because under-reporting raises nothing at all.
+  ##
+  ## Swept over every printing rather than adding PBL 63 to a literal, because
+  ## a literal is what broke: the fix is to resolve Bronzor by NAME at run time,
+  ## the way .bronzor_ids() already does in the policy, so a fifth printing
+  ## cannot reintroduce this.
+  card_df <- .test_card_df()
+  bronzor_vec <- card_df$card_id[card_df$name == "Bronzor"]
+  expect_true(length(bronzor_vec) >= 4)
+
+  for(one_id in bronzor_vec){
+    pair <- .make_pair(active_id = "PRE-035", hand_id_vec = one_id,
+                       turn_number = 2L)
+
+    expect_true("A" %in% unmet_subgoals(pair$state), info = one_id)
+    expect_equal(unused_outs(pair$state, "A"), one_id, info = one_id)
+  }
+})
+
 test_that("Latias ex is an out for sub-goal C", {
   ## Section 1 lists "Latias ex + retreat" for C: Skyliner zeroes a Basic
   ## Active's retreat. It was missing.

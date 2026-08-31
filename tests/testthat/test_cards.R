@@ -10,7 +10,12 @@ test_that("the database is internally consistent", {
 
   expect_false(anyDuplicated(card_df$card_id) > 0)
   expect_true(all(card_df$category %in% c("pokemon", "trainer", "energy")))
-  expect_true(all(card_df$energy_provided %in% c("P", "C", "")))
+  ## "D" joined the enum with basic Darkness Energy (MEE 7) in decklist7 and
+  ## decklist8. Only "P" pays Evolution Jammer; the point of listing "C" and "D"
+  ## separately rather than collapsing both to "" is that an Energy card in hand
+  ## is not the same as sub-goal D being solvable, and the difference should be
+  ## visible in the table rather than inferred.
+  expect_true(all(card_df$energy_provided %in% c("P", "C", "D", "")))
 
   ## Only Pokemon rows may carry a stage, and every Pokemon row must.
   is_pokemon_vec <- card_df$category == "pokemon"
@@ -57,22 +62,30 @@ test_that("has_ability matches the card text, because Salvatore reads it", {
   expect_true(lookup_card(card_df, "SSP-076")$has_ability, info = "Latias ex")
 })
 
-test_that("the three Bronzor printings differ exactly as documented", {
+test_that("the four Bronzor printings differ exactly as documented", {
   ## docs/02_cards.md: TEF 68 is Psychic/80 (Telepathic-findable, not
-  ## Poffin-findable); PRE 66 is Metal/70 and SSP 126 Metal/60 (the reverse).
-  ## All three are named "Bronzor" so all three evolve into Bronzong TEF 69.
+  ## Poffin-findable); PRE 66 is Metal/70 and SSP 126 Metal/60 (the reverse);
+  ## PBL 63 is Metal/80 and is findable by NEITHER, which is why decklist7 and
+  ## decklist8 carry a Buddy-Buddy Poffin that cannot fetch a Bronzor at all.
+  ## All four are named "Bronzor" so all four evolve into Bronzong TEF 69.
   card_df <- build_card_database()
-  bronzor_df <- lookup_card(card_df, c("TEF-068", "PRE-066", "SSP-126"))
+  id_vec <- c("TEF-068", "PRE-066", "SSP-126", "PBL-063")
+  bronzor_df <- lookup_card(card_df, id_vec)
 
-  expect_equal(bronzor_df$name, rep("Bronzor", 3))
-  expect_equal(bronzor_df$hp, c(80L, 70L, 60L))
-  expect_equal(bronzor_df$ptype, c("psychic", "metal", "metal"))
-  expect_equal(bronzor_df$retreat, c(3L, 1L, 1L))
+  expect_equal(bronzor_df$name, rep("Bronzor", 4))
+  expect_equal(bronzor_df$hp, c(80L, 70L, 60L, 80L))
+  expect_equal(bronzor_df$ptype, c("psychic", "metal", "metal", "metal"))
+  expect_equal(bronzor_df$retreat, c(3L, 1L, 1L, 3L))
 
   ## The Poffin cap is "70 HP or less", so 70 passes and 80 fails. The boundary
   ## is the entire argument for the alternate printings.
   expect_true(bronzor_df$hp[2] <= 70)
   expect_false(bronzor_df$hp[1] <= 70)
+
+  ## And the count is asserted rather than assumed: a fifth printing must fail
+  ## here, because several places resolve Bronzor by name and this test is the
+  ## one that says how many names there are.
+  expect_equal(sum(card_df$name == "Bronzor"), 4)
 })
 
 test_that("Mega Kangaskhan ex is a Basic and Mega Lopunny ex is a Stage 1", {
@@ -171,4 +184,62 @@ test_that("the shuffles column agrees with what the effects actually do", {
 
   ## And the converse for a card marked as not shuffling.
   expect_false(lookup_card(card_df, "MEG-130")$shuffles, info = "Switch")
+})
+
+test_that("docs/cards/ and the database cover each other, both directions", {
+  ## docs/cards/ is the source of truth and the database is its machine-readable
+  ## projection, so a row without a file is an undocumented card and a file
+  ## without a row is a card the simulator cannot see. **Both directions**: one
+  ## alone passes while the other rots, which is how ten cards arrived in
+  ## decklist7 and decklist8 with nothing to read them.
+  ##
+  ## scripts/refresh_card_index_claude.R runs the same check before it
+  ## regenerates the count matrix; this is the copy that runs unprompted.
+  card_df <- build_card_database()
+  file_vec <- list.files(file.path("docs", "cards"), pattern = "[.]md$")
+  expect_true(length(file_vec) > 0)
+
+  file_id_vec <- sub("^([A-Z]+)-([0-9]+)-.*$", "\\1-\\2", file_vec)
+
+  expect_equal(sort(setdiff(card_df$card_id, file_id_vec)), character(0))
+  expect_equal(sort(setdiff(file_id_vec, card_df$card_id)), character(0))
+})
+
+test_that("the two alternate printings fold onto their canonical card", {
+  ## canonical_card_id() is what lets a decklist cite whichever printing it owns
+  ## without the policy knowing. Buddy-Buddy Poffin MEG 167 is the newer of the
+  ## two aliases, and POLICY_ID_LIST$poffin names TEF 144 -- so without the fold
+  ## the Poffin in decklist7 and decklist8 would simply never be played.
+  expect_equal(canonical_card_id("MEG-167"), "TEF-144")
+  expect_equal(canonical_card_id("MEE-005"), "SVE-005")
+
+  ## And the four Bronzor are NOT folded: they differ in HP and type, which is
+  ## exactly what decides whether Poffin or Telepathic can fetch them.
+  bronzor_vec <- c("TEF-068", "PBL-063", "PRE-066", "SSP-126")
+  expect_equal(canonical_card_id(bronzor_vec), bronzor_vec)
+
+  card_df <- build_card_database()
+  row_df <- lookup_card(card_df, bronzor_vec)
+  expect_true(all(row_df$name == "Bronzor"))
+  ## The two 80 HP printings are the ones Poffin cannot reach.
+  expect_true(all(ALLOWED_TARGET_LIST$poffin(card_df,
+                                             c("PRE-066", "SSP-126"))))
+  expect_false(any(ALLOWED_TARGET_LIST$poffin(card_df,
+                                              c("TEF-068", "PBL-063"))))
+  ## And only the Psychic one is a legal Telepathic target.
+  expect_true(ALLOWED_TARGET_LIST$telepathic(card_df, "TEF-068"))
+  expect_false(any(ALLOWED_TARGET_LIST$telepathic(card_df,
+                                                  c("PBL-063", "PRE-066",
+                                                    "SSP-126"))))
+})
+
+test_that("only a [P] source pays Evolution Jammer, not [C] and not [D]", {
+  ## The single most consequential predicate in the project, now with a third
+  ## way to get it wrong. Basic Darkness Energy is an Energy card, it is a BASIC
+  ## Energy card, and it still cannot pay for Evolution Jammer.
+  card_df <- build_card_database()
+
+  expect_true(all(is_psychic_source(card_df, c("SVE-005", "MEE-005",
+                                               "POR-088"))))
+  expect_false(any(is_psychic_source(card_df, c("SSP-191", "MEE-007"))))
 })

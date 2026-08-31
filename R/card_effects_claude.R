@@ -426,6 +426,51 @@ play_lillies_determination <- function(pair){
   pair
 }
 
+#' Gwynn: discard up to 2 Pokemon without a Rule Box, draw 3 for each
+#'
+#' The only draw Supporter in the project that **keeps the hand**: Lillie's
+#' Determination shuffles the whole hand into the deck to draw 8, while Gwynn
+#' draws up to 6 and pays in Pokemon instead. It also does **not shuffle**, which
+#' makes it the only draw Supporter that is safe while a Ciphermaniac's stack is
+#' pending.
+#'
+#' "Up to 2" is literal and the empty discard is legal -- and draws nothing, so a
+#' Gwynn played on a hand with no spare Pokemon spends the Supporter slot for
+#' zero cards. That is the policy's problem, not this function's; asserting it
+#' here would turn a bad play into a dead replicate.
+#'
+#' @param pair a `list(state, knowledge)`.
+#' @param discard_id_vec zero to two Pokemon card ids in hand, each without a
+#'   Rule Box. Both restrictions are asserted, because the effects assert
+#'   legality throughout and a policy naming an illegal discard should fail
+#'   loudly rather than draw cards it was not entitled to.
+#'
+#' @returns The updated pair.
+#' @export
+play_gwynn <- function(pair, discard_id_vec = character(0)){
+  stopifnot(is.character(discard_id_vec), length(discard_id_vec) <= 2)
+
+  pair <- .play_supporter_from_hand(pair, "PBL-078")
+  state <- pair$state
+
+  if(length(discard_id_vec) > 0){
+    row_df <- lookup_card(state$card_df, discard_id_vec)
+    stopifnot(all(row_df$category == "pokemon"), all(!row_df$has_rule_box))
+
+    state <- move_cards(state, discard_id_vec, from = "hand", to = "discard")
+    pair$state <- state
+  }
+
+  # Three per card actually discarded, so an empty discard draws nothing.
+  num_draw <- 3L * length(discard_id_vec)
+  if(num_draw > 0) pair <- draw_to_hand(pair, num_cards = num_draw)
+  pair$state <- .log_event(pair$state,
+                           paste0("Gwynn, discarded ", length(discard_id_vec),
+                                  ", drew ", num_draw))
+
+  pair
+}
+
 #' Surfer: switch, then draw up to a hand of 5
 #'
 #' The draw is `max(0, 5 - hand_size)` computed AFTER the switch and after

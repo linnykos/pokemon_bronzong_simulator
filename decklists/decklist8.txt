@@ -1,0 +1,35 @@
+Pokémon: 14
+2 Bronzong TEF 69
+2 Latias ex SSP 76
+4 Duskull PRE 35
+1 Bronzor PBL 63
+2 Bronzor TEF 68
+1 Meowth ex POR 62
+2 Dusclops SFA 19
+1 Buneary PFL 83
+3 Dusknoir PRE 37
+1 Blissey ex TWM 134
+2 Munkidori TWM 95
+1 Mega Lopunny ex PFL 84
+1 Dudunsparce TEF 129
+1 Dunsparce JTG 120
+
+Trainer: 11
+4 Poké Pad POR 81
+2 Risky Ruins MEG 127
+2 Gwynn PBL 78
+1 Rare Candy MEG 125
+2 Night Stretcher ASC 196
+4 Hilda WHT 84
+1 Salvatore TEF 160
+4 Lillie's Determination MEG 119
+3 Switch MEG 130
+4 Ultra Ball MEG 131
+2 Buddy-Buddy Poffin MEG 167
+
+Energy: 3
+4 Telepathic {P} Energy POR 88
+2 Basic {D} Energy MEE 7
+1 Enriching Energy SSP 191
+
+Total Cards: 60

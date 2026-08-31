@@ -137,9 +137,17 @@ unused_outs <- function(state, subgoal_vec){
   #    help while staying silent about the one that could.
   #  - Latias ex was missing from C. Skyliner zeroes a Basic Active's retreat,
   #    which section 1 lists as an out for C.
+  #  - The three Bronzor printings under A were a hand-maintained LITERAL, and
+  #    Bronzor PBL 63 arrived with decklist7 and decklist8 as a fourth. It was
+  #    invisible to the diagnosis, so a trace could report "no unused out" with
+  #    a Bronzor sitting in hand -- which reads as a DECK problem when it is a
+  #    DECISION problem. Under-reporting is the worst variant of the
+  #    confidently-wrong-diagnostic failure, because it raises nothing at all.
+  #    Resolved by NAME at run time now, the way .bronzor_ids() already does in
+  #    the policy, so a fifth printing cannot reintroduce it.
+  bronzor_vec <- state$card_df$card_id[state$card_df$name == "Bronzor"]
   out_list <- list(
-    A = c("TEF-068", "PRE-066", "SSP-126", "POR-081", "MEG-131", "TEF-144",
-          "JTG-146", "POR-088"),
+    A = c(bronzor_vec, "POR-081", "MEG-131", "TEF-144", "JTG-146", "POR-088"),
     B = c("TEF-069", "TEF-160", "WHT-084", "JTG-146", "POR-081", "MEG-131"),
     # MEG-125 (Rare Candy) is an out for C only through the Cursed Blast escape
     # -- Duskull Active, Rare Candy to Dusknoir, self-Knock Out, promote a
@@ -835,9 +843,14 @@ write_trace_file <- function(result_list, file_path, summary_list,
   name_vec <- lead_hit_df$lead_card_id
   name_vec[bool_known_vec] <- .short_name(card_df, name_vec[bool_known_vec])
 
-  c("# HIT RATE BY THE BASIC THAT LED AT SETUP, over EVERY replicate -- this",
-    "# table is a rate and may be read as one. Section 3 of the decision tree",
-    "# states the lead order as an untested default; this is what settles it.",
+  c("# HIT RATE BY THE BASIC THAT LED AT SETUP, over EVERY replicate. It is a",
+    "# rate and may be read as one -- but it does NOT settle the section 3 lead",
+    "# order, and reading it that way is the easy mistake (ADR 0008). The hand",
+    "# holding a Kangaskhan is not the hand holding a Duskull, so this compares",
+    "# leads ACROSS DIFFERENT HANDS and reports a property of the hands. The lead",
+    "# is not randomised here; it is chosen, by the very rule under test. The",
+    "# order is settled by varying it and measuring the cell rate instead --",
+    "# scripts/tune_lead_order_claude.R. Read this as a fact about the policy.",
     paste0("#   ", format(name_vec, width = 22), " ",
            format(lead_hit_df$num_hit, width = 5), "/",
            format(lead_hit_df$num_replicates, width = 5), "  ",

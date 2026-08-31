@@ -228,8 +228,8 @@ data.frame(cell = c("going second", "going first"),
 
 ```
           cell hit_rate turn1 turn2 never
-1 going second    0.758    30   728   242
-2  going first    0.641     0   641   359
+1 going second    0.778    31   747   222
+2  going first    0.639     0   639   361
 ```
 
 Going second hits on turn 1 sometimes and going first never does — that is
@@ -270,10 +270,10 @@ data.frame(subgoal = names(SUBGOAL_VEC),
 
 ```
   subgoal          meaning going_second going_first
-1       A  bronzor_in_play           51          54
-2       B   bronzong_on_it          153         252
-3       C  bronzong_active          177         282
-4       D psychic_attached          221         337
+1       A  bronzor_in_play           43          50
+2       B   bronzong_on_it          137         258
+3       C  bronzong_active          159         287
+4       D psychic_attached          201         338
 ```
 
 §1 of the decision tree claims **C is the sub-goal that actually fails** —
@@ -282,9 +282,16 @@ of that claim.
 
 ## Hit rate by the Basic that led
 
-§3's lead order is an untested default that you asked to settle from the logs.
-This is the table that settles it — computed over every replicate, so unlike the
-traces it may be read as a rate.
+**This table cannot settle §3's lead order, and it is worth saying why before
+reading it.** It groups every replicate by the Basic that led — but the hand that
+contains a Mega Kangaskhan ex is not the hand that contains a Duskull, so it
+compares leads *across different hands* and reports a property of the hands as
+though it were a property of the order. The lead is not randomised here; it is
+chosen, and it is chosen by the very rule under test.
+
+The order is settled instead by **varying it and measuring the cell rate**, which
+is what `scripts/tune_lead_order_claude.R` does and what ADR 0008 records. Read
+the table below as a description of what the policy did.
 
 ``` r
 lead_df <- second_summary$lead_hit_df
@@ -295,14 +302,14 @@ lead_df[order(-lead_df$hit_rate), c("lead", "num_replicates", "num_hit",
 
 ```
                 lead num_replicates num_hit  hit_rate
-7            Bronzor            251     226 0.9003984
-2 Mega Kangaskhan ex            215     162 0.7534884
-6          Latias ex             32      24 0.7500000
-5            Duskull            243     180 0.7407407
-1              Budew             41      29 0.7073171
-4          Meowth ex             26      17 0.6538462
-3            Buneary            164     104 0.6341463
-8       Flutter Mane             28      16 0.5714286
+7            Bronzor            251     233 0.9282869
+2 Mega Kangaskhan ex            192     149 0.7760417
+1              Budew             45      33 0.7333333
+5            Duskull            273     200 0.7326007
+6          Latias ex            110      80 0.7272727
+3            Buneary             66      43 0.6515152
+8       Flutter Mane             37      24 0.6486486
+4          Meowth ex             26      16 0.6153846
 ```
 
 ``` r
@@ -319,26 +326,32 @@ graphics::abline(v = second_summary$hit_rate, lty = 2, col = "#C44E52")
 The dashed line is the cell's overall rate. Leading a Bronzor is worth far more
 than any other lead, which is what §3 assumes.
 
-**Two things in this table argue against §3 as written**, and both need a better
-policy before they are worth acting on:
+**Both of the things this table pointed at turned out to be real**, and the
+proper experiment then confirmed one of them and rejected the other:
 
 
 - **§3's choice of Mega Kangaskhan ex looks right, but only once Run Errand is
-  actually used** (75.3%, n = 215).
+  actually used** (77.6%, n = 192).
   In the first draft of this policy it came out near the bottom at 40.9%, purely
   because the policy never used the Ability. Implementing a two-card draw moved
   one lead by 15 points — worth remembering before reading any of these numbers
   as facts about the *deck* rather than about the *policy*.
-- **Buneary is §3's second choice and comes out second from last**
-  (63.4%, n = 164). Its whole case is Run
+- **Buneary was §3's second choice going second and is now last**
+  (65.2%, n = 66). Its whole case is Run
   Around, which §4.2 then makes a last resort because it spends the turn's
-  Energy attachment. That may be the tree disagreeing with itself.
-- **Latias ex is the best non-Bronzor lead here**
-  (75.0%, n = 32), and §3 says to lead it
-  only when nothing else is available. Skyliner works from the Bench, so the
-  tree's reasoning is sound — but leading it does get the free retreat online on
-  turn 1 with no card spent. The sample is small; treat it as a question, not a
-  result.
+  Energy attachment and strands it on the Bench. A lead whose one virtue the
+  rest of the tree declines to use is not a virtue — the tree was disagreeing
+  with itself, and the search resolved it.
+- **Latias ex now leads going second** (72.7%,
+  n = 110), which §3 previously ranked last. Skyliner works
+  from the Bench, so leading it looks like a waste; what leading it actually buys
+  is the free retreat online on turn 1 at no card and no Bench slot.
+- **And the size matters more than the ranking. The lead order is worth about a
+  point.** Across every candidate order the going-second rate spans well under
+  two points, against the 23 the Supporter rules moved. Going *first*, three
+  different orders land within 0.22 points of each other, so §3's going-first
+  order was left exactly as it was rather than replaced by the largest of twenty
+  noisy numbers. `results/lead_order_tuning.md` has both searches in full.
 
 This is exactly the loop the trace machinery exists for: the tree makes a claim,
 the run tests it, and the disagreement is where the next revision goes.
@@ -359,15 +372,15 @@ data.frame(motif = as.character(MOTIF_VEC),
 ```
                                                   motif going_second
 1 Telepathic attached to a Colorless body (search dead)            0
-2                a search resolved with no target named           19
-3        Bronzor/Bronzong in play but never made Active           28
-4          a turn ended with the Supporter slot unspent          140
+2                a search resolved with no target named           21
+3        Bronzor/Bronzong in play but never made Active           25
+4          a turn ended with the Supporter slot unspent          138
 5   combo assembled but Evolution Jammer never declared            0
   going_first
 1           0
-2          13
-3          44
-4         104
+2          14
+3          42
+4         109
 5           0
 ```
 
@@ -436,12 +449,12 @@ writeLines(line_vec[start_idx[1]:(start_idx[3] - 1)])
 #2/10 seed=2 mull=1  HIT t2
   setup hand[Budew+UltraBall+Meowthex+Duskull+Duskull+Bronzong+FlutterMane] | lead Duskull
   T1    hand[Budew+MegaKangaskhanex+UltraBall+Meowthex+Duskull+Bronzong+FlutterMane] | bench Meowthex | Last-Ditch Catch -> Hilda | Ultra Ball -> Bronzor(TEF) | Hilda (evolution) -> Bronzong | Hilda (energy) -> TelepathicPsychicEnergy | bench Bronzor(TEF) | attach TelepathicPsychicEnergy to Bronzor(TEF) | Telepathic Psychic Energy -> Latiasex | promote Bronzor(TEF) via retreat(free)
-  T2    hand[Budew+MegaKangaskhanex+Switch+Bronzong+Bronzong] | evolve into Bronzong | EVOLUTION JAMMER
+  T2    hand[MegaKangaskhanex+Switch+Duskull+Bronzong+Bronzong] | evolve into Bronzong | EVOLUTION JAMMER
   end of turn 2 -- board state when the window closed; setup lead=Duskull
     active   Bronzor(TEF)>Bronzong[P]{TelepathicPsychicEnergy} played=T1 evo=T2
     bench    Meowthex[C] played=T1 | Duskull[P] played=T0 | Latiasex[P] played=T1
-    hand     Budew, MegaKangaskhanex, Bronzong, Switch
-    discard  UltraBall, Duskull, FlutterMane, Hilda
+    hand     Duskull, MegaKangaskhanex, Bronzong, Switch
+    discard  UltraBall, FlutterMane, Budew, Hilda
     zones    deck=40 prizes=6 stadium=-
     turn     energy=unspent supporter=unplayed items=open
     prized   GROUND TRUTH, never visible to the policy (ADR 0003): Hilda, Switch, Hilda, TelepathicPsychicEnergy, Dusknoir, LilliesDetermination
@@ -456,52 +469,54 @@ the 60 cards.
 
 # Where the rate came from
 
-The policy is aligned to the decision documents as of 2026-08-30, after Kevin
-answered all fourteen positions in `docs/03b_scenarios.md`. Going second the rate
-moved **52.6% → 75.8%**, going first **53.4% → 64.1%**, `item_lock` going first
-**49.0% → 60.7%**. That is a lump, and a lump is not useful, so each change was
-neutralised on its own and both cells re-run. In order of what it is worth:
+The policy is aligned to the decision documents as of 2026-08-30, after two
+rounds of your answers in `docs/03b_scenarios.md`.
 
-| Change | Going second | Going first |
-|---|---|---|
-| §6 priority 8 — never end a turn with the Supporter slot unspent | **15.2** | **3.4** |
-| §7 step 6 — assemble the turn again over what the fallback drew | **5.0** | **6.7** |
-| §6 priority 6 — Ciphermaniac's only when one card finishes the job | **4.4** | 0.0 |
-| Meowth ex fetches Hilda rather than Salvatore | **1.8** | 0.0 |
-| the want-list stops chasing a second Bronzor | **1.0** | **0.8** |
-| Ultra Ball never discards this turn's chosen Supporter | **0.7** | **0.2** |
-| §4.3 rung 5 — the Cursed Blast escape | **0.5** | **0.4** |
-| §6 priority 2 — Salvatore ranked against Hilda on turn 2 | **0.3** | **0.2** |
-| Ultra Ball discard order gains Night Stretcher and Ciphermaniac's | 0.0 | **0.5** |
-| Meowth ex dropped from the bench-placing searches | 0.0 | 0.0 |
-| the attachment is declined once sub-goal D is paid | −0.2 | 0.0 |
-| Hilda takes both searches once she is played | −0.3 | 0.0 |
-| sub-goal C counts as blocked while the Bronzor is still in hand | −0.3 | −0.4 |
+**The first round moved the rate 23 points.** Going second **52.6% → 75.8%**,
+going first **53.4% → 64.1%**. Almost all of it was one idea stated twice: §6
+priority 8 plays a Supporter every turn one is legal (worth **15.2** going
+second), and §7 step 6 then assembles the turn *again* over whatever it drew
+(another **5.0** going second, **6.7** going first). Without that second pass the
+fallback is worth nothing at all on turn 2, because ADR 0007 closes the window
+before the eight cards can be played.
 
-**Two changes are almost all of it, and they are the same change twice.** Playing
-a Supporter every turn is worth 15.2 going second; making the turn *use* what that
-Supporter drew is worth another 5.0 going second and 6.7 going first. Without the
-second pass the fallback is worth nothing at all on turn 2 — the window closes
-before the eight cards can be played, which is exactly why it needed measuring
-rather than assuming.
+**The second round moved it 1.7.** Going second **75.8% → 77.5%**. That is the
+shape of a policy that is mostly right: seven of your twelve answers confirmed
+the tree, and the changes are refinements rather than structural gaps. The
+per-change table is in `results/change_attribution.md`, and the number to read
+first is its noise floor — at 1,000 paired replicates the standard error on one
+of those differences is 0.2 to 0.4 points, so most of the rows are honestly zero.
 
-**The four at the bottom cost points and stay anyway.** They came from Kevin's
-answers to S-02, S-06 and S-11 — they are rulings about how the deck should be
-played, not optimisations — and the documents are the specification. Each is worth
-a fraction of a point, which is roughly four replicates in a thousand.
+**Two of them are zero on purpose.** S-18 (a spare `[P]` onto a second Bronzong)
+and S-19 (Rare Candy once Bronzong is settled) change the **board the window
+closes on**, not whether the attack happens. A 0.0 there is the answer rather
+than a disappointment, and it is why the end-of-turn-2 snapshot is recorded in
+full.
+
+**The one position the tree could win and did not was S-20**, worth 0.3 points
+and worth more than that as a lesson: with a Duskull Active and the line stranded
+on the Bench, the Cursed Blast escape was one Dusknoir away — and Dusknoir is an
+Evolution Pokémon, so Hilda could always have fetched it. The want-list simply
+had no entry for it.
 
 # What the policy does not do yet
 
 Stated plainly so your feedback lands on decisions rather than on known gaps.
 
+- **Three cards in decklist7 and decklist8 are transcribed and unimplemented**:
+  Dunsparce's Trading Places (a `[C]` attack that switches, so Run Around's
+  shape), Dudunsparce's Run Away Draw, and basic Darkness Energy as Run Around's
+  cheapest payment. Each biases decklist8's rate *downward*, so its number is a
+  lower bound. `docs/03a_card_playbook.md` → *Specified and not implemented*.
 - **It never plays Pokégear 3.0**, which is the only Item that digs for a
   Supporter and is exactly what the going-first branch lacks.
 - **Retreat is only taken when free.** A paid retreat is never considered, even
   when the Energy spent would have been wasted anyway.
 - **Boss's Orders is the one Supporter with no implementation**, deliberately:
   it moves the *opponent's* Pokémon, and no opponent is modelled.
-- **The `item_lock` scenario is not shown here** — only `clear`. It is
-  implemented and runs; it just is not in this document.
+- **Risky Ruins' damage is modelled as not arising**, because §4.2 step 7
+  declines to play it. That is correct only while the decline holds; a rule that
+  ever plays it has to implement the damage in the same change.
 
 # What we glossed over
 
@@ -509,11 +524,12 @@ Stated plainly so your feedback lands on decisions rather than on known gaps.
   which is also why the opening hand omits the bonus cards owed for an
   opponent's mulligans — biasing every rate slightly downward by an unknown
   amount.
-- **Only one decklist appears here.** Part 6 is the registry that runs all six
-  across both cells and both scenarios; this document runs one cell pair by hand.
-- **The lead order and Ciphermaniac's timing are defaults, not rulings.** Both
-  are written to be overturned by the tables above once the policy is good
-  enough for those tables to mean something.
+- **Only one decklist appears here.** `results/registry.md` is the registry that
+  runs all eight across all three cells; this document runs one cell pair by hand
+  because its job is to show the *machinery*, not to rank the decks.
+- **Blissey ex cannot be played in either list that runs it.** It evolves from
+  Chansey and no decklist runs one. That is a decklist question rather than a
+  simulator one, and it is the kind of thing the registry cannot tell you.
 
 # References
 

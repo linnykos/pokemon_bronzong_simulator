@@ -2,193 +2,210 @@
      Positions only: the questions and options are written by
      hand into docs/03b_scenarios.md. -->
 
-### S-15 — Lillie's as the fallback, on a hand worth keeping
+### S-27 — Gwynn and Lillie's competing for the same slot
 
-*turn 2, going second, `clear`. Seed 1; a position like this arose in 99 of 500 games (19.8%).*
+*turn 2, going second, `clear`, **decklist7**. Seed 31; a position like this arose in 34 of 500 games (6.8%).*
 
 ```
-  active   Bronzor(TEF)[P] played=T1
-  bench    Latiasex[P]{TelepathicPsychicEnergy} played=T1 | MegaKangaskhanex[C] played=T0 | Duskull[P] played=T1
-  hand     Duskull, Budew, Buneary, Dusknoir, Dusknoir, LilliesDetermination, Bronzong, TelepathicPsychicEnergy, Dusclops
-  discard  Hilda
+  active   Bronzor(PBL)[M] played=T1
+  bench    Latiasex[P]{EnrichingEnergy} played=T0
+  hand     Bronzong, RiskyRuins, Dusknoir, Duskull, Duskull, Munkidori, Hilda, Gwynn, LilliesDetermination, RiskyRuins
+  discard  PokePad, PokePad
   deck     39 cards   prizes 6   stadium -
 ```
 
-Already played: lead MegaKangaskhanex; Run Errand; bench Latiasex; Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; attach TelepathicPsychicEnergy to Latiasex; Telepathic Psychic Energy -> Bronzor(TEF), Duskull; promote Bronzor(TEF) via retreat(free).
+Already played: lead Latiasex; bench Bronzor(PBL); Poke Pad -> Duskull; Poke Pad -> Duskull; promote Bronzor(PBL) via retreat(free); attach EnrichingEnergy to Latiasex.
 
-**Probes DT-24.**
+**Probes DT-27.**
 
-### S-16 — Salvatore and Hilda in the same hand on turn 2
+### S-28 — A won turn with a spare Salvatore and a spare Ciphermaniac's
 
-*turn 2, going second, `clear`. Seed 41; a position like this arose in 22 of 500 games (4.4%).*
-
-```
-  active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
-  bench    MegaKangaskhanex[C] played=T0 | Latiasex[P] played=T1 | Duskull[P] played=T1 | Meowthex[C] played=T1
-  hand     MegaLopunnyex, PokePad, Hilda, Dusknoir, MegaKangaskhanex, Buneary, RareCandy, Salvatore, MegaLopunnyex
-  discard  PokePad, UltraBall, BosssOrders, CiphermaniacsCodebreaking, Switch, LilliesDetermination
-  deck     33 cards   prizes 6   stadium -
-```
-
-Already played: lead MegaKangaskhanex; Run Errand; Poke Pad -> Bronzor(TEF); Ultra Ball -> Bronzong; bench Bronzor(TEF); promote Bronzor(TEF) via Switch; attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Latiasex, Duskull; Lillie's Determination, drew 8; bench Meowthex; Last-Ditch Catch -> Salvatore.
-
-**Probes DT-25.**
-
-### S-17 — Ciphermaniac's with exactly one piece missing
-
-*turn 1, going second, `clear`. Seed 99; a position like this arose in 12 of 500 games (2.4%).*
+*turn 2, going second, `clear`, **decklist2**. Seed 126; a position like this arose in 7 of 500 games (1.4%).*
 
 ```
-  active   Bronzor(TEF)[P] played=T0
-  bench    (empty)
-  hand     TelepathicPsychicEnergy, Dusknoir, UltraBall, CiphermaniacsCodebreaking, CiphermaniacsCodebreaking, TelepathicPsychicEnergy, Duskull
-  discard  -
-  deck     46 cards   prizes 6   stadium -
+  active   Bronzor(TEF)[P] played=T1
+  bench    Meowthex[C] played=T1 | Latiasex[P]{TelepathicPsychicEnergy} played=T0 | Duskull[P] played=T1
+  hand     Dusknoir, CiphermaniacsCodebreaking, Salvatore, MegaLopunnyex, TelepathicPsychicEnergy, Bronzong, TelepathicPsychicEnergy, BosssOrders
+  discard  Hilda
+  deck     40 cards   prizes 6   stadium -
 ```
 
-Already played: lead Bronzor(TEF).
+Already played: lead Latiasex; bench Meowthex; Last-Ditch Catch -> Hilda; Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; attach TelepathicPsychicEnergy to Latiasex; Telepathic Psychic Energy -> Bronzor(TEF), Duskull; promote Bronzor(TEF) via retreat(free).
 
-**Probes DT-17, PB-04.**
+**Probes DT-26.**
 
-### S-18 — Hilda whose two fetches would both be redundant
+### S-29 — Rare Candy on a turn the metric has already lost
 
-*turn 2, going second, `clear`. Seed 68; a position like this arose in 24 of 500 games (4.8%).*
-
-```
-  active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
-  bench    Latiasex[P] played=T1 | MegaKangaskhanex[C] played=T0 | Duskull[P] played=T1 | Bronzor(TEF)[P] played=T1
-  hand     Dusknoir, Bronzong, Hilda, Bronzong, TelepathicPsychicEnergy, Switch
-  discard  UltraBall, BosssOrders, Duskull, Hilda
-  deck     38 cards   prizes 6   stadium -
-```
-
-Already played: lead MegaKangaskhanex; Run Errand; bench Latiasex; Ultra Ball -> Bronzor(TEF); bench Bronzor(TEF); promote Bronzor(TEF) via retreat(free); attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Duskull, Bronzor(TEF); Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy.
-
-**Probes PB-16.**
-
-### S-19 — Rare Candy and Dusknoir held on a turn Bronzong cannot arrive
-
-*turn 2, going second, `clear`. Seed 4; a position like this arose in 40 of 500 games (8%).*
+*turn 2, going second, `clear`, **decklist2**. Seed 115; a position like this arose in 1 of 500 games (0.2%).*
 
 ```
   active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T0
-  bench    Latiasex[P] played=T1 | Meowthex[C] played=T1 | Duskull[P] played=T1 | Bronzor(TEF)[P] played=T1
-  hand     Dusknoir, Dusclops, CiphermaniacsCodebreaking, PokePad, RareCandy, Salvatore, MegaLopunnyex
-  discard  PokePad, UltraBall, Duskull, Duskull, LilliesDetermination
-  deck     35 cards   prizes 6   stadium JammingTower
+  bench    Duskull[P] played=T1 | Bronzor(TEF)[P] played=T1
+  hand     BosssOrders, Dusknoir, RareCandy, MegaLopunnyex, Switch, Duskull
+  discard  PokePad
+  deck     43 cards   prizes 6   stadium -
 ```
 
-Already played: lead Bronzor(TEF); Poke Pad -> Duskull; Ultra Ball -> Latiasex; bench Latiasex; Lillie's Determination, drew 8; bench Meowthex; Last-Ditch Catch -> Salvatore; attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Duskull, Bronzor(TEF); play Stadium JammingTower.
+Already played: lead Bronzor(TEF); Poke Pad -> whiff (Bronzong not in deck); attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Duskull, Bronzor(TEF).
 
 **Probes DT-23, PB-13.**
 
-### S-20 — The Cursed Blast escape, actually reachable
+### S-30 — Salvatore against Hilda with no Item that can fetch Bronzong
 
-*turn 2, going second, `clear`. Seed 134; a position like this arose in 8 of 500 games (1.6%).*
-
-```
-  active   Duskull[P] played=T0
-  bench    Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1 | Duskull[P] played=T1
-  hand     FlutterMane, Hilda, MegaKangaskhanex, Bronzong, RareCandy
-  discard  UltraBall, Dusknoir, RareCandy, Hilda
-  deck     41 cards   prizes 6   stadium -
-```
-
-Already played: lead Duskull; Ultra Ball -> Bronzor(TEF); Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; bench Bronzor(TEF); attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Duskull.
-
-**Probes DT-22.**
-
-### S-22 — Enriching Energy on turn 1, going second
-
-*turn 1, going second, `clear`. Seed 7; a position like this arose in 64 of 500 games (12.8%).*
+*turn 2, going second, `clear`, **decklist2**. Seed 194; a position like this arose in 3 of 500 games (0.6%).*
 
 ```
-  active   Duskull[P] played=T0
-  bench    (empty)
-  hand     Dusknoir, UltraBall, PokePad, PokePad, NightStretcher, RareCandy, EnrichingEnergy
-  discard  -
-  deck     46 cards   prizes 6   stadium -
+  active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
+  bench    MegaKangaskhanex[C] played=T0 | Latiasex[P] played=T1 | Meowthex[C] played=T1
+  hand     Dusknoir, LilliesDetermination, Hilda, Switch, MegaLopunnyex, MegaLopunnyex, LilliesDetermination, Salvatore, RareCandy
+  discard  PokePad, LilliesDetermination
+  deck     38 cards   prizes 6   stadium -
 ```
 
-Already played: lead Duskull.
+Already played: lead MegaKangaskhanex; Run Errand; Poke Pad -> Bronzor(TEF); bench Bronzor(TEF); attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Latiasex; Lillie's Determination, drew 8; bench Meowthex; Last-Ditch Catch -> Salvatore; promote Bronzor(TEF) via retreat(free).
 
-**Probes PB-09.**
+**Probes DT-25.**
 
-### S-23 — Poke Pad and Ultra Ball both held, both A and B open
+### S-31 — Ultra Ball paying two cards for a Duskull
 
-*turn 1, going second, `clear`. Seed 33; a position like this arose in 45 of 500 games (9%).*
+*turn 2, going second, `clear`, **decklist2**. Seed 31; a position like this arose in 17 of 500 games (3.4%).*
 
 ```
-  active   Meowthex[C] played=T0
-  bench    (empty)
-  hand     LilliesDetermination, LilliesDetermination, UltraBall, PokePad, TelepathicPsychicEnergy, TelepathicPsychicEnergy, LilliesDetermination
-  discard  -
-  deck     46 cards   prizes 6   stadium -
+  active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T0
+  bench    Meowthex[C] played=T1 | Duskull[P] played=T1 | Bronzor(TEF)[P] played=T1
+  hand     LilliesDetermination, MegaLopunnyex, Dusknoir, Bronzong, Bronzong, UltraBall
+  discard  UltraBall, Dusclops, Dusknoir, Hilda
+  deck     39 cards   prizes 6   stadium -
 ```
 
-Already played: lead Meowthex.
+Already played: lead Bronzor(TEF); bench Meowthex; Last-Ditch Catch -> Hilda; Ultra Ball -> Bronzong; Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Duskull, Bronzor(TEF).
 
-**Probes PB-07.**
+**Probes PB-01, PB-15.**
 
-### S-24 — Three candidate leads in the opening hand and no Bronzor
+### S-32 — Turn 1 going first, where no Supporter may be played
 
-*turn 1, going second, `clear`. Seed 1; a position like this arose in 15 of 500 games (3%).*
+*turn 1, going first, `clear`, **decklist2**. Seed 12; a position like this arose in 39 of 500 games (7.8%).*
 
 ```
   active   MegaKangaskhanex[C] played=T0
   bench    (empty)
-  hand     Hilda, Duskull, Budew, TelepathicPsychicEnergy, Buneary, Dusknoir, Dusknoir
+  hand     NightStretcher, MegaLopunnyex, Switch, Salvatore, Meowthex, Latiasex, Bronzor(TEF)
   discard  -
   deck     46 cards   prizes 6   stadium -
 ```
 
 Already played: lead MegaKangaskhanex.
 
-**Probes DT-03.**
+**Probes DT-18, and section 5 as a whole.**
 
-### S-25 — The line Active on turn 2 with only the attachment missing
+### S-33 — Turn 2 under the Item lock, with the Supporter alone
 
-*turn 2, going second, `clear`. Seed 7; a position like this arose in 58 of 500 games (11.6%).*
+*turn 2, going first, `item_lock`, **decklist2**. Seed 4; a position like this arose in 154 of 500 games (30.8%).*
+
+```
+  active   Bronzor(TEF)[P] played=T0
+  bench    Meowthex[C] played=T1
+  hand     Bronzong, Switch, RareCandy, Duskull, Hilda, LilliesDetermination
+  discard  PokePad, UltraBall, Duskull, LilliesDetermination
+  deck     42 cards   prizes 6   stadium -
+```
+
+Already played: lead Bronzor(TEF); Poke Pad -> Duskull; Ultra Ball -> Meowthex; bench Meowthex; Last-Ditch Catch -> Hilda.
+
+**Probes the `item_lock` cell, never asked.**
+
+### S-35 — A Poffin that cannot fetch the Bronzor the turn needs
+
+*turn 1, going second, `clear`, **decklist7**. Seed 2; a position like this arose in 76 of 500 games (15.2%).*
+
+```
+  active   Duskull[P] played=T0
+  bench    (empty)
+  hand     Salvatore, NightStretcher, Gwynn, PokePad, Dusknoir, BuddyBuddyPoffin, DarknessEnergy
+  discard  -
+  deck     46 cards   prizes 6   stadium -
+```
+
+Already played: lead Duskull.
+
+**Probes PB-01, and the Bronzor printing.**
+
+### S-36 — Risky Ruins as the only Stadium in hand
+
+*turn 2, going second, `clear`, **decklist7**. Seed 3; a position like this arose in 105 of 500 games (21%).*
+
+```
+  active   Bronzor(TEF)[P] played=T1
+  bench    Latiasex[P]{TelepathicPsychicEnergy} played=T0 | Duskull[P] played=T1
+  hand     DarknessEnergy, RiskyRuins, Dusknoir, Duskull, Dusknoir, Bronzong, PokePad
+  discard  Hilda
+  deck     42 cards   prizes 6   stadium -
+```
+
+Already played: lead Latiasex; Hilda (evolution) -> whiff (Bronzong not in deck); Hilda (energy) -> TelepathicPsychicEnergy; attach TelepathicPsychicEnergy to Latiasex; Telepathic Psychic Energy -> Bronzor(TEF), Duskull; promote Bronzor(TEF) via retreat(free).
+
+**Probes PB-11, and section 4.2 step 7.**
+
+### S-37 — Blissey ex in hand, and no Chansey in the deck
+
+*turn 2, going second, `clear`, **decklist7**. Seed 4; a position like this arose in 63 of 500 games (12.6%).*
+
+```
+  active   Bronzor(TEF)[P] played=T1
+  bench    Duskull[P] played=T1 | Latiasex[P]{TelepathicPsychicEnergy} played=T0 | Duskull[P] played=T1
+  hand     Blisseyex, RiskyRuins, DarknessEnergy, LilliesDetermination, NightStretcher, Bronzong, PokePad
+  discard  BuddyBuddyPoffin, Hilda
+  deck     40 cards   prizes 6   stadium -
+```
+
+Already played: lead Latiasex; Buddy-Buddy Poffin -> Duskull; Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; attach TelepathicPsychicEnergy to Latiasex; Telepathic Psychic Energy -> Bronzor(TEF), Duskull; promote Bronzor(TEF) via retreat(free).
+
+**Probes a decklist question, not a policy one.**
+
+### S-38 — A miss where the attachment was the only thing missing
+
+*turn 2, going second, `clear`, **decklist2**. Seed 7; a position like this arose in 33 of 500 games (6.6%).*
 
 ```
   active   Bronzor(TEF)[P] played=T1
   bench    Latiasex[P] played=T1 | Duskull[P] played=T0
-  hand     PokePad, RareCandy, EnrichingEnergy, Meowthex
-  discard  PokePad, UltraBall, NightStretcher, Dusknoir
-  deck     43 cards   prizes 6   stadium -
+  hand     NightStretcher, RareCandy, Bronzong, JammingTower
+  discard  PokePad, PokePad, UltraBall, Dusknoir, EnrichingEnergy
+  deck     42 cards   prizes 6   stadium -
 ```
 
-Already played: lead Duskull; Poke Pad -> Bronzor(TEF); Ultra Ball -> Latiasex; bench Latiasex; bench Bronzor(TEF); promote Bronzor(TEF) via retreat(free).
+Already played: lead Duskull; Poke Pad -> Bronzor(TEF); Poke Pad -> Bronzong; Ultra Ball -> Latiasex; bench Latiasex; bench Bronzor(TEF); promote Bronzor(TEF) via retreat(free).
 
 **Probes DT-01.**
 
-### S-26 — The last Bench slot, and a Telepathic that wants two bodies
+### S-39 — The [P] source stranded on a body that cannot attack
 
-*turn 2, going second, `clear`. Seed 33; a position like this arose in 26 of 500 games (5.2%).*
+*turn 2, going second, `clear`, **decklist2**. Seed 34; a position like this arose in 19 of 500 games (3.8%).*
 
 ```
-  active   Bronzor(TEF)[P]{TelepathicPsychicEnergy} played=T1
-  bench    Latiasex[P] played=T1 | Meowthex[C] played=T0 | Duskull[P] played=T1 | Bronzor(TEF)[P] played=T1
-  hand     TelepathicPsychicEnergy, Dusknoir, Dusknoir, RareCandy, Hilda, LilliesDetermination, RareCandy, MegaLopunnyex
-  discard  PokePad, UltraBall, LilliesDetermination, TelepathicPsychicEnergy, LilliesDetermination
-  deck     34 cards   prizes 6   stadium JammingTower
+  active   Bronzor(TEF)[P] played=T1
+  bench    Latiasex[P] played=T1 | Duskull[P]{TelepathicPsychicEnergy} played=T0 | Duskull[P] played=T1
+  hand     Hilda, Hilda, LilliesDetermination, BosssOrders, NightStretcher, Bronzong, Dusknoir
+  discard  Hilda
+  deck     41 cards   prizes 6   stadium -
 ```
 
-Already played: lead Meowthex; Poke Pad -> Bronzor(TEF); Ultra Ball -> Latiasex; bench Latiasex; bench Bronzor(TEF); promote Bronzor(TEF) via retreat(free); attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Duskull, Bronzor(TEF); Lillie's Determination, drew 8; play Stadium JammingTower.
+Already played: lead Duskull; bench Latiasex; Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; attach TelepathicPsychicEnergy to Duskull; Telepathic Psychic Energy -> Bronzor(TEF), Duskull; promote Bronzor(TEF) via retreat(free).
 
-**Probes PB-15, DT-02.**
+**Probes DT-01, and section 4.2 step 6.**
 
 
 ## What the policy does from each position
 
-- **S-15** — evolve into Bronzong; attach TelepathicPsychicEnergy to Bronzong; Telepathic Psychic Energy -> Duskull, FlutterMane; Lillie's Determination, drew 8; play Stadium JammingTower; EVOLUTION JAMMER.
-- **S-16** — Poke Pad -> Bronzong; evolve into Bronzong; Hilda (evolution) -> DECLINED (no target named); Hilda (energy) -> TelepathicPsychicEnergy; EVOLUTION JAMMER.
-- **S-17** — Ultra Ball -> Bronzong; attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Latiasex, Duskull; Codebreaking stacked Bronzong, Switch.
-- **S-18** — evolve into Bronzong; Hilda (evolution) -> DECLINED (no target named); Hilda (energy) -> TelepathicPsychicEnergy; evolve into Bronzong; EVOLUTION JAMMER.
-- **S-19** — Poke Pad -> Bronzong; evolve into Bronzong; Salvatore -> Bronzong; evolve into Bronzong; EVOLUTION JAMMER.
-- **S-20** — evolve into Bronzong; Hilda (evolution) -> DECLINED (no target named); Hilda (energy) -> TelepathicPsychicEnergy.
-- **S-22** — Poke Pad -> Bronzor(TEF); Ultra Ball -> Latiasex; bench Latiasex; bench Bronzor(TEF); promote Bronzor(TEF) via retreat(free).
-- **S-23** — Poke Pad -> Bronzor(TEF); Ultra Ball -> Latiasex; bench Latiasex; bench Bronzor(TEF); promote Bronzor(TEF) via retreat(free); attach TelepathicPsychicEnergy to Bronzor(TEF); Telepathic Psychic Energy -> Duskull, Bronzor(TEF); Lillie's Determination, drew 8; play Stadium JammingTower.
-- **S-24** — Run Errand; bench Latiasex; Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; attach TelepathicPsychicEnergy to Latiasex; Telepathic Psychic Energy -> Bronzor(TEF), Duskull; promote Bronzor(TEF) via retreat(free).
-- **S-25** — bench Meowthex; Last-Ditch Catch -> Hilda; Poke Pad -> Bronzong; Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; evolve into Bronzong; attach TelepathicPsychicEnergy to Bronzong; Telepathic Psychic Energy -> Duskull, Bronzor(TEF); EVOLUTION JAMMER.
-- **S-26** — Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; evolve into Bronzong; EVOLUTION JAMMER.
+- **S-27** — Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; evolve into Bronzong; attach TelepathicPsychicEnergy to Bronzong; Telepathic Psychic Energy -> Duskull, Bronzor(TEF); EVOLUTION JAMMER.
+- **S-28** — evolve into Bronzong; Salvatore -> Bronzong; attach TelepathicPsychicEnergy to Bronzong; Telepathic Psychic Energy -> Duskull, FlutterMane; EVOLUTION JAMMER.
+- **S-29** — evolve into Dusknoir.
+- **S-30** — evolve into Bronzong; Salvatore -> Bronzong; EVOLUTION JAMMER.
+- **S-31** — Ultra Ball -> Duskull; Lillie's Determination, drew 8.
+- **S-32** — Run Errand; bench Latiasex; bench Bronzor(TEF); bench Meowthex; Last-Ditch Catch -> Hilda; promote Bronzor(TEF) via retreat(free).
+- **S-33** — Hilda (evolution) -> Bronzong; Hilda (energy) -> TelepathicPsychicEnergy; evolve into Bronzong; attach TelepathicPsychicEnergy to Bronzong; Telepathic Psychic Energy -> Duskull, Bronzor(TEF); EVOLUTION JAMMER.
+- **S-35** — Poke Pad -> Bronzor(TEF); Buddy-Buddy Poffin -> Duskull; Gwynn, discarded 1, drew 3; bench Bronzor(TEF).
+- **S-36** — Poke Pad -> Duskull; evolve into Bronzong.
+- **S-37** — Poke Pad -> Duskull; evolve into Bronzong; bench Duskull; Lillie's Determination, drew 8; attach TelepathicPsychicEnergy to Bronzong; Telepathic Psychic Energy -> Duskull; EVOLUTION JAMMER.
+- **S-38** — evolve into Bronzong; play Stadium JammingTower.
+- **S-39** — Hilda (evolution) -> DECLINED (no target named); Hilda (energy) -> TelepathicPsychicEnergy; evolve into Bronzong; attach TelepathicPsychicEnergy to Bronzong; Telepathic Psychic Energy -> Duskull, Bronzor(TEF); EVOLUTION JAMMER.

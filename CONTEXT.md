@@ -108,6 +108,23 @@ already gone. A whiff is **information the player earns** — it is how a real
 player learns a card is prized — and the policy is entitled to act on it.
 _Avoid_: fail, brick
 
+**Settled** *[unconfirmed]*:
+Said of a sub-goal the turn has finished with, **either way**: it is met, or the
+turn has established that it cannot be met. Not a synonym for *met*. The word
+exists because `docs/03_decision_tree.md` §8 turns on it — Rare Candy reaches a
+Dusknoir once sub-goal B is *settled*, which covers both the turn that already
+won and the turn that already lost, and covers neither turn while a Bronzong in
+hand still has a Bronzor that could legally take it.
+_Avoid_: resolved, done, closed
+
+**Lead order** *[unconfirmed]*:
+The ranking that decides which Basic goes into the Active spot at setup when the
+opening hand holds no Bronzor. A **parameter of the policy**, not a constant:
+`LEAD_ORDER_LIST` holds it and it is chosen by measurement (ADR 0008). Distinct
+from **lead**, which is the Basic one replicate actually placed and which every
+trace records.
+_Avoid_: opening, starter, first Pokémon
+
 ## Simulation
 
 **Measured window**:
@@ -132,8 +149,18 @@ constrains us; it is not an opposing decklist.
 
 **Cell**:
 A (decklist, scenario, going-first-or-second) triple. **The unit at which results
-are reported, and never pooled across** — see `docs/adr/0002`.
+are reported, and never pooled across** — see `docs/adr/0002`. Eighteen of them
+exist, not twenty-four: `item_lock` needs the opponent to have attacked with Itchy
+Pollen, which only a player who went second can do, so there is no going-second
+`item_lock` cell.
 _Avoid_: condition, arm, group
+
+**Registry** *[unconfirmed]*:
+The table of one rate per cell across every candidate decklist —
+`results/decklist_registry.csv`, with `results/registry.md` as the reading copy.
+The output that answers *which decklist is better*, as opposed to the **traces**,
+which answer *should the decision tree change*.
+_Avoid_: results table, leaderboard
 
 **Policy**:
 The code that makes the player's in-game choices. Distinguished from the rules

@@ -27,15 +27,22 @@
 #' @param turn_number the player's own turn number.
 #' @param bool_going_first passed through.
 #' @param scenario passed through.
+#' @param decklist_name which list in `decklists/` to build the deck from.
+#'   decklist2 is the default and the right choice for almost everything.
+#'   **decklist7 is the fixture for anything about a second printing** -- it is
+#'   the only list running two Bronzor printings, two Latias ex, and a basic
+#'   Darkness Energy, and several defects were invisible until a test could
+#'   reach those.
 #' @noRd
 .make_pair <- function(active_id = "TEF-068",
                        bench_id_vec = character(0),
                        hand_id_vec = character(0),
                        turn_number = 1L,
                        bool_going_first = FALSE,
-                       scenario = "clear"){
+                       scenario = "clear",
+                       decklist_name = "decklist2"){
   card_df <- .test_card_df()
-  decklist <- .test_decklist()
+  decklist <- .test_decklist(decklist_name)
   state <- new_game_state(decklist, card_df,
                           bool_going_first = bool_going_first,
                           scenario = scenario)
